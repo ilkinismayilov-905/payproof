@@ -10,6 +10,7 @@ import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { PackageActions } from "./package-actions";
 import { PackageHeader } from "./package-header";
+import { ReadinessBanner } from "./readiness-banner";
 
 export function PackageDetailScreen({ id }: { id: string }) {
   const pkg = usePackage(id);
@@ -53,6 +54,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
   return (
     <div className="@container flex flex-col gap-4">
       <PackageHeader pkg={pkg.data} actions={<PackageActions status={pkg.data.status} />} />
+      <ReadinessBanner pkg={pkg.data} onRefresh={() => pkg.refetch()} />
     </div>
   );
 }
