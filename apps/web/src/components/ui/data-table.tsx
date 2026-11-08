@@ -37,6 +37,11 @@ interface Props<T> {
   onSortChange?: (sort: Sort) => void;
   /** Shown in a full-width row when there is no data. */
   empty: ReactNode;
+  /**
+   * Mouse convenience: the whole row opens the item. Keyboard users get the same via a link in the
+   * row, so clicks on links and buttons inside the row are left to them.
+   */
+  onRowClick?: (row: T) => void;
 }
 
 /** Prototype `.table`: sortable headers announce their state with `aria-sort`. */
@@ -48,6 +53,7 @@ export function DataTable<T>({
   sort = null,
   onSortChange,
   empty,
+  onRowClick,
 }: Props<T>) {
   // TanStack Table returns non-memoizable functions; React Compiler is off here, nothing to skip.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -110,7 +116,17 @@ export function DataTable<T>({
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className="border-border hover:bg-surface-2 border-b transition-colors duration-base last:border-b-0"
+              onClick={
+                onRowClick &&
+                ((event) => {
+                  if (!(event.target as Element).closest("a, button, input, select, label"))
+                    onRowClick(row.original);
+                })
+              }
+              className={cn(
+                "border-border hover:bg-surface-2 border-b transition-colors duration-base last:border-b-0",
+                onRowClick && "cursor-pointer",
+              )}
             >
               {row.getVisibleCells().map((cell) => (
                 <td
