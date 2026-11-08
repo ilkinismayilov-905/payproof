@@ -18,6 +18,7 @@ dependencies = [
 [project.scripts]
 payproof-api = "payproof.main:run"
 payproof-seed = "payproof.seed.cli:run"
+payproof-worker = "payproof.worker.cli:run"
 
 [dependency-groups]
 dev = [
