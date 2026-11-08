@@ -105,14 +105,13 @@ async def current_runs(
     )
     checks: dict[uuid.UUID, list[CheckResult]] = {}
     for c in rows.all():
-        hint = c.data.get("fix_hint")
         checks.setdefault(c.validation_run_id, []).append(
             CheckResult(
                 c.rule_id,
                 CheckOutcome(c.outcome),
                 c.message,
                 cascade=c.cascade,
-                fix_hint=FixHint(hint) if hint else None,
+                fix_hint=FixHint(c.fix_hint) if c.fix_hint else None,
                 data=c.data,
             )
         )

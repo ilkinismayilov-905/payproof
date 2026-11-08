@@ -17,6 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from payproof.domain.enums import CheckOutcome
+from payproof.domain.rules.result import FixHint
 from payproof.repositories.orm import Base, TenantEntity, one_of, same_tenant_fk, tenant_key
 
 # mirrors `RuleId` in openapi.yaml (R-001..R-010)
@@ -64,6 +65,7 @@ class CheckResult(TenantEntity, Base):
         UniqueConstraint("validation_run_id", "rule_id"),
         same_tenant_fk("validation_run_id", "validation_runs"),
         one_of("outcome", CheckOutcome, "outcome_known"),
+        one_of("fix_hint", FixHint, "fix_hint_known"),
         CheckConstraint(RULE_ID_CHECK, name="rule_id_format"),
         CheckConstraint("jsonb_typeof(data) = 'object'", name="data_is_object"),
     )
@@ -73,6 +75,7 @@ class CheckResult(TenantEntity, Base):
     outcome: Mapped[str] = mapped_column(Text)
     cascade: Mapped[bool] = mapped_column(Boolean, server_default=false())
     message: Mapped[str] = mapped_column(Text)
+    fix_hint: Mapped[str | None] = mapped_column(Text)  # which fix the UI offers
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
     # shortcut: no FK on array items; B-17 writes only evidence ids of the run's own document
     # versions. Upgrade to a check_result_evidence join table if results are ever written elsewhere.
