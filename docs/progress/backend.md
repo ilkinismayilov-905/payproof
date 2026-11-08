@@ -14,7 +14,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | B-05 | Tapşırıq, təsdiq, ixrac, audit, bildiriş, job modelləri | ✅ | `feat/B-05-workflow-models` | 2026-11-08 | miqrasiya 0011–0014; audit append-only trigger; bir versiyaya bir qüvvədə təsdiq (partial unique), təsdiq run-a 5 sütunlu FK ilə bağlı; bir qayda üçün bir açıq tapşırıq (partial unique); `jobs` tenant qoruyucusundan kənar (B-14 açıq filtr) |
 | B-06 | Domen primitivləri | ✅ | `feat/B-06-domain-primitives` | 2026-11-08 | `Money` (valyuta məcburi, HALF_UP, NUMERIC(18,2) aralığı), enum-lar openapi ilə test olunur, icazə matrisi security.md-dən; `PackageSnapshot` + `parties` (R-003 mesajı) — rules-engine.md yeniləndi; modellərdə literal Role/Currency/status siyahıları enum-larla əvəzləndi (SQL eyni) |
 | B-07 | Qayda mühərriki I — R-001…R-004 | ✅ | `feat/B-07-rules-engine-1` | 2026-11-08 | `domain/rules/` — hər qayda ayrı modul, mesajlar mock/prototiplə eyni; R-004 vahid fərqi və oxunmamış vahid → UNKNOWN (mesaj yeni), R-003 oxunmamış təhvil alıcısı → UNKNOWN; evidence field path üzrə (`rules/paths.py`) |
-| B-08 | Qayda mühərriki II — R-005…R-009, status törədilməsi, golden test | 🟡 | `feat/B-08-rules-engine-2` | 2026-11-08 | |
+| B-08 | Qayda mühərriki II — R-005…R-009, status törədilməsi, golden test | ✅ | `feat/B-08-rules-engine-2` | 2026-11-08 | R-005…R-009, `evaluate()`, `derive_status()`; golden 14/14 + yeni dəstlər + INV-1042 axını; mesajlar TS mühərriki ilə bayt-bayt eyni (review yoxladı); oxunmamış dəyər/sətir və nəticəsiz run heç vaxt PASS/READY deyil |
 | B-09 | Seed əmri | ⬜ | | | |
 | B-10 | Auth, tenant, səlahiyyət | ⬜ | | | |
 | B-11 | Oxuma API-ləri | ⬜ | | | |
