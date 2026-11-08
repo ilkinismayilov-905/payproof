@@ -1,4 +1,7 @@
 import { mockIds } from "@payproof/mocks";
+import { server } from "@payproof/mocks/node";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import { screen, within } from "@testing-library/react";
 import { beforeEach, expect, test } from "vitest";
 import { setToken } from "@/lib/auth";
@@ -30,4 +33,20 @@ test("approval history: version, amount, approver and validity", async () => {
   expect(items[0]).toHaveTextContent(/Rəşad Əliyev/);
   expect(items[0]).toHaveTextContent(/Qüvvədə|Etibarsızlaşıb|İxrac edilib/);
   expect(within(panel).getByRole("link", { name: /Audit/ })).toHaveAttribute("href", "/audit");
+});
+
+test("attention table: a failed load can be retried in place", async () => {
+  server.use(
+    http.get(
+      "*/v1/packages",
+      () =>
+        HttpResponse.json({ error: { code: "INTERNAL_ERROR", message: "Xəta" } }, { status: 500 }),
+      { once: true },
+    ),
+  );
+  renderWithQuery(<OverviewScreen />);
+  const panel = await screen.findByRole("region", { name: "Diqqət tələb edən paketlər" });
+  expect(await within(panel).findByRole("alert")).toHaveTextContent("Məlumat yüklənmədi");
+  await userEvent.click(within(panel).getByRole("button", { name: "Yenidən cəhd edin" }));
+  expect(await within(panel).findByRole("table")).toBeInTheDocument();
 });

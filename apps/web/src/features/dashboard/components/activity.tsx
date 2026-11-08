@@ -8,6 +8,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { DateTime, Money } from "@/components/format";
 import { PackageStatusBadge, StatusBadge } from "@/components/status/status-badges";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState, Panel } from "@/components/ui/layout";
 import { SkeletonTable } from "@/components/ui/skeleton";
@@ -73,9 +74,12 @@ export function AttentionPackages({ asOf }: { asOf: string }) {
     <Panel title="Diqqət tələb edən paketlər" actions={<More href="/packages">Hamısı</More>} flush>
       {list.isPending && <SkeletonTable rows={5} columns={4} />}
       {list.isError && (
-        <p role="alert" className="text-danger px-4 pb-4">
-          {ui.errorTitle}
-        </p>
+        <div role="alert" className="flex items-center justify-between gap-3 px-4 pb-4">
+          <span className="text-danger">{ui.errorTitle}</span>
+          <Button variant="outline" onClick={() => list.refetch()}>
+            {ui.retry}
+          </Button>
+        </div>
       )}
       {list.data && (
         <DataTable
