@@ -49,7 +49,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-08 · Qayda mühərriki II — R-005…R-009, status törədilməsi, golden test
 **Branch:** `feat/B-08-rules-engine-2` · **Asılılıq:** B-07 · **Skills:** TDD
 **Daxildir:** R-005 (fərq hesablaması `data.line_difference`), R-006 (sifariş + təhvil), R-007, R-008 (R-007-dən asılı), R-009 (tolerans), `evaluate()`, `derive_status()` (approval/export məlumatı ilə), `tests/golden/` — fixtures-dan snapshot quran helper + 14 paketin `expected.json`-a uyğunluğu + INV-1042 axını addımları.
-**Qəbul:** [ ] golden test 14/14 [ ] R-005 INV-1044 üçün `500.00` [ ] `UNKNOWN` heç vaxt `READY_FOR_APPROVAL` vermir
+**Qəbul:** [ ] golden test 14/14 [ ] R-005 INV-1044 üçün `500.00` [ ] `UNKNOWN` heç vaxt `READY_FOR_APPROVAL` vermir [ ] fixture snapshot helper-i sətir vahidlərini `fixtures/products.json`-dan doldurur (fixture sətirlərində vahid yoxdur; R-004 oxunmamış vahidi `UNKNOWN` sayır — B-07)
 
 ### B-09 · Seed əmri
 **Branch:** `feat/B-09-seed` · **Asılılıq:** B-05, S-03
@@ -64,7 +64,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-11 · Oxuma API-ləri
 **Branch:** `feat/B-11-read-api` · **Asılılıq:** B-10, B-08
 **Daxildir:** `services/package_query.py` (snapshot qurmaq, qaydaları işlətmək, status törətmək), `GET /v1/packages` (filtr: status, customer_id, owner_id, issue, period, q; sort; cursor), `GET /v1/packages/{id}` (api-contract.md forması: documents, comparison, checks, summary, tasks, permissions), `GET /v1/dashboard` (statuslar, valyuta üzrə açıq məbləğ — hər paket bir dəfə, ən çox təkrarlanan problem kateqoriyası, yaş, qayda üzrə FAIL/UNKNOWN sayları — cascade sayılmır, son təsdiqlər).
-**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun [ ] access log-da query string yoxdur (axtarış sözləri log-a düşmür) və `correlation_id` doludur (test)
+**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun (`CheckResult.title` domen nəticəsində yoxdur — API qatı qaydanın adını əlavə edir) [ ] access log-da query string yoxdur (axtarış sözləri log-a düşmür) və `correlation_id` doludur (test)
 
 ### B-12 · Audit servisi
 **Branch:** `feat/B-12-audit` · **Asılılıq:** B-10
@@ -101,7 +101,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-15 · Çıxarış pipeline-ı
 **Branch:** `feat/B-15-extraction` · **Asılılıq:** B-14 · **Skills:** ADR-0007
 **Daxildir:** `extraction/base.py` (protokol, `ExtractionResult`), `MockExtractionAdapter` (fayl adına görə `fixtures/samples.json`-dan əvvəlcədən hazırlanmış nəticə; nəticədə `source="mock"`), `PdfTextAdapter` (PyMuPDF mətn qatı + sadə sahə parser-i, CSV/XLSX), nəticənin sxem + mənbə validasiyası (mövcud olmayan səhifə → rədd), `extracted_*` və `evidence_refs` persist, sonra validation-u tetikləmək.
-**Qəbul:** [ ] `INV-1042_v2_PO-381.pdf` yüklənəndə R-001 PASS olur [ ] skan (`INV-1047`) → `REVIEW_REQUIRED`, PO `UNKNOWN`
+**Qəbul:** [ ] `INV-1042_v2_PO-381.pdf` yüklənəndə R-001 PASS olur [ ] skan (`INV-1047`) → `REVIEW_REQUIRED`, PO `UNKNOWN` [ ] çıxarış faktura/sifariş sətrinin ölçü vahidini yazır (oxunmayan vahid R-004-də `UNKNOWN` verir)
 
 ### B-16 · Sifariş uyğunlaşdırması
 **Branch:** `feat/B-16-matching` · **Asılılıq:** B-15
