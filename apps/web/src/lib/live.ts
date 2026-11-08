@@ -1,10 +1,15 @@
-import type { Schemas } from "@payproof/api-client";
-import type { QueryKey } from "@tanstack/react-query";
+"use client";
+
+import { subscribeEvents, type Schemas } from "@payproof/api-client";
+import { useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { customerKeys } from "@/features/customers";
 import { dashboardKeys } from "@/features/dashboard";
 import { notificationKeys } from "@/features/notifications";
 import { packageKeys } from "@/features/packages";
 import { taskKeys } from "@/features/tasks";
+import { API_BASE } from "./api";
+import { getToken } from "./auth";
 
 type LiveEvent = Schemas["LiveEvent"];
 
@@ -34,4 +39,38 @@ export function liveInvalidation(event: LiveEvent): QueryKey[] | "all" {
     default:
       return "all";
   }
+}
+
+const listeners = new Set<(event: LiveEvent) => void>();
+
+/** Listen to live events (toasts, stale banners). Returns the unsubscribe function. */
+export function onLiveEvent(listener: (event: LiveEvent) => void) {
+  listeners.add(listener);
+  return () => void listeners.delete(listener);
+}
+
+/**
+ * One SSE connection for the signed-in app (mounted once in the shell). Events invalidate what
+ * they change; a reconnect invalidates everything, since events may have been missed meanwhile.
+ * Sign-out or a 401 unmounts the shell, which stops the stream.
+ */
+export function useLiveUpdates() {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    let connectedBefore = false;
+    return subscribeEvents({
+      baseUrl: API_BASE,
+      getToken,
+      onOpen: () => {
+        if (connectedBefore) void queryClient.invalidateQueries();
+        connectedBefore = true;
+      },
+      onEvent: (event) => {
+        const keys = liveInvalidation(event);
+        if (keys === "all") void queryClient.invalidateQueries();
+        else for (const queryKey of keys) void queryClient.invalidateQueries({ queryKey });
+        listeners.forEach((listener) => listener(event));
+      },
+    });
+  }, [queryClient]);
 }

@@ -3,6 +3,7 @@
 import { shellText } from "@payproof/api-client/i18n";
 import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLiveUpdates } from "@/lib/live";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -19,6 +20,7 @@ const readCollapsed = () => {
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
+  useLiveUpdates(); // one live event stream per signed-in app (ADR-0010)
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [navOpen, setNavOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
