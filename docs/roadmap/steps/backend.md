@@ -119,7 +119,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-22 · Müştəri qaydaları API
 **Branch:** `feat/B-22-requirements` · **Asılılıq:** B-20
 **Daxildir:** `GET /v1/customers`, `GET/POST /v1/customers/{id}/requirements` (yalnız approver; səbəb ≥10; tolerans ≤ 1.00; dəyişiklik yoxdursa 422), yeni versiyadan sonra müştərinin ixrac edilməmiş paketlərinin revalidation-u + köhnə təsdiqlərin etibarsızlaşması.
-**Qəbul:** [ ] c2-yə imza tələbi əlavə edəndə INV-1035 `NEEDS_REVIEW` olur
+**Qəbul:** [ ] c2-yə imza tələbi əlavə edəndə INV-1035 `NEEDS_REVIEW` olur [ ] ADR-0009 (test ilə): yeni qayda dəsti müştərinin cari versiyası ixrac edilməmiş hər paketinin versiyasını artırır (INV-1035 v1 → v2), cari təsdiq `valid=false` olur və auditdə qalır, təsdiqçiyə bildiriş gedir; cari versiyası ixrac edilmiş paket (INV-1031) dəyişmir
 
 ### B-23 · Bildirişlər API
 **Branch:** `feat/B-23-notifications` · **Asılılıq:** B-17
