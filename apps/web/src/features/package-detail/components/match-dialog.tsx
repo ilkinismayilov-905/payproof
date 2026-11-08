@@ -64,39 +64,47 @@ export function MatchDialog({
             </Dialog.Description>
           </div>
           <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
-            <div
-              role="radiogroup"
-              aria-label="Sifariş namizədləri"
-              aria-invalid={missing || undefined}
-              aria-describedby={missing ? "match-error" : undefined}
-              className="flex flex-col gap-2"
-            >
-              {candidates.map((c) => (
-                <label
-                  key={c.order_id}
-                  className="border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer gap-3 rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
-                >
-                  <input
-                    type="radio"
-                    name="candidate"
-                    value={c.order_id}
-                    checked={picked === c.order_id}
-                    onChange={() => {
-                      setPicked(c.order_id);
-                      setMissing(false);
-                    }}
-                    className="sr-only"
-                  />
-                  <span className="grow">
-                    <span className="flex flex-wrap justify-between gap-2">
-                      <b>{c.po_number}</b>
-                      <Money {...c.total} className="font-bold" />
+            {candidates.length === 0 ? (
+              // nothing to choose from (e.g. a new package): say so instead of an impossible choice
+              <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">
+                Uyğun sifariş namizədi tapılmadı. Sifariş sistemdə qeydə alındıqdan sonra paketi
+                yenidən yoxlayın.
+              </p>
+            ) : (
+              <div
+                role="radiogroup"
+                aria-label="Sifariş namizədləri"
+                aria-invalid={missing || undefined}
+                aria-describedby={missing ? "match-error" : undefined}
+                className="flex flex-col gap-2"
+              >
+                {candidates.map((c) => (
+                  <label
+                    key={c.order_id}
+                    className="border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer gap-3 rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
+                  >
+                    <input
+                      type="radio"
+                      name="candidate"
+                      value={c.order_id}
+                      checked={picked === c.order_id}
+                      onChange={() => {
+                        setPicked(c.order_id);
+                        setMissing(false);
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="grow">
+                      <span className="flex flex-wrap justify-between gap-2">
+                        <b>{c.po_number}</b>
+                        <Money {...c.total} className="font-bold" />
+                      </span>
+                      <span className="text-text-3 block text-xs">{`${formatDate(c.order_date)} · ${c.reason}`}</span>
                     </span>
-                    <span className="text-text-3 block text-xs">{`${formatDate(c.order_date)} · ${c.reason}`}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
+                  </label>
+                ))}
+              </div>
+            )}
             {missing && (
               <p
                 id="match-error"
@@ -128,14 +136,16 @@ export function MatchDialog({
                 {actionLabel.cancel}
               </Button>
             </Dialog.Close>
-            <Button
-              size="lg"
-              aria-disabled={confirm.isPending}
-              onClick={() => confirm.isPending || submit()}
-            >
-              <Link2 aria-hidden />
-              Seçilmiş sifarişlə əlaqəni təsdiqlə
-            </Button>
+            {candidates.length > 0 && (
+              <Button
+                size="lg"
+                aria-disabled={confirm.isPending}
+                onClick={() => confirm.isPending || submit()}
+              >
+                <Link2 aria-hidden />
+                Seçilmiş sifarişlə əlaqəni təsdiqlə
+              </Button>
+            )}
           </div>
         </Dialog.Content>
       </Dialog.Portal>

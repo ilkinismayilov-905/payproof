@@ -35,7 +35,10 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
   const focus = useRestoreFocus(); // opened from state, not a Dialog.Trigger
   const source = evidence && sourceOf(pkg, evidence.document_version_id);
   return (
-    <Dialog.Root open={Boolean(evidence)} onOpenChange={(open) => open || onClose()}>
+    <Dialog.Root
+      open={Boolean(evidence)}
+      onOpenChange={(open) => open || signature?.pending || onClose()}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="bg-overlay fixed inset-0 z-50" />
         <Dialog.Content
@@ -122,7 +125,7 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
                     onClick={() => signature.pending || signature.onConfirm()}
                   >
                     <Check aria-hidden />
-                    İmzanın mövcudluğunu təsdiqləyirəm
+                    {signature.pending ? "Qeyd edilir…" : "İmzanın mövcudluğunu təsdiqləyirəm"}
                   </Button>
                 </div>
               )}

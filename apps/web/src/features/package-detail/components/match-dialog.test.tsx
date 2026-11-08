@@ -63,3 +63,28 @@ test("INV-1042: the confirmed link re-validates the package to NEEDS_FIX", async
     status: "NEEDS_FIX",
   });
 });
+
+test("no candidates: says so instead of an empty choice that can never be confirmed", async () => {
+  const { render } = await import("@testing-library/react");
+  const pkg = {
+    id: "p1",
+    invoice_number: "INV-1051",
+    version: 1,
+    link: { confirmed: false, candidates: [] },
+    fields: [],
+    documents: [],
+  } as unknown as import("@payproof/api-client").Schemas["PackageDetail"];
+  const { QueryClientProvider } = await import("@tanstack/react-query");
+  const { testQueryClient } = await import("@/test/render");
+  render(
+    <QueryClientProvider client={testQueryClient()}>
+      <MatchDialog pkg={pkg} open onOpenChange={vi.fn()} />
+    </QueryClientProvider>,
+  );
+  const dialog = screen.getByRole("dialog");
+  expect(dialog).toHaveTextContent("Uyğun sifariş namizədi tapılmadı.");
+  expect(within(dialog).queryByRole("radiogroup")).toBeNull();
+  expect(
+    within(dialog).queryByRole("button", { name: "Seçilmiş sifarişlə əlaqəni təsdiqlə" }),
+  ).toBeNull();
+});

@@ -13,13 +13,21 @@ const path = (id: string) => ({ params: { path: { package_id: id } } });
  * into the detail cache; lists, dashboard and tasks are refreshed. A 409 (someone changed the
  * package meanwhile) refetches the detail; the global handler shows the message.
  */
+export const packageMutationKey = (id: string) => ["package-mutation", id] as const;
+
 function usePackageMutation<V>(id: string, request: (vars: V) => Promise<Pkg>) {
   const client = useQueryClient();
   return useMutation<Pkg, ApiError, V>({
+    // one key per package: the page can tell that any change to it is in flight
+    mutationKey: packageMutationKey(id),
     mutationFn: request,
     onSuccess: (pkg) => {
       client.setQueryData(packageKeys.detail(id), pkg);
-      void client.invalidateQueries({ queryKey: packageKeys.all, refetchType: "active" });
+      // lists and audit go stale; the detail was just written from the response, don't refetch it
+      void client.invalidateQueries({
+        queryKey: packageKeys.all,
+        predicate: ({ queryKey }) => queryKey[1] !== "detail" || queryKey[2] !== id,
+      });
       void client.invalidateQueries({ queryKey: dashboardKeys.all });
       void client.invalidateQueries({ queryKey: taskKeys.all });
     },

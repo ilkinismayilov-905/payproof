@@ -3,13 +3,14 @@
 import type { Schemas } from "@payproof/api-client";
 import { packageStatusLabel, ui } from "@payproof/api-client/i18n";
 import { PackageX } from "lucide-react";
+import { useIsMutating } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
-import { useReviewSignature, useValidate } from "../mutations";
+import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { ActivityPanel } from "./activity-panel";
@@ -33,6 +34,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
   const [matching, setMatching] = useState(false);
   const sign = useReviewSignature(id);
   const validate = useValidate(id);
+  const busy = useIsMutating({ mutationKey: packageMutationKey(id) });
   // R-008: show the signature evidence; without one, the delivery note's first page (no invented quote)
   const reviewSignature = (p: Schemas["PackageDetail"]) => {
     const check = p.checks.find((c) => c.fix_hint === "review_signature");
@@ -87,7 +89,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
           <PackageActions
             status={pkg.data.status}
             recheck={{
-              pending: validate.isPending,
+              pending: busy > 0,
               onClick: () =>
                 validate.mutate(
                   { expected_version: pkg.data.version },
@@ -146,12 +148,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
             : undefined
         }
       />
-      <MatchDialog
-        key={pkg.data.version}
-        pkg={pkg.data}
-        open={matching}
-        onOpenChange={setMatching}
-      />
+      {matching && <MatchDialog pkg={pkg.data} open onOpenChange={setMatching} />}
       <ActivityPanel
         packageId={id}
         // prototype: only a package that was never approved or exported can be deleted

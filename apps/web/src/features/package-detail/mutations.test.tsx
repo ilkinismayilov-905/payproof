@@ -31,7 +31,10 @@ test("INV-1042: confirming the suggested order bumps the version, re-validates â
   expect(next.link.confirmed).toBe(true);
   expect(next.status).toBe("NEEDS_FIX");
   expect(client.getQueryData(packageKeys.detail(PKG))).toEqual(next); // the screen updates at once
-  expect(invalidate).toHaveBeenCalledWith({ queryKey: packageKeys.all, refetchType: "active" });
+  // lists and audit refresh; the detail just written is not fetched again
+  const call = invalidate.mock.calls.find(([f]) => f?.queryKey === packageKeys.all)![0]!;
+  expect(call.predicate!({ queryKey: packageKeys.list({}) } as never)).toBe(true);
+  expect(call.predicate!({ queryKey: packageKeys.detail(PKG) } as never)).toBe(false);
 });
 
 test("a stale version gets 409 and the detail is refetched", async () => {
