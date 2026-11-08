@@ -12,7 +12,11 @@ RULE = "R-009"
 
 def r009(s: PackageSnapshot) -> CheckResult:
     inv, ev = s.invoice, evidence_for(s, INVOICE_TOTAL)
-    amounts = [li.unit_price * li.qty for li in inv.lines if li.unit_price and li.qty is not None]
+    amounts = [
+        li.unit_price * li.qty
+        for li in inv.lines
+        if li.unit_price is not None and li.qty is not None
+    ]
     if inv.total is None or len(amounts) != len(inv.lines):
         # not in the rules table: arithmetic on an unread amount is never PASS
         return CheckResult(
