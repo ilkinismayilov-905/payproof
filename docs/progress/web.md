@@ -12,6 +12,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | W-03 | i18n və status komponentləri | ⬜ | | | |
 | W-04 | Tətbiq çərçivəsi (shell) | ⬜ | | | |
 | W-05 | Ümumi UI dəsti | ⬜ | | | |
+| W-05b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
 | W-06 | İcmal (dashboard) | ⬜ | | | |
 | W-07 | Paketlər siyahısı | ⬜ | | | |
 | W-08 | Paket detalı I — başlıq, banner-lər, sənədlər, tarixçə | ⬜ | | | |
