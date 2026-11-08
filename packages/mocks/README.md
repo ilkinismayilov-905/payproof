@@ -11,7 +11,9 @@ if (process.env.NEXT_PUBLIC_API_MOCK === "1") {
   await createMockWorker().start(); // ~400 ms gecikmə, job-lar ~800 ms
 }
 ```
-App `public/mockServiceWorker.js` faylını servis edir: `pnpm exec msw init public`. `next.config`-də `transpilePackages: ["@payproof/mocks"]`.
+App `public/mockServiceWorker.js` faylını servis edir. Worker skripti bu paketin MSW versiyası (3.x) ilə eyni olmalıdır, ona görə onu buradan yaradın:
+`pnpm --filter @payproof/mocks exec msw init ../../apps/web/public` (mobile üçün `../../apps/mobile/public`).
+`next.config`-də `transpilePackages: ["@payproof/mocks", "@payproof/api-client"]`. Paket monorepo kökündəki `fixtures/*.json` fayllarını import edir — Next/Turbopack-ın kök qovluğu monorepo olmalıdır (W-01/M-01-də yoxlanmalı; lazım olsa `turbopack.root`).
 
 **Node / Vitest:**
 ```ts
