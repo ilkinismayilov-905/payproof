@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "pnpm --filter @payproof/mocks exec msw init ../../apps/web/public --no-save",
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
