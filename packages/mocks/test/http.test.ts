@@ -33,4 +33,29 @@ describe("http plumbing", () => {
       code: "VALIDATION_ERROR",
     });
   });
+
+  it("a second request while the first is still running → 409 IDEMPOTENCY_IN_PROGRESS", async () => {
+    const db = createMockDb();
+    const req = () => new Request("http://x", { headers: { "Idempotency-Key": "k2" } });
+    let release!: () => void;
+    const slow = () => new Promise<Response>((r) => (release = () => r(json({ ok: true }, 202))));
+    const first = idempotent(db, req(), "f", slow);
+    await expect(idempotent(db, req(), "f", slow)).rejects.toMatchObject({
+      code: "IDEMPOTENCY_IN_PROGRESS",
+      status: 409,
+    });
+    release();
+    expect((await first).status).toBe(202);
+  });
+
+  it("a failed request frees the key for a retry", async () => {
+    const db = createMockDb();
+    const req = () => new Request("http://x", { headers: { "Idempotency-Key": "k3" } });
+    await expect(
+      idempotent(db, req(), "f", async () => {
+        throw new Error("boom");
+      }),
+    ).rejects.toThrow("boom");
+    expect((await idempotent(db, req(), "f", async () => json({}, 200))).status).toBe(200);
+  });
 });

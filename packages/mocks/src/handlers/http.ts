@@ -115,11 +115,20 @@ export async function idempotent(
         "Eyni sorğu fərqli məlumatla təkrarlandı.",
         422,
       );
+    if (seen.pending)
+      throw new MockError("IDEMPOTENCY_IN_PROGRESS", "Eyni sorğu hələ emal olunur.", 409);
     return json(seen.body, seen.status);
   }
-  const res = await run();
-  db.idempotency.set(key, { fingerprint, status: res.status, body: await res.clone().json() });
-  return res;
+  // claim the key before running, so a concurrent duplicate cannot run the action twice
+  db.idempotency.set(key, { fingerprint, status: 0, body: null, pending: true });
+  try {
+    const res = await run();
+    db.idempotency.set(key, { fingerprint, status: res.status, body: await res.clone().json() });
+    return res;
+  } catch (e) {
+    db.idempotency.delete(key); // nothing happened — the client may retry with the same key
+    throw e;
+  }
 }
 
 const encode = (n: number) => btoa(String(n));

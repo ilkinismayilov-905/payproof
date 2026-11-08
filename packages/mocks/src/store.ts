@@ -42,7 +42,10 @@ export class MockDb {
   readonly samples: T.Sample[] = structuredClone(samples) as T.Sample[];
   readonly newsets = structuredClone(newsets);
   readonly jobs = new Map<string, Job>();
-  readonly idempotency = new Map<string, { fingerprint: string; status: number; body: unknown }>();
+  readonly idempotency = new Map<
+    string,
+    { fingerprint: string; status: number; body: unknown; pending?: boolean }
+  >();
   readonly seq = { audit: 0, notification: 0, job: 0, task: 0 };
   readonly jobDelayMs: number;
   private clockMs = Date.parse(expected.demo_now);
