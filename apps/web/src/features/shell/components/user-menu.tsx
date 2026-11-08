@@ -17,7 +17,7 @@ const initials = (name: string) =>
     .slice(0, 2);
 
 const menuItem =
-  "data-[highlighted]:bg-surface-2 flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-3 py-2 outline-none";
+  "data-[highlighted]:bg-surface-2 flex min-h-10 pointer-coarse:min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 py-2 outline-none";
 
 /** Account menu: switch demo user (dev auth) or sign out. Radix gives the menu keyboard support. */
 export function UserMenu() {
@@ -42,7 +42,7 @@ export function UserMenu() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="hover:bg-surface-2 focus-visible:ring-ring flex min-h-10 shrink-0 items-center gap-2 rounded-md px-1.5 text-left outline-none focus-visible:ring-2">
+      <DropdownMenu.Trigger className="hover:bg-surface-2 focus-visible:ring-ring flex min-h-10 pointer-coarse:min-h-11 shrink-0 items-center gap-2 rounded-md px-1.5 text-left outline-none focus-visible:ring-2">
         <span
           aria-hidden
           className="bg-brand-50 text-brand-700 grid size-8 place-items-center rounded-full text-xs font-bold"

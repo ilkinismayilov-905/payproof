@@ -33,7 +33,7 @@ const SOON: { label: string; icon: LucideIcon }[] = [
 
 const item = (collapsed: boolean) =>
   cn(
-    "text-text-2 hover:bg-surface-2 hover:text-text flex min-h-[42px] w-full items-center gap-3 rounded-md px-3 text-md font-semibold transition duration-base ease-base",
+    "text-text-2 hover:bg-surface-2 hover:text-text flex min-h-[42px] w-full pointer-coarse:min-h-11 items-center gap-3 rounded-md px-3 text-md font-semibold transition duration-base ease-base",
     "focus-visible:ring-ring outline-none focus-visible:ring-2",
     "aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700",
     collapsed && "justify-center px-0",
