@@ -7,7 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from payproof.repositories.orm import Base, TenantEntity, member_fk, one_of, same_tenant_fk
 
-# shortcut: mirrors `ExtractedField.review_status` in openapi.yaml; domain enums come in B-06
+# shortcut: mirrors `ExtractedField.review_status` in openapi.yaml; move to domain.enums when
+# B-15/B-18 code branches on it
 REVIEW_STATUSES = ("EXTRACTED", "REVIEW_REQUIRED", "CORRECTED")
 MIN_REASON_LENGTH = 5  # B-18: a correction needs a reason of at least 5 characters
 

@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Any
 
@@ -62,13 +63,12 @@ class TenantEntity(IdMixin, TimestampMixin, TenantMixin):
 # data-model.md: money NUMERIC(18,2) + currency, quantity NUMERIC(18,3); never float
 MONEY = Numeric(18, 2)
 QTY = Numeric(18, 3)
-# shortcut: mirrors `Currency` in openapi.yaml; switch to domain enums once B-06 adds them
-CURRENCIES = ("AZN", "USD")
 
 
-def one_of(column: str, values: tuple[str, ...], name: str) -> CheckConstraint:
-    """Enum as TEXT + CHECK (data-model.md); NULL passes, so pair with NOT NULL if required."""
-    return CheckConstraint(f"{column} IN ({', '.join(repr(v) for v in values)})", name=name)
+def one_of(column: str, values: Iterable[str], name: str) -> CheckConstraint:
+    """Enum as TEXT + CHECK (data-model.md); NULL passes, so pair with NOT NULL if required.
+    `values` is a domain StrEnum class or a tuple of plain strings."""
+    return CheckConstraint(f"{column} IN ({', '.join(f"'{v}'" for v in values)})", name=name)
 
 
 def tenant_key() -> UniqueConstraint:

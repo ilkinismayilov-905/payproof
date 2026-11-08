@@ -7,8 +7,8 @@ from decimal import Decimal
 from sqlalchemy import Boolean, CheckConstraint, Date, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import Currency
 from payproof.repositories.orm import (
-    CURRENCIES,
     MONEY,
     QTY,
     Base,
@@ -25,7 +25,7 @@ class ExtractedInvoice(TenantEntity, Base):
         UniqueConstraint("document_version_id"),
         tenant_key(),
         same_tenant_fk("document_version_id", "document_versions"),
-        one_of("currency", CURRENCIES, "currency_known"),
+        one_of("currency", Currency, "currency_known"),
     )
 
     document_version_id: Mapped[uuid.UUID] = mapped_column()
