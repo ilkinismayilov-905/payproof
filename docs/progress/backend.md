@@ -7,7 +7,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 
 | Step | Ad | Status | Branch | Tarix | Qeyd |
 |---|---|---|---|---|---|
-| B-01 | FastAPI skeleti | ⬜ | | | |
+| B-01 | FastAPI skeleti | 🟡 | `feat/B-01-api-skeleton` | 2026-11-08 | |
 | B-02 | DB təməli | ⬜ | | | |
 | B-03 | Kimlik və müştəri modelləri | ⬜ | | | |
 | B-04 | Paket və sənəd modelləri | ⬜ | | | |
