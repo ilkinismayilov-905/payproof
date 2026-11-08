@@ -102,19 +102,22 @@ async def _order(session: AsyncSession, order_id: uuid.UUID) -> Order | None:
     )
 
 
-async def _delivery(session: AsyncSession, package_id: uuid.UUID) -> Delivery | None:
-    q = (
-        select(DocumentVersion.version_no, DeliveryNote)
+async def latest_delivery(session: AsyncSession, package_id: uuid.UUID) -> DeliveryNote | None:
+    """Delivery note of the package's newest extracted delivery version."""
+    return await session.scalar(
+        select(DeliveryNote)
         .join(DocumentVersion, DocumentVersion.id == DeliveryNote.document_version_id)
         .join(Document, Document.id == DocumentVersion.document_id)
         .where(Document.package_id == package_id)
         .order_by(DocumentVersion.version_no.desc())
         .limit(1)
     )
-    row = (await session.execute(q)).first()
-    if row is None:
+
+
+async def _delivery(session: AsyncSession, package_id: uuid.UUID) -> Delivery | None:
+    note = await latest_delivery(session, package_id)
+    if note is None:
         return None
-    note = row[1]
     lines = (
         await session.scalars(
             select(DeliveryNoteLine).where(DeliveryNoteLine.delivery_note_id == note.id)
