@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
 import { useRestoreFocus } from "@/components/ui/restore-focus";
-import { saveFile, useExport } from "../approval";
+import { StaleBanner } from "@/lib/stale";
+import { saveFile, useBoundVersion, useExport } from "../approval";
 
 type Pkg = Schemas["PackageDetail"];
 
@@ -24,8 +25,10 @@ interface Props {
 export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
   const exp = useExport(pkg.id);
   const focus = useRestoreFocus();
-  const [key] = useState(() => crypto.randomUUID());
-  const [picked, setPicked] = useState(() => new Set(pkg.documents.map((d) => d.current.id)));
+  const { seen, newer, rebind } = useBoundVersion(pkg);
+  const current = (p: Pkg) => new Set(p.documents.map((d) => d.current.id));
+  const [picked, setPicked] = useState(() => current(pkg));
+  const invoice = pkg.documents.find((d) => d.type === "invoice")?.current.id;
   const toggle = (id: string) =>
     setPicked((s) => {
       const next = new Set(s);
@@ -35,27 +38,30 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (exp.isPending) return;
-    const invoice = pkg.documents.find((d) => d.type === "invoice")!.current.id;
+    if (exp.isPending || newer || !invoice) return;
     exp.mutate(
       {
-        expected_version: pkg.version,
-        expected_requirement_set_version: pkg.requirement_set.version,
-        idempotencyKey: key,
-        document_version_ids: [...new Set([invoice, ...picked])],
+        expected_version: seen.version,
+        expected_requirement_set_version: seen.ruleSet,
+        idempotencyKey: seen.key,
+        // only versions that are current now; the invoice always
+        document_version_ids: [
+          invoice,
+          ...[...picked].filter((id) => id !== invoice && current(pkg).has(id)),
+        ],
       },
       {
         onSuccess: ({ export: record, download }) => {
+          const done = `${pkg.invoice_number} v${record.package_version} ixrac edildi.`;
+          onOpenChange(false);
           // the export exists either way; a failed download can be repeated from "Manifesti yenidən yüklə"
           saveFile(
             `PayProof_${pkg.invoice_number}_v${record.package_version}.zip`,
             download.url,
-          ).catch(() =>
-            toast.error("Fayl yüklənmədi — “Manifesti yenidən yüklə” ilə təkrarlayın."),
-          );
-          onOpenChange(false);
-          toast.success(
-            `${pkg.invoice_number} v${record.package_version} ixrac edildi. Manifest yükləndi.`,
+          ).then(
+            () => toast.success(`${done} Manifest yükləndi.`),
+            () =>
+              toast.warning(`${done} Fayl yüklənmədi — “Manifesti yenidən yüklə” ilə təkrarlayın.`),
           );
         },
         onError: (error) => error.code === "VERSION_CONFLICT" && onConflict(),
@@ -79,6 +85,19 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
+              {newer && (
+                <StaleBanner
+                  version={newer}
+                  onRefresh={() => void rebind().then((latest) => setPicked(current(latest)))}
+                />
+              )}
+              {!invoice && (
+                <Banner
+                  tone="danger"
+                  role="alert"
+                  title="Paketdə faktura yoxdur — ixrac mümkün deyil."
+                />
+              )}
               <fieldset className="border-border rounded-md border">
                 <legend className="sr-only">Sənədlər</legend>
                 {pkg.documents.map((d) => {
@@ -118,7 +137,11 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                   {actionLabel.cancel}
                 </Button>
               </Dialog.Close>
-              <Button type="submit" size="lg" aria-disabled={exp.isPending}>
+              <Button
+                type="submit"
+                size="lg"
+                aria-disabled={exp.isPending || Boolean(newer) || !invoice}
+              >
                 <Download aria-hidden />
                 {exp.isPending ? "İxrac olunur…" : "İxrac et və manifesti yüklə"}
               </Button>

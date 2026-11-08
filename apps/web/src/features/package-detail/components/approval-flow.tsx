@@ -30,7 +30,7 @@ export function useApprovalFlow(pkg: Pkg | undefined) {
         return toast.success("Daxili yoxlama hesabatı yükləndi.");
       }
       const record = pkg.exports.find((e) => e.package_version === pkg.version);
-      if (!record) return;
+      if (!record) return toast.warning(`v${pkg.version} üçün ixrac tapılmadı.`);
       await saveFile(`${name}.zip`, (await exportDownload(record.id)).url);
       toast.info(
         `Manifest yenidən yükləndi. v${pkg.version} artıq ixrac edilib — yeni audit hadisəsi yaradılmadı.`,
