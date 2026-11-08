@@ -784,3 +784,145 @@ components:
           description: null for an automatic exact-ID link or when not confirmed.
           oneOf: [{ type: "null" }, { $ref: "#/components/schemas/UserRef" }]
         candidates: { type: array, items: { $ref: "#/components/schemas/MatchCandidate" } }
+    CheckResult:
+      type: object
+      additionalProperties: false
+      required: [rule_id, title, outcome, cascade, message, evidence, fix_hint, data]
+      description: Deterministic rule engine result (docs/architecture/rules-engine.md); every rule blocks when FAIL or UNKNOWN.
+      properties:
+        rule_id: { $ref: "#/components/schemas/RuleId" }
+        title: { type: string }
+        outcome: { $ref: "#/components/schemas/CheckOutcome" }
+        cascade:
+          type: boolean
+          description: Could not be evaluated because of another problem — blocks, but is not a primary problem.
+        message: { type: string, description: Azerbaijani; shows only computed values from `data` }
+        evidence: { type: array, items: { $ref: "#/components/schemas/Evidence" } }
+        fix_hint:
+          type: ["string", "null"]
+          enum: [edit_field, upload_invoice, upload_delivery, link_order, review_signature, null]
+        data:
+          type: object
+          additionalProperties: true
+          description: 'Computed values, e.g. `{ "line_difference": { "amount": "500.00", "currency": "AZN" } }` for R-005.'
+    CheckSummary:
+      type: object
+      additionalProperties: false
+      required: [pass, fail, unknown, not_applicable, blocking]
+      properties:
+        pass: { type: integer }
+        fail: { type: integer }
+        unknown: { type: integer }
+        not_applicable: { type: integer }
+        blocking:
+          {
+            type: array,
+            description: Primary blockers,
+            items: { $ref: "#/components/schemas/Blocker" },
+          }
+    ComparisonCell:
+      type: object
+      additionalProperties: false
+      required: [value, state, field_id, evidence]
+      properties:
+        value:
+          {
+            type: ["string", "null"],
+            description: Display value (money/quantity as decimal strings),
+          }
+        state: { type: string, enum: [ok, mismatch, unknown, empty] }
+        field_id:
+          {
+            oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Uuid" }],
+            description: Editable extracted field,
+          }
+        evidence: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Evidence" }] }
+    ComparisonRow:
+      type: object
+      additionalProperties: false
+      required: [key, group, label, invoice, order, delivery]
+      properties:
+        key: { type: string, examples: ["lines[KY-10].unit_price"] }
+        group:
+          type: ["string", "null"]
+          description: 'Line group header, e.g. "KY-10 · Kərə yağı 82%, 10 kq blok".'
+        label: { type: string }
+        invoice: { $ref: "#/components/schemas/ComparisonCell" }
+        order: { $ref: "#/components/schemas/ComparisonCell" }
+        delivery: { $ref: "#/components/schemas/ComparisonCell" }
+    ApprovalRecord:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          package_version,
+          requirement_set_version,
+          approver,
+          approved_at,
+          valid,
+          invalidated_reason,
+          invalidated_at,
+        ]
+      description: Approval of one package version under one rule set version. Not a payment approval.
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        package_version: { type: integer, minimum: 1 }
+        requirement_set_version: { type: integer, minimum: 1 }
+        approver: { $ref: "#/components/schemas/UserRef" }
+        approved_at: { type: string, format: date-time }
+        valid: { type: boolean }
+        invalidated_reason: { type: ["string", "null"] }
+        invalidated_at: { type: ["string", "null"], format: date-time }
+    ExportRecord:
+      type: object
+      additionalProperties: false
+      required: [id, package_version, requirement_set_version, created_by, created_at, files]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        package_version: { type: integer, minimum: 1 }
+        requirement_set_version: { type: integer, minimum: 1 }
+        created_by: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+        files:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [document_version_id, type, file_name]
+            properties:
+              document_version_id: { $ref: "#/components/schemas/Uuid" }
+              type: { $ref: "#/components/schemas/DocumentType" }
+              file_name: { type: string }
+    Task:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          number,
+          package,
+          rule_id,
+          assignee,
+          step,
+          due_date,
+          status,
+          comment,
+          created_at,
+          created_by,
+          resolved_at,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        number: { type: string, examples: ["T-118"] }
+        package: { $ref: "#/components/schemas/PackageRef" }
+        rule_id: { $ref: "#/components/schemas/RuleId" }
+        assignee: { $ref: "#/components/schemas/UserRef" }
+        step: { type: string, description: Required action }
+        due_date: { type: string, format: date }
+        status: { $ref: "#/components/schemas/TaskStatus" }
+        comment: { type: ["string", "null"] }
+        created_at: { type: string, format: date-time }
+        created_by: { $ref: "#/components/schemas/UserRef" }
+        resolved_at: { type: ["string", "null"], format: date-time }
