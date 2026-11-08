@@ -10,17 +10,41 @@ Prototipin dizayn sistemi (`docs/product/prototype/payproof-prototype.html`, bö
 
 ## Qoşulma
 ```css
-/* app/globals.css — Tailwind v4 */
+/* src/app/globals.css — Tailwind v4 (yol config faylına nisbətəndir) */
 @import "tailwindcss";
 @import "@payproof/design-tokens/tokens.css";
 @config "../../tailwind.config.ts";
 ```
 ```ts
-// tailwind.config.ts (v4-də @config ilə, v3-də birbaşa)
+// tailwind.config.ts (v4-də @config ilə, v3-də birbaşa; v4 `content`-i nəzərə almır, mənbələri özü tapır)
 import preset from "@payproof/design-tokens/tailwind-preset";
 export default { presets: [preset], content: ["./src/**/*.{ts,tsx}"] };
 ```
+```ts
+// next.config.ts — paket build olunmur, TS mənbəyi export edir
+export default { transpilePackages: ["@payproof/design-tokens"] };
+```
+```tsx
+// app/layout.tsx — Tailwind preflight öz şrift stack-ini qoyur; token şriftini body-yə verin
+<body className="bg-bg text-text font-sans text-md">
+```
 Preset Tailwind-in default palitrasını **əvəz edir**: `bg-red-500` yoxdur, yalnız token rəngləri var.
+
+### shadcn/ui adları
+shadcn komponentləri (W-01) əlavə palitra olmadan işləsin deyə onun adları eyni tokenlərə yönəlir. `shadcn init` globals.css-ə öz oklch/hex dəyişənlərini yazırsa — onları silin, rənglər preset-dən gəlir.
+
+| shadcn | Token |
+|---|---|
+| `background` / `foreground` | `--bg` / `--text` |
+| `card`, `popover` (+ `-foreground`) | `--surface` / `--text` |
+| `primary` (+ `-foreground`) | `--brand-600` / `--on-brand` |
+| `secondary` (+ `-foreground`) | `--surface-2` / `--text` |
+| `muted` / `muted-foreground` | `--surface-2` / `--text-3` |
+| `accent` (+ `-foreground`) | `--brand-50` / `--brand-700` |
+| `destructive` (+ `-foreground`) | `--danger` / `--on-danger` |
+| `input` · `ring` | `--border-strong` · `--brand-500` |
+| `shadow`, `shadow-xs/sm` · `shadow-md` · `shadow-lg` | `--sh-1` · `--sh-2` · `--sh-3` |
+| `rounded` · `rounded-xs` · `text-base` | `--r-md` · `--r-sm` · `--fs-md` (14px) |
 
 ## Class-lar
 | Qrup | Nümunə |
