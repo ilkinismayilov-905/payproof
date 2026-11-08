@@ -9,6 +9,7 @@ from payproof.api import (
     approval,
     audit,
     auth,
+    customers,
     documents,
     events,
     export,
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(tasks.router, prefix="/v1")
     app.include_router(approval.router, prefix="/v1")
     app.include_router(export.router, prefix="/v1")
+    app.include_router(customers.router, prefix="/v1")
     app.include_router(events.router, prefix="/v1")
     return app
 
