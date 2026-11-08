@@ -14,6 +14,7 @@ from payproof.repositories.models.fields import EvidenceRef, ExtractedField
 from payproof.repositories.models.identity import Company, Membership, User
 from payproof.repositories.models.orders import Order, OrderLine
 from payproof.repositories.models.packages import InvoicePackage
+from payproof.repositories.models.system import IdempotencyKey, Job, Notification
 from payproof.repositories.models.tasks import ResolutionTask
 from payproof.repositories.models.validation import CheckResult, ValidationRun
 
@@ -32,8 +33,11 @@ __all__ = [
     "ExtractedField",
     "ExtractedInvoice",
     "ExtractedInvoiceLine",
+    "IdempotencyKey",
     "InvoicePackage",
+    "Job",
     "Membership",
+    "Notification",
     "Order",
     "OrderLine",
     "RequirementSet",
