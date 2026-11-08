@@ -29,8 +29,10 @@ test("URL filter: unknown values fall back, 'all' means every status", () => {
   });
   expect(taskFilter(new URLSearchParams("status=all&assignee=x"))).toEqual({
     status: "",
-    assignee: "x",
+    assignee: "",
   });
+  const u6 = mockIds.user("u6");
+  expect(taskFilter(new URLSearchParams(`assignee=${u6}`)).assignee).toBe(u6);
 });
 
 test("active tasks with counts per tab; nobody can mark a task resolved", async () => {

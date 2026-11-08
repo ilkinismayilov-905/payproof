@@ -23,7 +23,7 @@ interface Props {
 }
 
 const input =
-  "border-border-strong bg-surface focus-visible:ring-ring w-full rounded-md border px-3 py-2 outline-none focus-visible:ring-2 aria-invalid:border-danger";
+  "border-border-strong bg-surface focus-visible:ring-ring w-full rounded-md border px-3 py-2 outline-none focus-visible:ring-2 aria-invalid:border-danger pointer-coarse:min-h-11";
 
 /** A correction task for a failing or unknown check (prototype `mTask`). */
 export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
@@ -65,6 +65,10 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
           toast.success(
             `${t.number} yaradıldı: ${t.assignee.full_name}, son tarix ${formatDate(t.due_date)}.`,
           );
+        },
+        // someone else was faster: the card now shows their task, the form has nothing left to do
+        onError: (error) => {
+          if (error.code === "TASK_ALREADY_OPEN") onOpenChange(false);
         },
       },
     );

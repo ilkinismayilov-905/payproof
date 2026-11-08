@@ -14,7 +14,7 @@ import { fieldForCheck } from "../correction";
 import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
-import { CreateTaskDialog } from "@/features/tasks/components/create-task-dialog";
+import { CreateTaskDialog } from "@/features/tasks";
 import { ActivityPanel } from "./activity-panel";
 import { ChecksPanel, type Fixable } from "./checks-panel";
 import { ComparisonPanel } from "./comparison-panel";
