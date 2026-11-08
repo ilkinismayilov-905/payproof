@@ -10,7 +10,7 @@ Step **$ARGUMENTS** üçün bitiriş:
    - Backend: `cd apps/api && uv run ruff check . && uv run ruff format --check . && uv run mypy . && uv run pytest`
    - Web/Mobile/Packages: `pnpm turbo run lint typecheck test --filter=<workspace>`
    - UI step-ləri: dev server-i aç, əsas ekranları brauzerdə yoxla (veb: 1440/1024/768; mobil: 390), konsolda xəta olmamalıdır.
-3. Kod nəzərdən keçirmə: `code-review` skill-i və ya `code-reviewer` subagent-i ilə `git diff main...HEAD`. Kritik tapıntıları düzəlt (ayrıca kiçik commit-lərlə).
+3. Kod nəzərdən keçirmə **edilmir** (token qənaəti): `code-review`, `simplify`, `code-reviewer` subagent-i və digər review skill/agent-lərini işlətmə. Keyfiyyəti testlər, lint/typecheck və CI təmin edir.
 4. `git log --oneline main..HEAD` — hər commit formatda və kiçikdir; deyilsə istifadəçiyə de.
 5. `/sync` — `main`-ə rebase, testləri yenidən işlət.
 6. `docs/progress/<track>.md`: status ✅, tarix (bu gün), qısa qeyd → commit `docs($ARGUMENTS): mark step done`.

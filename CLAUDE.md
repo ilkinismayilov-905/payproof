@@ -51,7 +51,7 @@ Hər app-in öz `CLAUDE.md` faylı var — həmin qovluqda işləyəndə onu da 
 - Kontrakt: `pnpm --filter @payproof/api-client generate`
 
 ## Skills (mövcuddursa istifadə et)
-Plan: `superpowers:writing-plans` · TDD: `superpowers:test-driven-development` · Paralel işləmə: `superpowers:using-git-worktrees` · API dizaynı: `api-and-interface-design` · UI: `frontend-ui-engineering`, `frontend-design:frontend-design` · Təhlükəsizlik: `security-and-hardening` · Bitirməzdən əvvəl: `superpowers:verification-before-completion`, `code-review`, `simplify`.
+Plan: `superpowers:writing-plans` · TDD: `superpowers:test-driven-development` · Paralel işləmə: `superpowers:using-git-worktrees` · API dizaynı: `api-and-interface-design` · UI: `frontend-ui-engineering`, `frontend-design:frontend-design` · Təhlükəsizlik: `security-and-hardening` · Bitirməzdən əvvəl: `superpowers:verification-before-completion`. **Review yoxdur:** token qənaəti üçün `code-review`, `simplify`, review subagent-ləri işlədilmir (istifadəçi açıq istəməsə).
 
 ## Ətraflı sənədlər
 - Başlanğıc: `docs/00-START-HERE.md`
