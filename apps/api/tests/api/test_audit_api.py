@@ -103,3 +103,10 @@ async def test_invalid_filters(
 
 async def test_needs_a_token(client: httpx.AsyncClient) -> None:
     assert (await client.get("/v1/audit")).status_code == 401
+
+
+def test_csv_cells_cannot_become_formulas() -> None:
+    from payproof.services.audit_query import _cell
+
+    assert _cell('=HYPERLINK("x")') == '"\'=HYPERLINK(""x"")"'
+    assert _cell("-1") == '"\'-1"' and _cell(None) == '""' and _cell(3) == '"3"'

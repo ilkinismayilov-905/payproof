@@ -48,7 +48,10 @@ async def audit_page(
 
 
 def _cell(value: object) -> str:
-    return '"' + str("" if value is None else value).replace('"', '""') + '"'
+    text = "" if value is None else str(value)
+    if text.startswith(("=", "+", "-", "@", "\t", "\r")):  # Excel would run it as a formula
+        text = "'" + text
+    return '"' + text.replace('"', '""') + '"'
 
 
 def _utc(at: dt.datetime) -> str:
