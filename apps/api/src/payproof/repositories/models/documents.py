@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import BigInteger, CheckConstraint, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import DocumentStatus
 from payproof.repositories.orm import (
     Base,
     TenantEntity,
@@ -12,9 +13,9 @@ from payproof.repositories.orm import (
     tenant_key,
 )
 
-# shortcut: mirror openapi.yaml enums; switch to domain enums once B-06 adds them
+# shortcut: mirror openapi.yaml enums that B-06 did not move into domain.enums; move them
+# there when a rule or service needs them
 DOCUMENT_TYPES = ("invoice", "order", "delivery")
-VERSION_STATUSES = ("UPLOADED", "PROCESSING", "EXTRACTED", "REVIEW_REQUIRED", "FAILED")
 SOURCE_KINDS = ("pdf", "scan", "spreadsheet")
 
 
@@ -40,7 +41,7 @@ class DocumentVersion(TenantEntity, Base):
         tenant_key(),
         same_tenant_fk("document_id", "documents"),
         member_fk("uploaded_by"),
-        one_of("status", VERSION_STATUSES, "status_known"),
+        one_of("status", DocumentStatus, "status_known"),
         one_of("source_kind", SOURCE_KINDS, "source_kind_known"),
         CheckConstraint("version_no >= 1", name="version_no_positive"),
         CheckConstraint("sha256 ~ '^[0-9a-f]{64}$'", name="sha256_hex"),

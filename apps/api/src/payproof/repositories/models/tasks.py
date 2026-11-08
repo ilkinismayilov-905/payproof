@@ -4,11 +4,9 @@ import uuid
 from sqlalchemy import CheckConstraint, Date, DateTime, Index, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import TaskStatus
 from payproof.repositories.models.validation import RULE_ID_CHECK
 from payproof.repositories.orm import Base, TenantEntity, member_fk, one_of, same_tenant_fk
-
-# shortcut: mirrors `TaskStatus` in openapi.yaml; domain enums come in B-06
-TASK_STATUSES = ("OPEN", "IN_PROGRESS", "SUBMITTED_FOR_RECHECK", "RESOLVED")
 
 
 class ResolutionTask(TenantEntity, Base):
@@ -20,7 +18,7 @@ class ResolutionTask(TenantEntity, Base):
         same_tenant_fk("package_id", "invoice_packages"),
         member_fk("assignee_id"),  # may be an `assignee` member (ADR-0008)
         member_fk("created_by"),
-        one_of("status", TASK_STATUSES, "status_known"),
+        one_of("status", TaskStatus, "status_known"),
         CheckConstraint("number ~ '^T-[0-9]+$'", name="number_format"),
         CheckConstraint(RULE_ID_CHECK, name="rule_id_format"),
         CheckConstraint("length(step) > 0", name="step_present"),

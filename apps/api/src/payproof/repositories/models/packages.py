@@ -16,8 +16,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import Currency
 from payproof.repositories.orm import (
-    CURRENCIES,
     Base,
     TenantEntity,
     member_fk,
@@ -26,7 +26,8 @@ from payproof.repositories.orm import (
     tenant_key,
 )
 
-# shortcut: mirrors `OrderLink.method` in openapi.yaml; switch to domain enums once B-06 adds them
+# shortcut: mirrors `OrderLink.method` in openapi.yaml; move to domain.enums when B-16 code
+# branches on it
 LINK_METHODS = ("exact_id", "human")
 
 
@@ -51,7 +52,7 @@ class InvoicePackage(TenantEntity, Base):
         member_fk("owner_id"),
         member_fk("link_confirmed_by"),
         member_fk("signature_reviewed_by"),
-        one_of("currency", CURRENCIES, "currency_known"),
+        one_of("currency", Currency, "currency_known"),
         one_of("link_method", LINK_METHODS, "link_method_known"),
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint("(order_id IS NULL) = (link_method IS NULL)", name="link_has_method"),

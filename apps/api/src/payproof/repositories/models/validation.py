@@ -16,10 +16,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import CheckOutcome
 from payproof.repositories.orm import Base, TenantEntity, one_of, same_tenant_fk, tenant_key
 
-# shortcut: mirror `CheckOutcome` / `RuleId` in openapi.yaml; domain enums come in B-06
-OUTCOMES = ("PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE")
+# mirrors `RuleId` in openapi.yaml (R-001..R-010)
 RULE_ID_CHECK = "rule_id ~ '^R-0(0[1-9]|10)$'"
 
 
@@ -63,7 +63,7 @@ class CheckResult(TenantEntity, Base):
     __table_args__ = (
         UniqueConstraint("validation_run_id", "rule_id"),
         same_tenant_fk("validation_run_id", "validation_runs"),
-        one_of("outcome", OUTCOMES, "outcome_known"),
+        one_of("outcome", CheckOutcome, "outcome_known"),
         CheckConstraint(RULE_ID_CHECK, name="rule_id_format"),
         CheckConstraint("jsonb_typeof(data) = 'object'", name="data_is_object"),
     )

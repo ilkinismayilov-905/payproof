@@ -5,8 +5,8 @@ from decimal import Decimal
 from sqlalchemy import CheckConstraint, Date, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from payproof.domain.enums import Currency
 from payproof.repositories.orm import (
-    CURRENCIES,
     MONEY,
     QTY,
     Base,
@@ -25,7 +25,7 @@ class Order(TenantEntity, Base):
         UniqueConstraint("company_id", "po_number"),
         tenant_key(),
         same_tenant_fk("customer_id", "customers"),
-        one_of("currency", CURRENCIES, "currency_known"),
+        one_of("currency", Currency, "currency_known"),
     )
 
     customer_id: Mapped[uuid.UUID] = mapped_column()

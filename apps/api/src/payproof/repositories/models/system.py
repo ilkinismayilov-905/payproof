@@ -26,7 +26,8 @@ from payproof.repositories.orm import (
     same_tenant_fk,
 )
 
-# shortcut: mirror `Job.kind` / `Job.status` in openapi.yaml; domain enums come in B-06
+# shortcut: mirror `Job.kind` / `Job.status` in openapi.yaml; move to domain.enums when B-14
+# code branches on them
 JOB_KINDS = ("extract_document", "create_package")
 JOB_STATUSES = ("QUEUED", "RUNNING", "SUCCEEDED", "FAILED")
 
