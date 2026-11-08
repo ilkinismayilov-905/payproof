@@ -1,6 +1,6 @@
 "use client";
 
-import { roleLabel, ui } from "@payproof/api-client/i18n";
+import { loginText, roleLabel, ui } from "@payproof/api-client/i18n";
 import { CheckCircle2, Info, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,7 +20,7 @@ export function LoginScreen() {
     if (!picked) return;
     login.mutate(picked, {
       onSuccess: ({ user }) => {
-        toast.success(`${user.full_name} kimi daxil oldunuz.`);
+        toast.success(loginText.signedInAs(user.full_name));
         router.replace("/");
       },
     });
@@ -31,16 +31,16 @@ export function LoginScreen() {
       <div className="bg-surface border-border shadow-2 w-full max-w-md overflow-hidden rounded-xl border">
         <header className="bg-brand text-brand-foreground flex flex-col gap-2 px-6 py-8">
           <ShieldCheck aria-hidden className="size-10" />
-          <h1 className="text-3xl font-semibold tracking-tight">PayProof</h1>
-          <p className="opacity-90">Faktura paketlərinin hazırlığı və təsdiqi</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{loginText.brand}</h1>
+          <p className="opacity-90">{loginText.tagline}</p>
           <span className="inline-flex w-fit items-center gap-1 rounded-full bg-brand-foreground/20 px-3 py-1 text-sm">
             <Info aria-hidden className="size-4" />
-            Sintetik məlumatlarla demo
+            {loginText.demoBadge}
           </span>
         </header>
         <section className="flex flex-col gap-3 p-6">
           <h2 id="login-pick" className="text-lg font-semibold">
-            Demo hesabını seçin
+            {loginText.pickTitle}
           </h2>
           {users.isPending && (
             <p role="status" className="text-text-3">
@@ -91,12 +91,9 @@ export function LoginScreen() {
             disabled={!picked || login.isPending}
             onClick={submit}
           >
-            Daxil ol
+            {loginText.submit}
           </Button>
-          <p className="text-text-3 text-center text-sm">
-            Demo rejimində parol tələb olunmur. Real versiyada şirkət hesabı ilə giriş və server
-            tərəfində rol yoxlaması olacaq.
-          </p>
+          <p className="text-text-3 text-center text-sm">{loginText.noPasswordHint}</p>
         </section>
       </div>
     </main>
