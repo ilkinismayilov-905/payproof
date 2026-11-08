@@ -365,7 +365,7 @@ paths:
       summary: Package detail — version, documents, comparison, checks, tasks, approvals
       responses:
         "200":
-          description: Package detail
+          description: Package detail (the example lists only some checks; a real response has all of R-001…R-009, matching `summary`)
           content:
             application/json:
               schema: { $ref: "#/components/schemas/PackageDetail" }
@@ -1722,7 +1722,7 @@ components:
           }
         resolved_at: null
     PackageDetailInv1042Linked:
-      summary: INV-1042 after the PO-381 link was confirmed — v2, NEEDS_FIX (R-001, R-007)
+      summary: INV-1042 after the PO-381 link was confirmed — v2, NEEDS_FIX (R-001, R-007) — checks abbreviated to the blockers
       value:
         id: 0193a000-0000-7000-8002-000000001042
         invoice_number: INV-1042
