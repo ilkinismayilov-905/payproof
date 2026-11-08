@@ -265,6 +265,51 @@ paths:
                 total_count: 14
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "422": { $ref: "#/components/responses/ValidationError" }
+    post:
+      tags: [packages]
+      operationId: createPackage
+      summary: Create a package from a document set (invoice required) — extraction runs as a job
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [customer_id, invoice]
+              properties:
+                customer_id: { $ref: "#/components/schemas/Uuid" }
+                invoice: { type: string, contentEncoding: binary }
+                order: { type: string, contentEncoding: binary }
+                delivery: { type: string, contentEncoding: binary }
+      responses:
+        "202":
+          description: Accepted — the package is PROCESSING until the job finishes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobAccepted" }
+              example:
+                {
+                  job_id: 0193a000-0000-7000-8007-000010510001,
+                  package_id: 0193a000-0000-7000-8002-000000001051,
+                }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409":
+          description: DUPLICATE_INVOICE (same customer + invoice number exists) or IDEMPOTENCY_IN_PROGRESS
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: DUPLICATE_INVOICE
+                  message: "INV-1051 bu müştəri üçün artıq mövcuddur."
+                  details: { package_id: 0193a000-0000-7000-8002-000000001051 }
+        "413": { $ref: "#/components/responses/FileTooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedFileType" }
+        "422": { $ref: "#/components/responses/ValidationError" }
   /v1/packages/{package_id}:
     parameters:
       - $ref: "#/components/parameters/PackageId"
@@ -422,6 +467,36 @@ paths:
                   }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [packages]
+      operationId: deletePackage
+      summary: Soft-delete a package that was never approved (PROCESSING / NEEDS_* only)
+      parameters:
+        - {
+            name: expected_version,
+            in: query,
+            required: true,
+            schema: { type: integer, minimum: 1 },
+          }
+      responses:
+        "204": { description: Deleted (kept for audit) }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: VERSION_CONFLICT or PACKAGE_NOT_DELETABLE (approved at least once, or ready/exported)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                {
+                  error:
+                    {
+                      code: PACKAGE_NOT_DELETABLE,
+                      message: "Təsdiqlənmiş paket silinə bilməz.",
+                      details: {},
+                    },
+                }
   /v1/documents/versions/{version_id}/file:
     parameters:
       - {
@@ -525,34 +600,8 @@ paths:
                   message: "INV-1042.pdf: Faktura v1 ilə eyni fayldır — yeni versiya yaradılmadı."
                   details:
                     { document_version_id: 0193a000-0000-7000-8005-000010420001, version_no: 1 }
-        "413": &file_too_large
-          description: FILE_TOO_LARGE
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              example:
-                {
-                  error:
-                    {
-                      code: FILE_TOO_LARGE,
-                      message: "Fayl 20 MB-dan böyükdür.",
-                      details: { max_mb: 20 },
-                    },
-                }
-        "415": &unsupported_type
-          description: UNSUPPORTED_FILE_TYPE
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              example:
-                {
-                  error:
-                    {
-                      code: UNSUPPORTED_FILE_TYPE,
-                      message: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
-                      details: {},
-                    },
-                }
+        "413": { $ref: "#/components/responses/FileTooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/documents/{document_id}/versions:
     parameters:
@@ -585,8 +634,8 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
-        "413": *file_too_large
-        "415": *unsupported_type
+        "413": { $ref: "#/components/responses/FileTooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
@@ -624,6 +673,34 @@ components:
       schema: { type: string }
 
   responses:
+    FileTooLarge:
+      description: FILE_TOO_LARGE
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                {
+                  code: FILE_TOO_LARGE,
+                  message: "Fayl 20 MB-dan böyükdür.",
+                  details: { max_mb: 20 },
+                },
+            }
+    UnsupportedFileType:
+      description: UNSUPPORTED_FILE_TYPE (checked by file content, not extension)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                {
+                  code: UNSUPPORTED_FILE_TYPE,
+                  message: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+                  details: {},
+                },
+            }
     Unauthenticated:
       description: Missing or invalid token.
       content:
