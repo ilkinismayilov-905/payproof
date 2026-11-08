@@ -1,7 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -30,9 +30,14 @@ export function SearchBox({
     setSeen(value);
     setText(value);
   }
+  // The timer must call the latest onSearch: it closes over the latest filters (no stale URL state).
+  const latest = useRef(onSearch);
+  useEffect(() => {
+    latest.current = onSearch;
+  });
   useEffect(() => {
     if (text.trim() === value) return;
-    const timer = setTimeout(() => onSearch(text.trim()), delayMs);
+    const timer = setTimeout(() => latest.current(text.trim()), delayMs);
     return () => clearTimeout(timer);
   }, [text]); // eslint-disable-line react-hooks/exhaustive-deps -- only typing starts the debounce
 

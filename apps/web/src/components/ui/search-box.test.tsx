@@ -22,3 +22,13 @@ test("follows the committed value when it changes elsewhere", () => {
   rerender(box(""));
   expect(screen.getByRole("searchbox")).toHaveValue("");
 });
+
+test("the debounced call uses the latest onSearch (filters changed while typing)", async () => {
+  const stale = vi.fn();
+  const fresh = vi.fn();
+  const { rerender } = render(box("", stale));
+  await userEvent.type(screen.getByRole("searchbox"), "INV");
+  rerender(box("", fresh)); // e.g. a status was picked before the pause
+  await waitFor(() => expect(fresh).toHaveBeenCalledWith("INV"), { timeout: 1000 });
+  expect(stale).not.toHaveBeenCalled();
+});
