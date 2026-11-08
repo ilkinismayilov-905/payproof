@@ -3,5 +3,15 @@
 from payproof.repositories.models.customers import Customer, RequirementSet
 from payproof.repositories.models.identity import Company, Membership, User
 from payproof.repositories.models.orders import Order, OrderLine
+from payproof.repositories.models.packages import InvoicePackage
 
-__all__ = ["Company", "Customer", "Membership", "Order", "OrderLine", "RequirementSet", "User"]
+__all__ = [
+    "Company",
+    "Customer",
+    "InvoicePackage",
+    "Membership",
+    "Order",
+    "OrderLine",
+    "RequirementSet",
+    "User",
+]

@@ -1,5 +1,6 @@
 """Minimal tenant graphs for constraint tests (demo data lives in fixtures/, loaded by B-09)."""
 
+import datetime as dt
 import itertools
 from dataclasses import dataclass
 
@@ -7,7 +8,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.repositories.models import Company, Customer, Membership, User
+from payproof.repositories.models import Company, Customer, InvoicePackage, Membership, User
 
 _seq = itertools.count(1)
 
@@ -25,8 +26,10 @@ async def add(db: AsyncSession, *objs: object) -> None:
 
 
 async def add_fails(db: AsyncSession, *objs: object) -> None:
+    """Expect a constraint error; the savepoint keeps the session usable for more checks."""
     with pytest.raises(IntegrityError):
-        await add(db, *objs)
+        async with db.begin_nested():
+            await add(db, *objs)
 
 
 async def make_tenant(db: AsyncSession) -> Tenant:
@@ -39,3 +42,15 @@ async def make_tenant(db: AsyncSession) -> Tenant:
     )
     await add(db, customer, Membership(user_id=user.id, company_id=company.id, role="operator"))
     return Tenant(company, user, customer)
+
+
+def package(t: Tenant, number: str = "INV-1042", /, **over: object) -> InvoicePackage:
+    fields: dict[str, object] = {
+        "customer_id": t.customer.id,
+        "invoice_number": number,
+        "currency": "AZN",
+        "invoice_date": dt.date(2026, 11, 3),
+        "owner_id": t.user.id,
+    }
+    fields.update(over)
+    return InvoicePackage(company_id=t.company.id, **fields)
