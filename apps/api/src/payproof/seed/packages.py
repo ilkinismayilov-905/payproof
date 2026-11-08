@@ -16,6 +16,7 @@ from payproof.repositories.models import (
 )
 from payproof.repositories.orm import Base
 from payproof.seed.audit import last_event_at
+from payproof.seed.files import placeholder
 from payproof.seed.fixtures import ORDERS, PACKAGES, Fixture, load, outcome_of, uid
 from payproof.seed.identity import COMPANY_ID
 
@@ -122,7 +123,7 @@ def _versions(p: Fixture) -> list[DocumentVersion]:
                 storage_key=f"demo/{p['id']}/{doc_type}/v{v['version_no']}/{v['file_name']}",
                 sha256=v["sha256"],
                 mime=MIME[PurePath(v["file_name"]).suffix.lower()],
-                size=1,  # shortcut: no file bytes until B-13 stores placeholder files
+                size=len(placeholder(v["file_name"])),  # the bytes the seed CLI stores
                 pages=1,
                 source_kind=v["source_kind"],
                 status=v["status"],

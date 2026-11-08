@@ -6,9 +6,11 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "alembic>=1.20.1",
     "asyncpg>=0.32.0",
+    "boto3>=1.43.126",
     "fastapi>=0.162.2",
     "pydantic-settings>=2.16.2",
     "pyjwt>=2.15.1",
+    "python-multipart>=0.0.33",
     "sqlalchemy[asyncio]>=2.1.8",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -19,6 +21,7 @@ payproof-seed = "payproof.seed.cli:run"
 
 [dependency-groups]
 dev = [
+    "boto3-stubs[s3]>=1.43.126",
     "httpx>=0.28.1",
     "jsonschema>=4.26.0",
     "mypy",

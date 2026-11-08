@@ -69,6 +69,41 @@ class NotFound(DomainError):
     message = "Tapılmadı."
 
 
+class Conflict(DomainError):
+    """409: stale `expected_version`, a duplicate, a busy package or key."""
+
+    status_code = 409
+    code = ErrorCode.VERSION_CONFLICT
+    message = "Paket yenilənib; səhifəni yeniləyin."
+
+
+class DuplicateFile(Conflict):
+    code = ErrorCode.DUPLICATE_FILE
+
+
+class PackageNotReady(Conflict):
+    code = ErrorCode.PACKAGE_NOT_READY
+    message = "Paket hələ emal olunur — bir az sonra yenidən cəhd edin."
+
+
+class IdempotencyKeyReused(DomainError):
+    status_code = 422
+    code = ErrorCode.IDEMPOTENCY_KEY_REUSED
+    message = "Eyni sorğu fərqli məlumatla təkrarlandı."
+
+
+class FileTooLarge(DomainError):
+    status_code = 413
+    code = ErrorCode.FILE_TOO_LARGE
+    message = "Fayl 20 MB-dan böyükdür."
+
+
+class UnsupportedFileType(DomainError):
+    status_code = 415
+    code = ErrorCode.UNSUPPORTED_FILE_TYPE
+    message = "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur."
+
+
 _HTTP_DEFAULTS: dict[int, type[DomainError]] = {401: Unauthenticated, 403: Forbidden, 404: NotFound}
 
 

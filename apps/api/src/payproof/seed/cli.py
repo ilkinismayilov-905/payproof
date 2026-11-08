@@ -4,20 +4,23 @@ import argparse
 import asyncio
 import logging
 
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.db import get_sessionmaker
 from payproof.core.logging import configure_logging
 from payproof.core.settings import get_settings
 from payproof.repositories import models  # noqa: F401 — registers every table
-from payproof.repositories.models import Company
+from payproof.repositories.base import bind_tenant
+from payproof.repositories.models import Company, DocumentVersion
 from payproof.repositories.orm import Base
 from payproof.seed.audit import audit_rows
 from payproof.seed.extraction import extraction_rows
+from payproof.seed.files import store_placeholders
 from payproof.seed.identity import COMPANY_ID, identity_rows
 from payproof.seed.packages import package_rows
 from payproof.seed.workflow import workflow_rows
+from payproof.storage.s3 import get_storage
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +48,10 @@ async def _main(with_reset: bool) -> None:
         if with_reset:
             await reset(session)
         created = await seed(session)
+        if created:  # before COMMIT: a storage failure leaves no rows without files
+            bind_tenant(session, COMPANY_ID)  # the demo dataset is one company
+            versions = (await session.scalars(select(DocumentVersion))).all()
+            await store_placeholders(get_storage(), versions)
     log.info("seed %s", "loaded" if created else "skipped: demo data already present")
 
 
