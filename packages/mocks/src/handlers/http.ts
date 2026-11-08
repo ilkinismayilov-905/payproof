@@ -111,11 +111,13 @@ export function page<T>(items: T[], url: URL) {
 }
 
 /** Wraps a resolver: latency, MockError → contract error, anything else → 500 INTERNAL_ERROR. */
+export interface Args {
+  request: Request;
+  params: Record<string, string | readonly string[] | undefined>;
+}
+
 export const route =
-  <A extends { request: Request }>(
-    ctx: Ctx,
-    fn: (args: A, db: MockDb) => Promise<Response> | Response,
-  ) =>
+  <A extends Args>(ctx: Ctx, fn: (args: A, db: MockDb) => Promise<Response> | Response) =>
   async (args: A) => {
     if (ctx.latencyMs) await delay(ctx.latencyMs);
     try {

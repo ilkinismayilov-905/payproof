@@ -3,6 +3,7 @@ import { createDemoDb } from "../domain/seed";
 import type { MockDb, MockDbOptions } from "../store";
 import { authHandlers } from "./auth";
 import type { Ctx } from "./http";
+import { readHandlers } from "./read";
 
 export interface MockApiOptions extends MockDbOptions {
   /** Artificial latency per request (ms). Browser ~400, tests 0. */
@@ -13,7 +14,7 @@ export interface MockApiOptions extends MockDbOptions {
 export function createMockApi(options: MockApiOptions = {}) {
   let db: MockDb = createDemoDb(options);
   const ctx: Ctx = { db: () => db, latencyMs: options.latencyMs ?? 0 };
-  const handlers: RequestHandler[] = [...authHandlers(ctx)];
+  const handlers: RequestHandler[] = [...authHandlers(ctx), ...readHandlers(ctx)];
   return {
     handlers,
     get db() {
