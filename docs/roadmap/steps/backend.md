@@ -37,7 +37,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-06 · Domen primitivləri
 **Branch:** `feat/B-06-domain-primitives` · **Asılılıq:** B-01 · **Skills:** TDD
 **Daxildir:** `domain/money.py` (`Money`, valyuta dəqiqliyi, qarışıq valyuta xətası), `domain/enums.py` (PackageStatus, CheckOutcome, TaskStatus, DocumentStatus, Role), `domain/permissions.py` (matris — security.md), `domain/snapshot.py` (`PackageSnapshot` və alt dataclass-lar — rules-engine.md).
-**Qəbul:** [ ] `Money("0.1")+Money("0.2") == Money("0.3")` [ ] AZN+USD → xəta [ ] permission matrisi testlə
+**Qəbul:** [ ] `Money("0.1")+Money("0.2") == Money("0.3")` [ ] AZN+USD → xəta [ ] permission matrisi testlə [ ] B-03-dəki literal Role siyahısını (`repositories/models/identity.py` `ROLES`) `domain.enums.Role` ilə əvəz et
 **Daxil deyil:** qaydalar.
 
 ### B-07 · Qayda mühərriki I — R-001…R-004
@@ -54,12 +54,12 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-09 · Seed əmri
 **Branch:** `feat/B-09-seed` · **Asılılıq:** B-05, S-03
 **Daxildir:** `uv run payproof-seed [--reset]` — fixtures → DB (bir tranzaksiya, idempotent), fayl nümunələri üçün storage-a placeholder PDF-lər (B-13-dən sonra real), `make seed`.
-**Qəbul:** [ ] iki dəfə işlədəndə dublikat yoxdur [ ] say yoxlaması testlə
+**Qəbul:** [ ] iki dəfə işlədəndə dublikat yoxdur [ ] say yoxlaması testlə [ ] `seed --reset` `requirement_sets` üçün DELETE yox, TRUNCATE istifadə edir (immutable trigger DELETE-i bloklayır)
 
 ### B-10 · Auth, tenant, səlahiyyət
 **Branch:** `feat/B-10-auth` · **Asılılıq:** B-09 · **Skills:** `security-and-hardening`
 **Daxildir:** `auth/verifier.py` (dev: HS256 lokal açar; interfeys JWKS üçün hazır), `POST /v1/auth/dev-login` (yalnız `ENV=dev`), `GET /v1/me` (rol + səlahiyyət siyahısı), `current_member` dependency, `require(Permission)` dependency, tenant konteksti repository-lərə ötürülür.
-**Qəbul:** [ ] tokensiz → 401 [ ] readonly yazma → 403 [ ] başqa tenant obyekti → 404 [ ] prod-da dev-login yoxdur
+**Qəbul:** [ ] tokensiz → 401 [ ] readonly yazma → 403 [ ] başqa tenant obyekti → 404 [ ] prod-da dev-login yoxdur [ ] `assignee` rolu dev-login siyahısında yoxdur və login ola bilmir — test ilə (ADR-0008)
 
 ### B-11 · Oxuma API-ləri
 **Branch:** `feat/B-11-read-api` · **Asılılıq:** B-10, B-08
