@@ -50,9 +50,9 @@ const MOCK_IDS: Record<User, string> = {
   "Kamran Babayev": "0193a000-0000-7000-8000-000000000005",
 };
 
-async function json<T>(res: Promise<{ ok(): boolean; json(): Promise<unknown>; url(): string }>) {
+async function json<T>(res: ReturnType<APIRequestContext["get"]>) {
   const r = await res;
-  if (!r.ok()) throw new Error(`e2e setup: ${r.url()} failed`);
+  if (!r.ok()) throw new Error(`e2e setup: ${r.url()} → ${r.status()} ${await r.text()}`);
   return (await r.json()) as T;
 }
 
