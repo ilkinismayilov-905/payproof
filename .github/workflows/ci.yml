@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Which areas changed (PR diff against the base branch; everything on push to main or when CI changes),
+  # and which apps exist yet — jobs for missing apps are skipped.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      contracts: ${{ steps.filter.outputs.contracts }}
+      packages: ${{ steps.filter.outputs.packages }}
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          all=""
+          files=""
+          if [ "$EVENT" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/$BASE_REF...HEAD")
+            grep -qE '^(\.github/|scripts/|package\.json$|pnpm-lock\.yaml$|turbo\.json$|tsconfig\.base\.json$)' <<<"$files" && all=1
+          else
+            all=1
+          fi
+          changed() { [ -n "$all" ] || grep -qE "$1" <<<"$files"; }
+          out() { echo "$1=$2" >> "$GITHUB_OUTPUT"; echo "$1=$2"; }
+          shared='^(packages/|fixtures/)'
+          out contracts "$(changed '^packages/(contracts|api-client)/' && echo true || echo false)"
+          out packages "$(changed "$shared" && echo true || echo false)"
+          out api "$( [ -f apps/api/pyproject.toml ] && changed '^(apps/api/|packages/contracts/|fixtures/)' && echo true || echo false)"
+          out web "$( [ -f apps/web/package.json ] && changed "^apps/web/|$shared" && echo true || echo false)"
+          out mobile "$( [ -f apps/mobile/package.json ] && changed "^apps/mobile/|$shared" && echo true || echo false)"
+
+  # Same rules as the local hooks for every commit of the PR (size ≤ 200, Conventional Commits + scope).
+  commits:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - env:
+          BASE_REF: ${{ github.base_ref }}
+        run: ./scripts/check-pr-commits.sh "origin/$BASE_REF" HEAD
+
+  contracts:
+    needs: changes
+    if: needs.changes.outputs.contracts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm contracts:lint
+      - name: Generated client matches the contract
+        run: |
+          pnpm --filter @payproof/api-client generate
+          git diff --exit-code -- packages/api-client/src/generated \
+            || { echo "::error::Run 'pnpm --filter @payproof/api-client generate' and commit the result."; exit 1; }
+
+  packages:
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm fixtures:check
+      - run: pnpm format:check
+      - run: pnpm turbo run lint typecheck test --filter='./packages/*'
