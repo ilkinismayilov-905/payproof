@@ -10,9 +10,10 @@ export const authKeys = {
   devUsers: () => [...authKeys.all, "dev-users"] as const,
 };
 
-export const useMe = () =>
+export const useMe = ({ enabled = true }: { enabled?: boolean } = {}) =>
   useQuery({
     queryKey: authKeys.me(),
+    enabled,
     queryFn: ({ signal }) => unwrap(api.GET("/v1/me", { signal })),
   });
 

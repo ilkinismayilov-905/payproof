@@ -3,6 +3,13 @@ import { errorFallback } from "@payproof/api-client/i18n";
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+// Every request goes through `api`, whose middleware turns failures into ApiError.
+declare module "@tanstack/react-query" {
+  interface Register {
+    defaultError: ApiError;
+  }
+}
+
 const messageOf = (error: unknown) =>
   error instanceof ApiError ? error.message : errorFallback.INTERNAL_ERROR;
 
