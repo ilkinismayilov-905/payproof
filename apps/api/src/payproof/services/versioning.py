@@ -6,8 +6,9 @@ import datetime as dt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.repositories.models import ApprovalRecord, InvoicePackage, Notification
+from payproof.repositories.models import ApprovalRecord, InvoicePackage
 from payproof.services.audit import record
+from payproof.services.notifications import notify
 
 
 async def bump(session: AsyncSession, pkg: InvoicePackage, reason: str) -> None:
@@ -34,13 +35,11 @@ async def bump(session: AsyncSession, pkg: InvoicePackage, reason: str) -> None:
             package=pkg,
             detail={"approval_version": a.package_version},
         )
-        session.add(
-            Notification(
-                company_id=pkg.company_id,
-                user_id=a.approver_id,
-                package_id=pkg.id,
-                text=f"{pkg.invoice_number or 'Paket'}: {reason}. v{a.package_version} təsdiqi "
-                f"etibarsızlaşdı — v{pkg.version} yenidən təsdiq tələb edir.",
-            )
+        await notify(
+            session,
+            pkg,
+            [a.approver_id],
+            f"{pkg.invoice_number or 'Paket'}: {reason}. v{a.package_version} təsdiqi "
+            f"etibarsızlaşdı — v{pkg.version} yenidən təsdiq tələb edir.",
         )
     await session.flush()

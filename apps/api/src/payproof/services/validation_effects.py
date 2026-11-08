@@ -11,8 +11,9 @@ from payproof.domain.enums import CheckOutcome, PackageStatus, Role, TaskStatus
 from payproof.domain.format import format_money
 from payproof.domain.money import Money
 from payproof.domain.rules.result import CheckResult
-from payproof.repositories.models import InvoicePackage, Membership, Notification, ResolutionTask
+from payproof.repositories.models import InvoicePackage, Membership, ResolutionTask
 from payproof.services.audit import record
+from payproof.services.notifications import notify
 
 _SETTLED = {CheckOutcome.PASS, CheckOutcome.NOT_APPLICABLE}
 _PROBLEM = {PackageStatus.NEEDS_REVIEW, PackageStatus.NEEDS_FIX}
@@ -68,12 +69,4 @@ async def status_changed(
         )
     )
     amount = f" · {format_money(total)}" if total else ""
-    session.add_all(
-        Notification(
-            company_id=pkg.company_id,
-            user_id=user_id,
-            package_id=pkg.id,
-            text=f"{pkg.invoice_number} təsdiqinizi gözləyir{amount}",
-        )
-        for user_id in approvers
-    )
+    await notify(session, pkg, approvers, f"{pkg.invoice_number} təsdiqinizi gözləyir{amount}")
