@@ -58,6 +58,23 @@ export function packageOf(db: MockDb, uuid: string | readonly string[] | undefin
   return p;
 }
 
+/** Edits wait until extraction is done (`permissions.can_edit` is false meanwhile — enforced here too). */
+export function requireEditable(p: Pkg) {
+  if (p.processing)
+    throw new MockError(
+      "PACKAGE_NOT_READY",
+      "Paket hələ emal olunur — bir az sonra yenidən cəhd edin.",
+      409,
+      {
+        status: "PROCESSING",
+      },
+    );
+}
+
+/** Multipart/query value → number, or undefined when missing (so expectVersion answers 422, not 409). */
+export const versionParam = (raw: FormDataEntryValue | string | null) =>
+  raw === null || raw === "" ? undefined : Number(raw);
+
 export function expectVersion(p: Pkg, expected: unknown) {
   if (typeof expected !== "number" || !Number.isInteger(expected))
     throw new MockError("VALIDATION_ERROR", "expected_version məcburidir.", 422, {

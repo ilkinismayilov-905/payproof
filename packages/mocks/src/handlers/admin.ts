@@ -11,6 +11,7 @@ import {
   packageOf,
   requirePermission,
   route,
+  versionParam,
   type Ctx,
 } from "./http";
 import { fileField, form, startJob } from "./multipart";
@@ -65,7 +66,7 @@ export const adminHandlers = (ctx: Ctx) => [
       const user = currentUser(db, request);
       requirePermission(user, "DELETE_PACKAGE");
       const p = packageOf(db, params.package_id);
-      expectVersion(p, Number(new URL(request.url).searchParams.get("expected_version")));
+      expectVersion(p, versionParam(new URL(request.url).searchParams.get("expected_version")));
       deletePackage(db, p, user.id);
       return noContent();
     }),

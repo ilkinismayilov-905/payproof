@@ -13,6 +13,7 @@ import {
   json,
   notFound,
   packageOf,
+  requireEditable,
   requirePermission,
   required,
   route,
@@ -26,6 +27,7 @@ export const reviewHandlers = (ctx: Ctx) => [
       const user = currentUser(db, request);
       requirePermission(user, "EDIT_PACKAGE");
       const p = packageOf(db, params.package_id);
+      requireEditable(p);
       const b = await body(request);
       expectVersion(p, b.expected_version);
       const po = slugOf.order(required(b.order_id, "order_id"));
@@ -45,6 +47,7 @@ export const reviewHandlers = (ctx: Ctx) => [
       requirePermission(user, "EDIT_PACKAGE");
       const field = fieldById(db, String(params.field_id));
       if (!field) throw notFound();
+      requireEditable(field.pkg);
       const b = await body(request);
       expectVersion(field.pkg, b.expected_version);
       const reason = required(b.reason, "reason");
@@ -62,6 +65,7 @@ export const reviewHandlers = (ctx: Ctx) => [
       const user = currentUser(db, request);
       requirePermission(user, "EDIT_PACKAGE");
       const p = packageOf(db, params.package_id);
+      requireEditable(p);
       expectVersion(p, (await body(request)).expected_version);
       if (!p.delivery)
         throw new MockError("VALIDATION_ERROR", "Paketdə təhvil sənədi yoxdur.", 422);
@@ -75,6 +79,7 @@ export const reviewHandlers = (ctx: Ctx) => [
       const user = currentUser(db, request);
       requirePermission(user, "EDIT_PACKAGE");
       const p = packageOf(db, params.package_id);
+      requireEditable(p);
       expectVersion(p, (await body(request)).expected_version);
       validate(db, p, user.id);
       return json(packageDetail(db, p, user.id));

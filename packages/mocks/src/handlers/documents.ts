@@ -12,8 +12,10 @@ import {
   json,
   notFound,
   packageOf,
+  requireEditable,
   requirePermission,
   route,
+  versionParam,
   type Ctx,
 } from "./http";
 import { fileField, form, startJob } from "./multipart";
@@ -26,9 +28,10 @@ function documentOf(db: MockDb, uuid: string): { p: Pkg; type: DocType } | null 
 }
 
 async function upload(db: MockDb, request: Request, p: Pkg, type: DocType, userId: string) {
+  requireEditable(p);
   const f = await form(request);
   const file = fileField(f, "file")!;
-  const expected = Number(f.get("expected_version"));
+  const expected = versionParam(f.get("expected_version"));
   return idempotent(db, request, `upload:${p.id}:${type}:${file.name}:${expected}`, async () => {
     expectVersion(p, expected);
     const v = await uploadDocument(db, p, type, file.name, userId);

@@ -103,9 +103,10 @@ export const readHandlers = (ctx: Ctx) => [
   ),
   http.get(
     "*/v1/packages/:package_id",
-    route(ctx, ({ request, params }, db) =>
-      json(packageDetail(db, packageOf(db, params.package_id), currentUser(db, request).id)),
-    ),
+    route(ctx, ({ request, params }, db) => {
+      const user = currentUser(db, request); // 401 before 404: do not reveal which ids exist
+      return json(packageDetail(db, packageOf(db, params.package_id), user.id));
+    }),
   ),
   http.get(
     "*/v1/packages/:package_id/match-candidates",
