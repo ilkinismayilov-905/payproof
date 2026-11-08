@@ -12,6 +12,7 @@ import { listHandlers } from "./lists";
 import { readHandlers } from "./read";
 import { reportHandlers } from "./report";
 import { reviewHandlers } from "./review";
+import { settingsHandlers } from "./settings";
 import { taskHandlers } from "./tasks";
 
 export interface MockApiOptions extends MockDbOptions {
@@ -38,6 +39,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...approvalHandlers(ctx),
     ...reportHandlers(ctx),
     ...adminHandlers(ctx),
+    ...settingsHandlers(ctx),
   ];
   return {
     handlers,
