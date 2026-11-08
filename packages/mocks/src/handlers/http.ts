@@ -9,6 +9,8 @@ import type { Pkg, User } from "../types";
 export interface Ctx {
   db: () => MockDb;
   latencyMs: number;
+  /** Replace the store with a fresh fixtures copy (POST /v1/demo/reset). */
+  reset: () => void;
 }
 
 export const json = (body: unknown, status = 200) => HttpResponse.json(body as never, { status });

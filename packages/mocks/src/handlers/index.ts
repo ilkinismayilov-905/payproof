@@ -1,6 +1,7 @@
 import type { RequestHandler } from "msw";
 import { createDemoDb } from "../domain/seed";
 import type { MockDb, MockDbOptions } from "../store";
+import { adminHandlers } from "./admin";
 import { approvalHandlers } from "./approval";
 import { auditHandlers } from "./audit";
 import { authHandlers } from "./auth";
@@ -21,7 +22,10 @@ export interface MockApiOptions extends MockDbOptions {
 /** One in-memory demo company + the MSW handlers that serve it. */
 export function createMockApi(options: MockApiOptions = {}) {
   let db: MockDb = createDemoDb(options);
-  const ctx: Ctx = { db: () => db, latencyMs: options.latencyMs ?? 0 };
+  const reset = () => {
+    db = createDemoDb(options);
+  };
+  const ctx: Ctx = { db: () => db, latencyMs: options.latencyMs ?? 0, reset };
   const handlers: RequestHandler[] = [
     ...authHandlers(ctx),
     ...readHandlers(ctx),
@@ -33,6 +37,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...taskHandlers(ctx),
     ...approvalHandlers(ctx),
     ...reportHandlers(ctx),
+    ...adminHandlers(ctx),
   ];
   return {
     handlers,
@@ -40,8 +45,6 @@ export function createMockApi(options: MockApiOptions = {}) {
       return db;
     },
     /** Back to the fixtures dataset (demo reset, test isolation). */
-    reset() {
-      db = createDemoDb(options);
-    },
+    reset,
   };
 }
