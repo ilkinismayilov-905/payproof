@@ -1,3 +1,4 @@
+import type { Schemas } from "@payproof/api-client";
 import {
   formatDate,
   formatDateLong,
@@ -6,14 +7,17 @@ import {
 } from "@payproof/api-client/format";
 import { cn } from "@/lib/utils";
 
-/** Display only: the amount stays a decimal string, the frontend never computes money. */
+/**
+ * Display only: the amount stays a decimal string, the frontend never computes money. The currency
+ * is required — AZN and USD must never look alike.
+ */
 export function Money({
   amount,
   currency,
   className,
 }: {
   amount: string;
-  currency?: string;
+  currency: Schemas["Currency"];
   className?: string;
 }) {
   return (

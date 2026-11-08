@@ -37,7 +37,7 @@ export function StatusBadge({ tone, icon: Icon, label, className }: Meta & { cla
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
+        "inline-flex min-h-6 items-center gap-1.5 rounded-full border border-transparent px-2.5 py-0.5 text-xs leading-[1.3] font-semibold whitespace-nowrap",
         badgeClass[tone],
         className,
       )}
