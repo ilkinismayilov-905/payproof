@@ -3,6 +3,7 @@ import { createDemoDb } from "../domain/seed";
 import type { MockDb, MockDbOptions } from "../store";
 import { auditHandlers } from "./audit";
 import { authHandlers } from "./auth";
+import { documentHandlers } from "./documents";
 import type { Ctx } from "./http";
 import { listHandlers } from "./lists";
 import { readHandlers } from "./read";
@@ -23,6 +24,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...listHandlers(ctx),
     ...auditHandlers(ctx),
     ...reviewHandlers(ctx),
+    ...documentHandlers(ctx),
   ];
   return {
     handlers,
