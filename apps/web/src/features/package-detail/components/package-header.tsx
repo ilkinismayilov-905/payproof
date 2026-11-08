@@ -20,7 +20,7 @@ const Fact = ({ label, children }: { label?: string; children: ReactNode }) => (
 export function PackageHeader({ pkg, actions }: { pkg: Pkg; actions?: ReactNode }) {
   const title = pkg.invoice_number ?? t.processingTitle;
   return (
-    <div className="mb-4">
+    <div>
       <nav aria-label={t.breadcrumb} className="text-text-3 flex items-center gap-1.5 text-sm">
         <Link href="/packages" className="hover:text-text hover:underline">
           {shellText.nav.packages}

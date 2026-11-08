@@ -4,9 +4,14 @@ import { CircleCheck, Clock, Download, Lock, RefreshCw, type LucideIcon } from "
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
+import { detailText as t } from "../texts";
 
 type Pkg = Schemas["PackageDetail"];
 type Tone = "danger" | "warning" | "success" | "brand" | "neutral";
+
+/** The newest item by an ISO timestamp — the contract does not promise any list order. */
+const latest = <T,>(items: T[], at: (item: T) => string) =>
+  items.reduce<T | undefined>((m, x) => (!m || at(x) > at(m) ? x : m), undefined);
 
 // shortcut: banner texts from the prototype's readiness(); move to shared i18n with detailText
 const sumText = (s: Pkg["summary"]) =>
@@ -31,7 +36,10 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
         body: `R-010: cari v${v} bütün məcburi yoxlamalardan keçməyib (${sumText(p.summary)}). Bloklayan nəticələr düymə ilə gizlədilə bilməz.`,
       };
     case "READY_FOR_APPROVAL": {
-      const invalid = p.approvals.filter((a) => !a.valid).at(-1);
+      const invalid = latest(
+        p.approvals.filter((a) => !a.valid),
+        (a) => a.approved_at,
+      );
       return {
         tone: "brand",
         icon: CircleCheck,
@@ -49,7 +57,11 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
       };
     }
     case "EXPORTED": {
-      const e = p.exports.find((x) => x.package_version === v) ?? p.exports.at(-1);
+      // only an export of this version may be named under "v{v} paketi ixrac edilib"
+      const e = latest(
+        p.exports.filter((x) => x.package_version === v),
+        (x) => x.created_at,
+      );
       return {
         tone: "neutral",
         icon: Download,
@@ -76,7 +88,7 @@ export function ReadinessBanner({ pkg, onRefresh }: { pkg: Pkg; onRefresh: () =>
         processing && (
           <Button variant="outline" onClick={onRefresh}>
             <RefreshCw aria-hidden />
-            Emal vəziyyətini yenilə
+            {t.refreshProcessing}
           </Button>
         )
       }

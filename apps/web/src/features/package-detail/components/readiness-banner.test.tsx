@@ -71,3 +71,55 @@ test("PROCESSING: nothing is shown before processing ends; a refresh is offered"
   await userEvent.click(screen.getByRole("button", { name: "Emal vəziyyətini yenilə" }));
   expect(onRefresh).toHaveBeenCalledOnce();
 });
+
+const crafted = (p: Partial<Schemas["PackageDetail"]>) =>
+  ({
+    version: 3,
+    approvals: [],
+    exports: [],
+    summary: { blocking: [] },
+    total: null,
+    current_approval: null,
+    ...p,
+  }) as unknown as Schemas["PackageDetail"];
+const approval = (v: number, at: string, valid = false) =>
+  ({
+    package_version: v,
+    approved_at: at,
+    valid,
+    approver: { full_name: "Rəşad Əliyev" },
+  }) as Schemas["ApprovalRecord"];
+
+test("the invalidated approval mentioned is the latest by time, whatever the list order", () => {
+  renderWithQuery(
+    <ReadinessBanner
+      onRefresh={vi.fn()}
+      pkg={crafted({
+        status: "READY_FOR_APPROVAL",
+        approvals: [approval(2, "2026-11-05T10:00:00Z"), approval(1, "2026-11-01T10:00:00Z")],
+      })}
+    />,
+  );
+  expect(screen.getByRole("region")).toHaveTextContent("Əvvəlki v2 təsdiqi etibarsızlaşıb");
+});
+
+test("EXPORTED without an export of the current version names no exporter", () => {
+  renderWithQuery(
+    <ReadinessBanner
+      onRefresh={vi.fn()}
+      pkg={crafted({
+        status: "EXPORTED",
+        exports: [
+          {
+            package_version: 1,
+            created_at: "2026-11-01T10:00:00Z",
+            created_by: { full_name: "Aygün Məmmədova" },
+          },
+        ] as Schemas["ExportRecord"][],
+      })}
+    />,
+  );
+  const b = screen.getByRole("region");
+  expect(b).toHaveTextContent("v3 paketi ixrac edilib");
+  expect(b).not.toHaveTextContent("Aygün Məmmədova");
+});

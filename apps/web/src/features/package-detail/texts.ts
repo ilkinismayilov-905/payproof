@@ -20,6 +20,10 @@ export const detailText = {
   stillProcessing: "Sənədlər emal olunur",
   soon: "Tezliklə",
   documents: "Sənədlər və versiyalar",
+  comparison: "Müqayisə",
+  checks: "Yoxlamalar",
+  refreshProcessing: "Emal vəziyyətini yenilə",
+  reviewMatch: "Bax və təsdiqlə",
   mockExtraction:
     "Çıxarış: əvvəlcədən hazırlanmış nəticə (mock adapter) — canlı AI analizi kimi təqdim olunmur.",
 } as const;

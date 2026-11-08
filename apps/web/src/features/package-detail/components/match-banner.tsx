@@ -22,7 +22,7 @@ export function MatchBanner({ pkg }: { pkg: Schemas["PackageDetail"] }) {
       tone="warning"
       icon={Link2}
       title={title}
-      actions={<Inert primary size="sm" icon={Link2} label="Bax və təsdiqlə" reason={t.soon} />}
+      actions={<Inert primary size="sm" icon={Link2} label={t.reviewMatch} reason={t.soon} />}
     >
       {`${candidates.map((c) => `${c.po_number}: ${c.reason}`).join(" · ")} Semantik oxşarlıq sübut deyil — əlaqəni insan təsdiqləyir.`.trim()}
     </Banner>

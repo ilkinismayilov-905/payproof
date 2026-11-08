@@ -65,10 +65,10 @@ export function PackageDetailScreen({ id }: { id: string }) {
         <div className="grid items-start gap-4 [grid-template-areas:'checks'_'compare'_'docs'] @min-[880px]:grid-cols-[minmax(0,1fr)_360px] @min-[880px]:[grid-template-areas:'compare_checks'_'docs_checks'] @min-[1240px]:grid-cols-[250px_minmax(0,1fr)_360px] @min-[1240px]:[grid-template-areas:'docs_compare_checks']">
           <DocumentsPanel pkg={pkg.data} />
           {/* placeholders until W-09 (comparison) and W-10 (checks) fill these areas */}
-          <Panel title="Müqayisə" className="[grid-area:compare]">
+          <Panel title={t.comparison} className="[grid-area:compare]">
             <p className="text-text-3 text-sm">{t.soon}</p>
           </Panel>
-          <Panel title="Yoxlamalar" className="[grid-area:checks] @min-[880px]:row-span-2">
+          <Panel title={t.checks} className="[grid-area:checks]">
             <p className="text-text-3 text-sm">{t.soon}</p>
           </Panel>
         </div>
