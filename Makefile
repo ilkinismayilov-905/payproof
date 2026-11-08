@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help setup up down logs psql seed test lint typecheck dev-api dev-web dev-mobile
+.PHONY: help setup up down logs psql migrate seed test lint typecheck dev-api dev-web dev-mobile
 
 API := apps/api
 has_api := $(wildcard $(API)/pyproject.toml)
@@ -27,6 +27,9 @@ logs: ## Follow infrastructure logs
 
 psql: ## Open psql in the postgres container
 	docker compose exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+
+migrate: ## Apply database migrations
+	cd $(API) && uv run alembic upgrade head
 
 seed: ## Load demo fixtures into the database
 	$(call not_ready,seed,B-09)
