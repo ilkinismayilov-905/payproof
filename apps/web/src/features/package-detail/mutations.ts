@@ -87,6 +87,7 @@ export function useUploadDocument(id: string) {
   return useMutation<Schemas["JobAccepted"], ApiError, UploadInput>({
     mutationKey: packageMutationKey(id),
     mutationFn: (input) => uploadRequest(id, input),
+    meta: { inlineErrors: ["DUPLICATE_FILE", "VERSION_CONFLICT"] }, // the dialog explains them
     onError: (error) => {
       if (error.code === "VERSION_CONFLICT")
         void client.invalidateQueries({ queryKey: packageKeys.detail(id) });
