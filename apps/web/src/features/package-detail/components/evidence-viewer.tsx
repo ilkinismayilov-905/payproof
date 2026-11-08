@@ -5,6 +5,7 @@ import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
 import { X } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
 import { PaperPage } from "./paper-page";
 import { SourceFile } from "./source-file";
@@ -101,6 +102,20 @@ export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
                 )}
               </div>
             </>
+          )}
+          {evidence && !source && (
+            // a stale link (e.g. the version list changed meanwhile): still say what is known
+            <div className="flex flex-col gap-3 px-6 py-5">
+              <Dialog.Title className="text-xl font-semibold">Mənbə sənəd tapılmadı</Dialog.Title>
+              <Dialog.Description asChild>
+                <blockquote className="border-brand border-l-4 pl-3">{evidence.quote}</blockquote>
+              </Dialog.Description>
+              <Dialog.Close asChild>
+                <Button variant="outline" className="self-end">
+                  {actionLabel.close}
+                </Button>
+              </Dialog.Close>
+            </div>
           )}
         </Dialog.Content>
       </Dialog.Portal>

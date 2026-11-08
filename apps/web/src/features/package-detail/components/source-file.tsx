@@ -1,11 +1,9 @@
 "use client";
 
-import { unwrap } from "@payproof/api-client";
-import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import type { CSSProperties } from "react";
 import { SkeletonBar, Loading } from "@/components/ui/skeleton";
-import { api } from "@/lib/api";
+import { useDocumentFile } from "../queries";
 
 // react-pdf needs the DOM (canvas, worker): never part of the server bundle
 const PdfPage = dynamic(() => import("./pdf-page"), { ssr: false });
@@ -56,17 +54,7 @@ export function SourceFile({
   page: number;
   bbox: BBox;
 }) {
-  const link = useQuery({
-    queryKey: ["documents", "file", versionId],
-    queryFn: ({ signal }) =>
-      unwrap(
-        api.GET("/v1/documents/versions/{version_id}/file", {
-          params: { path: { version_id: versionId } },
-          signal,
-        }),
-      ),
-    staleTime: 4 * 60_000, // links live 5 minutes
-  });
+  const link = useDocumentFile(versionId);
   if (link.isPending)
     return (
       <Loading>
@@ -79,13 +67,14 @@ export function SourceFile({
         {link.error.message}
       </p>
     );
-  if (/\.(png|jpe?g)$/i.test(fileName))
+  // pdf.js only reads PDFs; scans arrive as images (png, jpg, webp …)
+  if (!/\.pdf$/i.test(fileName))
     return <ImageSource url={link.data.url} fileName={fileName} bbox={bbox} />;
   return (
     <div className="border-border w-fit max-w-full overflow-auto rounded-sm border">
       {/* the page's own box: the highlight's percentages must follow the page, not the scroll box */}
       <div className="relative w-fit">
-        <PdfPage url={link.data.url} page={page} width={WIDTH} />
+        <PdfPage url={link.data.url} page={page} width={WIDTH} onRetry={() => link.refetch()} />
         <Highlight bbox={bbox} />
       </div>
     </div>

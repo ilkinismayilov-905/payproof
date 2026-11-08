@@ -65,3 +65,15 @@ test("an image scan is shown as an image, with the highlight box over it", async
   );
   expect(screen.getByTestId("bbox")).toHaveStyle({ left: "20%", top: "40%" });
 });
+
+test("anything but a PDF is shown as an image (scans: png, jpg, webp …)", async () => {
+  renderWithQuery(
+    <SourceFile
+      versionId={mockIds.version("pkg_1047", "invoice", 1)}
+      fileName="INV-1047_scan.webp"
+      page={1}
+      bbox={null}
+    />,
+  );
+  expect(await screen.findByRole("img", { name: "INV-1047_scan.webp" })).toBeInTheDocument();
+});

@@ -66,3 +66,17 @@ test("evidence from an older version and from a scan is flagged", () => {
   );
   expect(dialog).toHaveAccessibleDescription("Səhifə 2 · PO");
 });
+
+test("evidence pointing at an unknown version still opens a titled dialog with the quote", () => {
+  render(
+    <EvidenceViewer
+      pkg={pkg(version("v2", 2))}
+      evidence={evidence("gone")}
+      label="PO"
+      onClose={vi.fn()}
+    />,
+  );
+  const dialog = screen.getByRole("dialog", { name: "Mənbə sənəd tapılmadı" });
+  expect(dialog).toHaveTextContent("Sifariş №: PO-3?7");
+  expect(screen.getByRole("button", { name: "Bağla" })).toBeInTheDocument();
+});
