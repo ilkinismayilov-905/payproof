@@ -14,6 +14,7 @@ import { fieldForCheck } from "../correction";
 import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
+import { CreateTaskDialog } from "@/features/tasks";
 import { ActivityPanel } from "./activity-panel";
 import { ChecksPanel, type Fixable } from "./checks-panel";
 import { ComparisonPanel } from "./comparison-panel";
@@ -36,6 +37,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
   } | null>(null);
   const [matching, setMatching] = useState(false);
   const [uploading, setUploading] = useState<"invoice" | "delivery" | null>(null);
+  const [tasking, setTasking] = useState<Schemas["CheckResult"] | null>(null);
   const [correcting, setCorrecting] = useState<string | null>(null); // field id
   const sign = useReviewSignature(id);
   const validate = useValidate(id);
@@ -147,6 +149,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}
             canEdit={canEdit}
+            onTask={pkg.data.permissions.can_manage_tasks ? setTasking : undefined}
             onFix={(hint, check) => fix(pkg.data, hint, check)}
           />
         </div>
@@ -177,6 +180,14 @@ export function PackageDetailScreen({ id }: { id: string }) {
         }
       />
       {matching && <MatchDialog pkg={pkg.data} open onOpenChange={setMatching} />}
+      {tasking && (
+        <CreateTaskDialog
+          pkg={pkg.data}
+          check={tasking}
+          open
+          onOpenChange={(o) => o || setTasking(null)}
+        />
+      )}
       {uploading && (
         <UploadDialog
           pkg={pkg.data}
