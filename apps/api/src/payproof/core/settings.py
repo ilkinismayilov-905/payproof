@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr
     s3_bucket: str
     ai_provider: Literal["mock", "pdf", "llm"] = "mock"
+    # comma-separated browser origins allowed to call the API (web :3000, mobile :3001)
+    cors_origins: str = "http://localhost:3000,http://localhost:3001"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
     @model_validator(mode="after")
     def _prod_secret_is_strong(self) -> Self:

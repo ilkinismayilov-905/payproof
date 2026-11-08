@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from payproof.api import audit, auth, documents, events, health, jobs, packages, review
 from payproof.core.errors import register_error_handlers
@@ -25,6 +26,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="PayProof API", version="0.1.0", lifespan=_lifespan)
     app.state.hub = Hub(settings.database_url)
     app.middleware("http")(correlation_id_middleware)
+    # added last = outermost: preflights are answered before auth and logging
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=False,  # the token travels in Authorization, never in a cookie
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "Last-Event-ID"],
+    )
     register_error_handlers(app)
     app.include_router(health.router, prefix="/v1")
     if settings.env == "dev":  # demo login does not exist outside dev, not even as a 403
