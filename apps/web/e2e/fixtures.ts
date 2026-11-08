@@ -56,9 +56,22 @@ async function json<T>(res: ReturnType<APIRequestContext["get"]>) {
   return (await r.json()) as T;
 }
 
+// one dev login per user and test worker: the API rate-limits logins, and a reseed keeps the
+// slug-derived user ids, so a token stays valid for the whole run
+const tokens = new Map<User, Promise<string>>();
+
 /** A session token for a demo user: the mock token, or a real dev login. */
-export async function tokenFor(request: APIRequestContext, user: User) {
-  if (!REAL) return `mock.${MOCK_IDS[user]}`;
+export function tokenFor(request: APIRequestContext, user: User) {
+  if (!REAL) return Promise.resolve(`mock.${MOCK_IDS[user]}`);
+  if (!tokens.has(user))
+    tokens.set(
+      user,
+      login(request, user).catch((e) => (tokens.delete(user), Promise.reject(e))),
+    );
+  return tokens.get(user)!;
+}
+
+async function login(request: APIRequestContext, user: User) {
   const { items } = await json<{ items: { id: string; full_name: string }[] }>(
     request.get(`${API_URL}/v1/auth/dev-users`),
   );
