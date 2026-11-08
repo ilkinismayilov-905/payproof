@@ -65,3 +65,15 @@ async def test_signed_delivery_sample() -> None:
 async def test_unknown_file_changes_nothing() -> None:
     r = await mock.extract(replace(SRC, file_name="note.pdf", doc_type="order"))
     assert (r.invoice, r.delivery, r.evidence) == (None, None, ())
+
+
+async def test_new_package_documents_come_from_the_demo_sets() -> None:
+    invoice = await mock.extract(replace(SRC, file_name="INV-1051.pdf", invoice=None))
+    validate(invoice, pages=1)
+    assert invoice.invoice is not None and not invoice.needs_review
+    assert (invoice.invoice.po_ref, invoice.invoice.total) == ("PO-399", Decimal("1160.00"))
+    delivery = await mock.extract(
+        replace(SRC, file_name="TS-5547.jpg", doc_type="delivery", invoice=invoice.invoice)
+    )
+    assert delivery.delivery is not None
+    assert (delivery.delivery.note_number, delivery.delivery.signed) == ("TS-5547", True)
