@@ -3,9 +3,11 @@ import json
 import uuid
 import zipfile
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.errors import InvalidInput, PackageNotReady
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import DocumentVersion, RequirementSet
 from payproof.seed.cli import seed
@@ -13,7 +15,7 @@ from payproof.seed.files import placeholder, store_placeholders
 from payproof.seed.fixtures import uid
 from payproof.seed.identity import COMPANY_ID
 from payproof.seed.packages import version_id
-from payproof.services.export import Exported, export
+from payproof.services.export import Exported, InvoiceRequired, export
 from payproof.services.package_query import load_states
 from payproof.storage.s3 import get_storage
 
@@ -50,3 +52,14 @@ async def test_only_selected_files_and_no_internal_content(db: AsyncSession) -> 
         assert internal not in manifest
     again = await _export(db, "pkg_1035", [invoice])
     assert not again.created and again.export.id == done.export.id
+
+
+async def test_refusals(db: AsyncSession) -> None:
+    await seed(db)
+    bind_tenant(db, COMPANY_ID)
+    with pytest.raises(PackageNotReady):
+        await _export(db, "pkg_1038", [version_id("pkg_1038", "invoice", 1)])  # not approved
+    with pytest.raises(InvoiceRequired):
+        await _export(db, "pkg_1035", [version_id("pkg_1035", "delivery", 1)])
+    with pytest.raises(InvalidInput):
+        await _export(db, "pkg_1035", [])
