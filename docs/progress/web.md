@@ -7,7 +7,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 
 | Step | Ad | Status | Branch | Tarix | Qeyd |
 |---|---|---|---|---|---|
-| W-01 | Next.js skeleti | ⬜ | | | |
+| W-01 | Next.js skeleti | ✅ | `feat/W-01-web-skeleton` | 2026-11-08 | Next 16.4 + Tailwind 4 (tokens preset) + shadcn (radix-nova, token rəngləri) + ESLint/Vitest/Playwright; light/dark e2e ilə yoxlanır |
 | W-02 | Data qatı və dev auth | ⬜ | | | |
 | W-03 | i18n və status komponentləri | ⬜ | | | |
 | W-04 | Tətbiq çərçivəsi (shell) | ⬜ | | | |
