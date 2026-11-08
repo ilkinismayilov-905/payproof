@@ -66,15 +66,19 @@ export const internalReport = (id: string) =>
     api.GET("/v1/packages/{package_id}/internal-report", { params: { path: { package_id: id } } }),
   );
 
-/** Hands a URL or JSON to the browser as a download. */
-export function saveFile(name: string, source: string | object) {
-  const href =
+/**
+ * Hands a file to the browser as a download: a signed link is fetched first (a plain link would
+ * bypass the mock service worker, and a cross-origin link ignores the file name), JSON is encoded.
+ */
+export async function saveFile(name: string, source: string | object) {
+  const blob =
     typeof source === "string"
-      ? source
-      : URL.createObjectURL(
-          new Blob([JSON.stringify(source, null, 2)], { type: "application/json" }),
-        );
-  const a = Object.assign(document.createElement("a"), { href, download: name });
-  a.click();
-  if (typeof source !== "string") setTimeout(() => URL.revokeObjectURL(href), 0);
+      ? await fetch(source).then((r) => {
+          if (!r.ok) throw new Error(`Fayl yüklənmədi (${r.status}).`);
+          return r.blob();
+        })
+      : new Blob([JSON.stringify(source, null, 2)], { type: "application/json" });
+  const href = URL.createObjectURL(blob);
+  Object.assign(document.createElement("a"), { href, download: name }).click();
+  setTimeout(() => URL.revokeObjectURL(href), 0);
 }

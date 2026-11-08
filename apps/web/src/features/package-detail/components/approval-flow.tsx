@@ -26,12 +26,12 @@ export function useApprovalFlow(pkg: Pkg | undefined) {
       if (!pkg) return;
       const name = `PayProof_${pkg.invoice_number}_v${pkg.version}`;
       if (kind === "report") {
-        saveFile(`${name}_daxili_hesabat.json`, await internalReport(pkg.id));
+        await saveFile(`${name}_daxili_hesabat.json`, await internalReport(pkg.id));
         return toast.success("Daxili yoxlama hesabatı yükləndi.");
       }
       const record = pkg.exports.find((e) => e.package_version === pkg.version);
       if (!record) return;
-      saveFile(`${name}.zip`, (await exportDownload(record.id)).url);
+      await saveFile(`${name}.zip`, (await exportDownload(record.id)).url);
       toast.info(
         `Manifest yenidən yükləndi. v${pkg.version} artıq ixrac edilib — yeni audit hadisəsi yaradılmadı.`,
       );

@@ -8,7 +8,7 @@ import { setToken } from "@/lib/auth";
 import { renderWithQuery } from "@/test/render";
 import { ExportDialog } from "./export-dialog";
 
-const saveFile = vi.hoisted(() => vi.fn());
+const saveFile = vi.hoisted(() => vi.fn(() => Promise.resolve()));
 vi.mock("../approval", async (orig) => ({
   ...(await orig<typeof import("../approval")>()),
   saveFile,

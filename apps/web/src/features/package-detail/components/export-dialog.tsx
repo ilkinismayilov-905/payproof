@@ -46,7 +46,13 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
       },
       {
         onSuccess: ({ export: record, download }) => {
-          saveFile(`PayProof_${pkg.invoice_number}_v${record.package_version}.zip`, download.url);
+          // the export exists either way; a failed download can be repeated from "Manifesti yenidən yüklə"
+          saveFile(
+            `PayProof_${pkg.invoice_number}_v${record.package_version}.zip`,
+            download.url,
+          ).catch(() =>
+            toast.error("Fayl yüklənmədi — “Manifesti yenidən yüklə” ilə təkrarlayın."),
+          );
           onOpenChange(false);
           toast.success(
             `${pkg.invoice_number} v${record.package_version} ixrac edildi. Manifest yükləndi.`,
