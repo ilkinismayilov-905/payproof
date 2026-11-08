@@ -100,4 +100,8 @@ function statusBadge<S extends string>(
 export const PackageStatusBadge = statusBadge(packageStatusTone, icons.package, packageStatusLabel);
 export const CheckOutcomeBadge = statusBadge(checkOutcomeTone, icons.outcome, checkOutcomeLabel);
 export const TaskStatusBadge = statusBadge(taskStatusTone, icons.task, taskStatusLabel);
-export const DocumentStatusBadge = statusBadge(documentStatusTone, icons.document, documentStatusLabel);
+export const DocumentStatusBadge = statusBadge(
+  documentStatusTone,
+  icons.document,
+  documentStatusLabel,
+);
