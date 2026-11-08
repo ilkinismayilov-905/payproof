@@ -30,6 +30,19 @@ class CheckResult:
     data: Mapping[str, Any] = field(default_factory=dict)
 
 
+def no_lines(rule_id: str, s: PackageSnapshot) -> CheckResult | None:
+    """Line rules on an invoice whose lines were not read: UNKNOWN, never a vacuous PASS.
+    Not in the rules table (extraction can read zero lines)."""
+    if s.invoice.lines:
+        return None
+    return CheckResult(
+        rule_id,
+        CheckOutcome.UNKNOWN,
+        "Faktura sətirləri oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+        fix_hint=FixHint.EDIT_FIELD,
+    )
+
+
 def evidence_for(s: PackageSnapshot, *paths: str) -> tuple[EvidenceRef, ...]:
     """Evidence refs of the given field paths, in order; a path without a source is skipped."""
     return tuple(s.evidence[p] for p in paths if p in s.evidence)
