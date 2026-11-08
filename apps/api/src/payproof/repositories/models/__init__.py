@@ -8,6 +8,7 @@ from payproof.repositories.models.extraction import (
     ExtractedInvoice,
     ExtractedInvoiceLine,
 )
+from payproof.repositories.models.fields import EvidenceRef, ExtractedField
 from payproof.repositories.models.identity import Company, Membership, User
 from payproof.repositories.models.orders import Order, OrderLine
 from payproof.repositories.models.packages import InvoicePackage
@@ -19,6 +20,8 @@ __all__ = [
     "DeliveryNoteLine",
     "Document",
     "DocumentVersion",
+    "EvidenceRef",
+    "ExtractedField",
     "ExtractedInvoice",
     "ExtractedInvoiceLine",
     "InvoicePackage",
