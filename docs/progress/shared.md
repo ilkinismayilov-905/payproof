@@ -13,5 +13,5 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | S-04 | API müqaviləsi v0 (OpenAPI 3.1) | ⬜ | | | |
 | S-05 | `packages/api-client` | ⬜ | | | |
 | S-06 | `packages/mocks` (MSW + mock mühərriki) | ⬜ | | | |
-| S-07 | `packages/design-tokens` | ⬜ | | | |
+| S-07 | `packages/design-tokens` | 🟡 | `feat/S-07-design-tokens` | 2026-11-08 | |
 | S-08 | CI, PR şablonu və repo-nun paylaşılması | ⬜ | | | |
