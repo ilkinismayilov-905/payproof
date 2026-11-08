@@ -1,16 +1,14 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 
-async function signIn(page: Page, path = "/overview") {
-  await page.goto("/login");
-  await page.evaluate((token) => sessionStorage.setItem("payproof.token", token), AYGUN);
-  await page.goto(path);
+async function enter(page: Page, path = "/overview") {
+  await signIn(page, AYGUN, path);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 }
 
 test("keyboard only: skip link, sidebar, search and user menu", async ({ page }) => {
-  await signIn(page);
+  await enter(page);
 
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Məzmuna keç" })).toBeFocused();
@@ -44,7 +42,7 @@ test("keyboard only: skip link, sidebar, search and user menu", async ({ page })
 const PAGES = {
   "/overview": "İcmal",
   "/packages": "Faktura paketləri",
-  "/packages/0193a000-0000-7000-8002-000000001042": "INV-1042",
+  "/packages/INV-1042": "INV-1042",
   "/tasks": "Tapşırıqlar",
   "/rules": "Müştəri qaydaları",
   "/audit": "Audit tarixçəsi",
@@ -54,7 +52,7 @@ for (const [path, width] of Object.keys(PAGES).flatMap((p) =>
 )) {
   test(`no horizontal scroll on ${path} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
-    await signIn(page, path);
+    await enter(page, path);
     // not "networkidle": the live event stream (ADR-0010) keeps a request open for good
     await expect(
       page.getByRole("heading", { level: 1, name: PAGES[path as keyof typeof PAGES] }),
@@ -72,7 +70,7 @@ for (const [path, width] of Object.keys(PAGES).flatMap((p) =>
 
 test("below 768px the sidebar is a drawer", async ({ page }) => {
   await page.setViewportSize({ width: 767, height: 800 });
-  await signIn(page);
+  await enter(page);
   await expect(page.getByRole("navigation", { name: "Əsas naviqasiya" })).toBeHidden();
 
   const menuButton = page.getByRole("button", { name: "Menyunu aç" });

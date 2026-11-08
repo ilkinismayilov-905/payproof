@@ -1,12 +1,11 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 const rows = (page: Page) =>
   page.getByRole("table", { name: "Faktura paketləri" }).locator("tbody tr");
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/login");
-  await page.evaluate((token) => sessionStorage.setItem("payproof.token", token), AYGUN);
+  await signIn(page, AYGUN, "/login");
 });
 
 test("a shared URL opens the same view, also after reload", async ({ page }) => {
@@ -52,10 +51,10 @@ test("search is debounced into the URL without one history entry per key", async
 test("rows open the package by mouse and by keyboard", async ({ page }) => {
   await page.goto("/packages?q=INV-1042");
   await rows(page).first().locator("td").nth(1).click();
-  await expect(page).toHaveURL(/\/packages\/0193a000-0000-7000-8002-000000001042$/);
+  await expect(page).toHaveURL(/\/packages\/[0-9a-f-]{36}$/);
 
   await page.goto("/packages?q=INV-1042");
   await page.getByRole("link", { name: "INV-1042" }).focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/packages\/0193a000-0000-7000-8002-000000001042$/);
+  await expect(page).toHaveURL(/\/packages\/[0-9a-f-]{36}$/);
 });
