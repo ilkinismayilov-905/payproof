@@ -6,6 +6,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 from payproof.core.ids import uuid7
 
+TENANT_COLUMN = "payproof.tenant"
+
 # stable constraint names so Alembic migrations can drop/alter them
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -36,7 +38,10 @@ class TenantMixin:
 
     @declared_attr
     def company_id(cls) -> Mapped[uuid.UUID]:
-        return mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+        # info marker lets the tenant guard spot these tables anywhere in a statement
+        return mapped_column(
+            Uuid, ForeignKey("companies.id"), index=True, info={TENANT_COLUMN: True}
+        )
 
 
 class TenantEntity(IdMixin, TimestampMixin, TenantMixin):
