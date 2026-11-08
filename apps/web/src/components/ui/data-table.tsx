@@ -70,7 +70,9 @@ export function DataTable<T>({
     sort?.id === columnId ? (sort.desc ? "desc" : "asc") : false;
 
   return (
-    <div className="overflow-x-auto">
+    // `relative`: the box must be the containing block of absolutely positioned cell content
+    // (sr-only text), or that content escapes the scroll box and widens the whole page.
+    <div className="relative overflow-x-auto">
       <table className="w-full border-collapse">
         <caption className="sr-only">{caption}</caption>
         <thead>
