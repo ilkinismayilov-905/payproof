@@ -7,6 +7,6 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 
 | Step | Ad | Status | Branch | Tarix | Qeyd |
 |---|---|---|---|---|---|
-| I-01 | Tam axın real stack-də | ⬜ | | | |
+| I-01 | Tam axın real stack-də | 🟡 | `feat/I-01-e2e-real` | | |
 | I-02 | Demo hazırlığı | ⬜ | | | |
 | I-03 | v0.1.0 buraxılışı | ⬜ | | | |
