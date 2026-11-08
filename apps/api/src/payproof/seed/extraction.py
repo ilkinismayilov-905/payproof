@@ -1,9 +1,11 @@
 """Extraction results of each package's current invoice and delivery versions."""
 
 import datetime as dt
+import uuid
 from collections.abc import Sequence
 from decimal import Decimal
 
+from payproof.domain.rules.paths import line
 from payproof.repositories.models import (
     DeliveryNote,
     DeliveryNoteLine,
@@ -46,19 +48,39 @@ def _invoice(p: Fixture, no: int) -> list[Base]:
         )
         for li in inv["lines"]
     ]
-    # unread critical fields wait for a person (INV-1047: PO not read on the scan)
-    unread = [
+    return [head, *lines, *_fields(p, vid)]
+
+
+def _fields(p: Fixture, vid: uuid.UUID) -> list[ExtractedField]:
+    """Editable fields (mock `fieldPaths`): PO, then qty and unit price per line. An unread
+    critical field waits for a person (INV-1047: PO not read on the scan)."""
+    inv, pid = p["invoice"], p["id"]
+    unread = "po_ref" in inv["unreadable_fields"]
+    values: list[tuple[str, str | None, str | None, bool]] = [
+        ("invoice.po_ref", inv["po_raw"] if unread else inv["po_ref"], inv["po_ref"], unread)
+    ]
+    for li in inv["lines"]:
+        code, qty = li["product_code"], str(li["qty"])
+        values += [
+            (line("invoice", code, "qty"), qty, qty, False),
+            (line("invoice", code, "unit_price"), li["unit_price"], li["unit_price"], False),
+        ]
+    return [
         ExtractedField(
-            id=uid(f"{pid}:field:{f}"),
+            id=field_id(pid, path),
             company_id=COMPANY_ID,
             document_version_id=vid,
-            field_path=f"invoice.{f}",
-            raw_value=inv["po_raw"] if f == "po_ref" else None,
-            review_status="REVIEW_REQUIRED",
+            field_path=path,
+            raw_value=raw,
+            normalized_value=value,
+            review_status="REVIEW_REQUIRED" if review else "EXTRACTED",
         )
-        for f in inv["unreadable_fields"]
+        for path, raw, value, review in values
     ]
-    return [head, *lines, *unread]
+
+
+def field_id(pid: str, path: str) -> uuid.UUID:
+    return uid(f"{pid}:field:{path}")
 
 
 def _delivery(p: Fixture, d: Fixture, no: int) -> list[Base]:
