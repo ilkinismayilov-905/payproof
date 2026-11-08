@@ -28,7 +28,7 @@ from payproof.extraction.base import (
     InvoiceData,
     LineData,
 )
-from payproof.seed.fixtures import load
+from payproof.seed.fixtures import UNITS, load
 
 UNREAD = "oxunmur"
 
@@ -105,9 +105,32 @@ def _corrected_invoice(inv: InvoiceData, x: dict[str, Any]) -> InvoiceData:
     )  # a corrected file is read in full: nothing left for review
 
 
+def newset_for(file_name: str) -> dict[str, Any] | None:
+    """Demo document set (fixtures/newsets.json) a file belongs to — a new package's documents."""
+    return next((n for n in load("newsets.json") if file_name in n["files"]), None)
+
+
+def _new_invoice(n: dict[str, Any]) -> InvoiceData:
+    lines = tuple(
+        LineData(li["product_code"], Decimal(str(li["qty"])), UNITS[li["product_code"]],
+                 Decimal(li["unit_price"]))
+        for li in n["lines"]
+    )  # fmt: skip
+    total = sum((li.qty * li.unit_price for li in lines if li.qty and li.unit_price), Decimal(0))
+    return InvoiceData(n["po_number"], None, n["currency"], total.quantize(Decimal("0.01")), lines)
+
+
 class MockExtractionAdapter:
     async def extract(self, src: ExtractionInput) -> ExtractionResult:
         x = _samples().get((src.file_name, src.doc_type))
+        new = newset_for(src.file_name)
+        if src.doc_type == "invoice" and src.invoice is None and new:
+            inv = _new_invoice(new)
+            return ExtractionResult(
+                "mock", invoice=inv, evidence=tuple(invoice_evidence(inv, src.customer))
+            )
+        if src.doc_type == "delivery" and src.delivery is None and new and new["delivery"]:
+            x = {"delivery": {**new["delivery"], "signed": True}}  # the demo note is signed
         if src.doc_type == "invoice" and src.invoice:
             inv = src.invoice
             if x is not None:

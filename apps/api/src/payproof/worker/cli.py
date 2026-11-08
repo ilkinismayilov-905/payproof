@@ -11,6 +11,7 @@ from payproof.core.settings import get_settings
 from payproof.extraction.pipeline import adapter_extractor, get_adapter
 from payproof.repositories import models  # noqa: F401 — registers every table and the guard
 from payproof.storage.s3 import get_storage
+from payproof.worker.create import create_handler
 from payproof.worker.extract import extract_handler
 from payproof.worker.queue import PostgresQueue
 from payproof.worker.runner import Handler, run_once
@@ -21,7 +22,7 @@ IDLE_POLL = 1.0  # seconds between checks when the queue is empty
 
 def handlers() -> dict[str, Handler]:
     extract = adapter_extractor(get_adapter(), get_storage())
-    return {"extract_document": extract_handler(extract)}
+    return {"extract_document": extract_handler(extract), "create_package": create_handler(extract)}
 
 
 async def _main() -> None:
