@@ -1,0 +1,105 @@
+/* PayProof design tokens — source: docs/product/prototype/payproof-prototype.html (section 1).
+   Values must stay identical to the prototype (enforced by test/tokens.test.ts). */
+
+:root {
+  /* Brand (petrol) */
+  --brand-700: #0a4a55;
+  --brand-600: #0d5d6b;
+  --brand-500: #167487;
+  --brand-100: #cfe6ea;
+  --brand-50: #eaf4f6;
+  --on-brand: #ffffff;
+
+  /* Surfaces & borders */
+  --bg: #f4f5f2;
+  --surface: #ffffff;
+  --surface-2: #f1f3ef;
+  --surface-3: #e6e9e4;
+  --border: #dce0da;
+  --border-strong: #c3c9c1;
+
+  /* Text */
+  --text: #17201d;
+  --text-2: #46524e;
+  --text-3: #5f6b66;
+
+  /* Semantic */
+  --success: #17784a;
+  --success-bg: #e5f3eb;
+  --warning: #8f5600;
+  --warning-bg: #fcf0d9;
+  --danger: #b42318;
+  --danger-bg: #fbe8e6;
+  --on-danger: #ffffff;
+  --info: #3a57a0;
+  --info-bg: #e9eef9;
+  --neutral: #4d5754;
+  --neutral-bg: #eceeea;
+
+  /* Avatars */
+  --av-1: #d7ecef;
+  --av-1t: #0a4a55;
+  --av-2: #f6e3cf;
+  --av-2t: #7a3e05;
+  --av-3: #e2e7f6;
+  --av-3t: #2e4580;
+  --av-4: #e5f0dd;
+  --av-4t: #33561c;
+  --av-5: #f3e0e6;
+  --av-5t: #7d2643;
+
+  /* Document viewer (paper) */
+  --paper: #ffffff;
+  --paper-ink: #1d2321;
+  --paper-line: #e3e5e0;
+  --paper-muted: #5e6662;
+  --paper-hl: #ffe27a;
+  --paper-hl-ring: #d9a400;
+  --paper-scan: #f6f3ea;
+
+  /* Overlay */
+  --overlay: rgba(12, 18, 16, 0.48);
+  --stage-glow: #dcedef;
+
+  /* Spacing (4/8 grid) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Typography */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 22px;
+  --fs-3xl: 28px;
+  --fs-4xl: 34px;
+  --font: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* Shadow */
+  --sh-1: 0 1px 2px rgba(20, 30, 27, 0.06), 0 1px 3px rgba(20, 30, 27, 0.05);
+  --sh-2: 0 6px 16px rgba(20, 30, 27, 0.08), 0 2px 4px rgba(20, 30, 27, 0.05);
+  --sh-3: 0 24px 48px rgba(20, 30, 27, 0.18), 0 6px 12px rgba(20, 30, 27, 0.08);
+
+  /* Motion */
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* Layout */
+  --topbar-h: 56px;
+}
