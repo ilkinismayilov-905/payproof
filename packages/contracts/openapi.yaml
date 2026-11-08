@@ -15,7 +15,100 @@ security:
 tags:
   - name: auth
     description: Session and current user
-paths: {}
+paths:
+  /v1/auth/dev-users:
+    get:
+      tags: [auth]
+      operationId: listDevUsers
+      summary: Demo users for the dev login picker (ENV=dev only; 404 otherwise)
+      security: []
+      responses:
+        "200":
+          description: Demo users
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/DevUser" } }
+              example:
+                items:
+                  - {
+                      id: 0193a000-0000-7000-8000-000000000001,
+                      full_name: Aygün Məmmədova,
+                      title: Maliyyə əməkdaşı,
+                      role: operator,
+                    }
+                  - {
+                      id: 0193a000-0000-7000-8000-000000000002,
+                      full_name: Rəşad Əliyev,
+                      title: Maliyyə direktoru,
+                      role: approver,
+                    }
+                  - {
+                      id: 0193a000-0000-7000-8000-000000000005,
+                      full_name: Kamran Babayev,
+                      title: Daxili auditor,
+                      role: readonly,
+                    }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/auth/dev-login:
+    post:
+      tags: [auth]
+      operationId: devLogin
+      summary: Issue a JWT for a demo user (ENV=dev only; 404 otherwise)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [user_id]
+              properties:
+                user_id: { $ref: "#/components/schemas/Uuid" }
+            example: { user_id: 0193a000-0000-7000-8000-000000000001 }
+      responses:
+        "200":
+          description: Token issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Session" }
+              example:
+                access_token: eyJhbGciOiJIUzI1NiJ9.demo.signature
+                token_type: bearer
+                expires_in: 28800
+                user: &me_u1
+                  id: 0193a000-0000-7000-8000-000000000001
+                  email: aygun.mammadova@a-distribusiya.test
+                  full_name: Aygün Məmmədova
+                  title: Maliyyə əməkdaşı
+                  role: operator
+                  company:
+                    {
+                      id: 0193a000-0000-7000-8000-00000000c0a1,
+                      name: A Distribusiya MMC,
+                      voen: "1700123451",
+                    }
+                  permissions: [VIEW, EDIT_PACKAGE, MANAGE_TASKS, EXPORT_PACKAGE, DELETE_PACKAGE]
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      summary: Current user, company and permissions
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+              example: *me_u1
+        "401": { $ref: "#/components/responses/Unauthenticated" }
 
 components:
   securitySchemes:
@@ -213,3 +306,43 @@ components:
             code: { $ref: "#/components/schemas/ErrorCode" }
             message: { type: string, description: "Azerbaijani; safe to show in the UI." }
             details: { type: object, additionalProperties: true }
+    DevUser:
+      type: object
+      additionalProperties: false
+      required: [id, full_name, title, role]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        full_name: { type: string }
+        title: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+    Me:
+      type: object
+      additionalProperties: false
+      required: [id, email, full_name, title, role, company, permissions]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        email: { type: string, format: email }
+        full_name: { type: string }
+        title: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        company:
+          type: object
+          additionalProperties: false
+          required: [id, name, voen]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            name: { type: string }
+            voen: { type: string, pattern: "^[0-9]{10}$" }
+        permissions:
+          type: array
+          uniqueItems: true
+          items: { $ref: "#/components/schemas/Permission" }
+    Session:
+      type: object
+      additionalProperties: false
+      required: [access_token, token_type, expires_in, user]
+      properties:
+        access_token: { type: string }
+        token_type: { const: bearer }
+        expires_in: { type: integer, description: Seconds }
+        user: { $ref: "#/components/schemas/Me" }
