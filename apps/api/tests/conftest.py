@@ -31,7 +31,7 @@ ALEMBIC_INI = Path(__file__).parents[1] / "alembic.ini"
 
 def alembic_config(url: str) -> Config:
     cfg = Config(ALEMBIC_INI)
-    cfg.set_main_option("sqlalchemy.url", url)
+    cfg.set_main_option("sqlalchemy.url", url.replace("%", "%%"))  # configparser interpolation
     cfg.attributes["configure_logging"] = False
     return cfg
 
