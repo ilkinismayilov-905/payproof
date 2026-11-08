@@ -10,7 +10,10 @@ interface Props {
   title: string;
   description: ReactNode;
   confirmLabel: string;
-  /** May return a promise: the dialog stays open (buttons disabled) until it settles, and on failure. */
+  /**
+   * May return a promise: the dialog stays open (buttons inert) until it settles, and on failure.
+   * Errors are not shown here — pass a mutation (`mutateAsync`) so the global handler toasts them.
+   */
   onConfirm: () => void | Promise<void>;
   /** false for non-destructive confirmations (primary button). */
   destructive?: boolean;
@@ -35,6 +38,7 @@ export function ConfirmDialog({
 
   const confirm = async (event: MouseEvent) => {
     event.preventDefault(); // close only after the action succeeds
+    if (pending) return;
     setPending(true);
     try {
       await onConfirm();
@@ -70,7 +74,12 @@ export function ConfirmDialog({
           </AlertDialog.Description>
           <div className="border-border flex flex-wrap justify-end gap-2 border-t px-6 py-4">
             <AlertDialog.Cancel asChild>
-              <Button variant="outline" size="lg" disabled={pending}>
+              <Button
+                variant="outline"
+                size="lg"
+                aria-disabled={pending}
+                className="aria-disabled:cursor-wait aria-disabled:opacity-50"
+              >
                 Ləğv et
               </Button>
             </AlertDialog.Cancel>
@@ -78,7 +87,8 @@ export function ConfirmDialog({
               <Button
                 variant={destructive ? "destructive" : "default"}
                 size="lg"
-                disabled={pending}
+                aria-disabled={pending}
+                className="aria-disabled:cursor-wait aria-disabled:opacity-50"
                 onClick={confirm}
               >
                 {confirmLabel}
