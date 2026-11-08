@@ -59,20 +59,22 @@ export function CustomerRulesCard({
     const next = { ...flags, tolerance: parsed! };
     if (sameRules(cur, next))
       return void toast.warning("Dəyişiklik yoxdur — yeni versiya yaradılmadı.");
-    save.mutate(
-      {
+    // mutateAsync, not a mutate callback: the saved version re-mounts this card before the
+    // refresh ends, and React Query drops callbacks of an unmounted observer
+    save
+      .mutateAsync({
         ...next,
         reason: reason.trim(),
         effective_from: bakuToday(),
         expected_version: cur.version,
-      },
-      {
-        onSuccess: (rs) =>
+      })
+      .then(
+        (rs) =>
           toast.success(
             `${customer.name}: qayda dəsti v${rs.version} təsdiqləndi. Əlaqəli paketlər yenidən yoxlandı.`,
           ),
-      },
-    );
+        () => {}, // the global handler already explains the error
+      );
   };
 
   return (
