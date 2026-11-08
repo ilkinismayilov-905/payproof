@@ -42,24 +42,67 @@ describe("status → badge tone", () => {
     expect(Object.keys(map).sort()).toEqual([...defs[def].enum].sort());
   });
 
-  it("covers every document version status", () => {
-    expect(Object.keys(documentStatusTone).sort()).toEqual([
-      "EXTRACTED",
-      "FAILED",
-      "PROCESSING",
-      "REVIEW_REQUIRED",
-    ]);
+  it("covers every document version status from the fixtures schema", () => {
+    const docStatus = JSON.parse(read("../../../fixtures/schema/packages.json")).items.properties
+      .documents.items.properties.versions.items.properties.status.enum;
+    expect(Object.keys(documentStatusTone).sort()).toEqual([...docStatus].sort());
   });
 
-  it("matches the prototype colours for package statuses", () => {
-    expect(packageStatusTone).toEqual({
-      PROCESSING: "info",
-      NEEDS_REVIEW: "warning",
-      NEEDS_FIX: "danger",
-      READY_FOR_APPROVAL: "brand",
-      APPROVED_READY: "success",
-      EXPORTED: "neutral",
-    });
+  // Parses `const NAME = { KEY: { l: '…', c: 'tone', … }, … };` from the prototype source.
+  const prototypeTones = (name: string) => {
+    const html = read("../../../docs/product/prototype/payproof-prototype.html");
+    const start = html.indexOf(`const ${name} = {`);
+    const body = html.slice(start, html.indexOf("};", start));
+    return Object.fromEntries(
+      [...body.matchAll(/(\w+): \{ l: '[^']*', c: '(\w+)'/g)].map((m) => [m[1], m[2]]),
+    );
+  };
+  it.each([
+    ["PST", packageStatusTone],
+    ["OUT", checkOutcomeTone],
+    ["TST", taskStatusTone],
+    ["DST", documentStatusTone],
+  ])("matches the prototype %s colours", (name, map) => {
+    const expected = prototypeTones(name);
+    expect(Object.keys(expected).length).toBeGreaterThan(3);
+    expect(map).toEqual(expected);
+  });
+
+  it("aliases the shadcn/ui colour names to tokens", () => {
+    const colors = theme.colors as Record<string, unknown>;
+    for (const name of [
+      "background",
+      "foreground",
+      "card",
+      "popover",
+      "primary",
+      "secondary",
+      "muted",
+      "accent",
+      "destructive",
+      "input",
+      "ring",
+    ])
+      expect(colors[name], name).toBeDefined();
+    for (const name of [
+      "primary",
+      "secondary",
+      "muted",
+      "accent",
+      "destructive",
+      "card",
+      "popover",
+    ])
+      expect((colors[name] as Record<string, string>).foreground, `${name}.foreground`).toMatch(
+        /^var\(--/,
+      );
+    expect(Object.keys(theme.boxShadow as object)).toEqual(
+      expect.arrayContaining(["DEFAULT", "xs", "sm", "md", "lg"]),
+    );
+    expect(Object.keys(theme.borderRadius as object)).toEqual(
+      expect.arrayContaining(["DEFAULT", "xs"]),
+    );
+    expect(Object.keys(theme.fontSize as object)).toContain("base");
   });
 
   it("badge classes use preset colours only", () => {

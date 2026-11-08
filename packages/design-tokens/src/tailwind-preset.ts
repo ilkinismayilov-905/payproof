@@ -42,11 +42,41 @@ const preset = {
       },
       overlay: v("overlay"),
       "stage-glow": v("stage-glow"),
+      // shadcn/ui names (W-01) → the same tokens, so generated components need no extra palette.
+      background: v("bg"),
+      foreground: v("text"),
+      card: { DEFAULT: v("surface"), foreground: v("text") },
+      popover: { DEFAULT: v("surface"), foreground: v("text") },
+      primary: { DEFAULT: v("brand-600"), foreground: v("on-brand") },
+      secondary: { DEFAULT: v("surface-2"), foreground: v("text") },
+      muted: { DEFAULT: v("surface-2"), foreground: v("text-3") },
+      accent: { DEFAULT: v("brand-50"), foreground: v("brand-700") },
+      destructive: { DEFAULT: v("danger"), foreground: v("on-danger") },
+      input: v("border-strong"),
+      ring: v("brand-500"),
     },
     fontFamily: { sans: v("font"), mono: v("mono") },
-    fontSize: scale("fs", ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"] as const),
-    borderRadius: { none: "0", ...scale("r", ["sm", "md", "lg", "xl", "full"] as const) },
-    boxShadow: { none: "none", ...scale("sh", ["1", "2", "3"] as const) },
+    fontSize: {
+      ...scale("fs", ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"] as const),
+      base: v("fs-md"),
+    },
+    borderRadius: {
+      none: "0",
+      ...scale("r", ["sm", "md", "lg", "xl", "full"] as const),
+      // shadcn/Tailwind defaults → nearest token
+      DEFAULT: v("r-md"),
+      xs: v("r-sm"),
+    },
+    boxShadow: {
+      none: "none",
+      ...scale("sh", ["1", "2", "3"] as const),
+      // shadcn/Tailwind defaults → nearest token
+      DEFAULT: v("sh-1"),
+      xs: v("sh-1"),
+      sm: v("sh-1"),
+      md: v("sh-2"),
+      lg: v("sh-3"),
+    },
     extend: {
       // Tailwind's numeric spacing already uses a 4px step; these pin it to the token values.
       spacing: {
