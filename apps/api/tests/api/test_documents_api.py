@@ -54,6 +54,14 @@ async def test_upload_replay_duplicate_and_download(
     assert dup.status_code == 409 and dup.json()["error"]["code"] == "DUPLICATE_FILE"
     assert_matches("Error", dup.json())
 
+    link = await client.get(
+        f"/v1/documents/versions/{accepted['document_version_id']}/file", headers=auth("u5")
+    )
+    assert link.status_code == 200
+    assert_matches("SignedUrl", link.json())
+    async with httpx.AsyncClient() as raw:
+        assert (await raw.get(link.json()["url"])).content == PDF + b"api"
+
 
 async def test_new_version_of_an_existing_document(
     client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
@@ -98,6 +106,8 @@ async def test_other_company_and_missing_key(
     await seeded.flush()
     path = f"/v1/packages/{foreign.id}/documents"
     assert (await _post(client, auth("u1"), path, PDF, 1, type="invoice")).status_code == 404
+    other = f"/v1/documents/versions/{uuid.uuid4()}/file"
+    assert (await client.get(other, headers=auth("u1"))).status_code == 404
     no_key = await client.post(
         f"/v1/packages/{uid('pkg_1035')}/documents",
         headers=auth("u1"),

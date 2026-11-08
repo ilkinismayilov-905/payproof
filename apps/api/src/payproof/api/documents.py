@@ -10,14 +10,15 @@ from sqlalchemy import select
 from payproof.api.deps import Member, Session, require
 from payproof.core.errors import NotFound
 from payproof.domain.permissions import Permission
-from payproof.repositories.models import Document
-from payproof.schemas.documents import JobAccepted
+from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
+from payproof.schemas.documents import JobAccepted, SignedUrl
 from payproof.services.files import MAX_BYTES
 from payproof.services.upload import Upload, upload
 from payproof.storage.s3 import Storage, get_storage
 
 router = APIRouter(tags=["documents"])
 Editor = Annotated[Member, Depends(require(Permission.EDIT_PACKAGE))]
+Viewer = Annotated[Member, Depends(require(Permission.VIEW))]
 Store = Annotated[Storage, Depends(get_storage)]
 Key = Annotated[uuid.UUID, Header(alias="Idempotency-Key")]
 Version = Annotated[int, Form(ge=1)]
@@ -77,3 +78,19 @@ async def upload_document_version(
         key=key,
     )
     return JSONResponse(out.body, status_code=out.status_code)
+
+
+@router.get("/documents/versions/{version_id}/file")
+async def document_file_url(
+    version_id: uuid.UUID, session: Session, _: Viewer, storage: Store
+) -> SignedUrl:
+    version = await session.scalar(
+        select(DocumentVersion)
+        .join(Document, Document.id == DocumentVersion.document_id)
+        .join(InvoicePackage, InvoicePackage.id == Document.package_id)
+        .where(DocumentVersion.id == version_id, InvoicePackage.deleted_at.is_(None))
+    )
+    if version is None:
+        raise NotFound
+    url, expires_at = storage.signed_url(version.storage_key, version.file_name)
+    return SignedUrl(url=url, expires_at=expires_at)
