@@ -1,5 +1,6 @@
 // Create (from a demo document set), finish processing (exact-ID link), soft delete.
 import { documentTypeLabel } from "@payproof/api-client/i18n";
+import { info } from "../engine/status";
 import { decimal, sumLines } from "../money";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
@@ -134,4 +135,23 @@ export function finishProcessing(db: MockDb, p: Pkg) {
     });
   }
   validate(db, p);
+}
+
+export function deletePackage(db: MockDb, p: Pkg, actor: string) {
+  const s = info(db, p).status;
+  if (p.approvals.length || !["PROCESSING", "NEEDS_FIX", "NEEDS_REVIEW"].includes(s))
+    throw new MockError(
+      "PACKAGE_NOT_DELETABLE",
+      "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+      409,
+      { status: s },
+    );
+  p.deleted = true;
+  db.tasks = db.tasks.filter((t) => t.package_id !== p.id);
+  log(db, {
+    actor,
+    action: "package.deleted",
+    message: `${p.invoice_number} · ${db.customer(p.customer_id).name} — heç vaxt təsdiqlənməmiş paket`,
+    pkg: p.id,
+  });
 }
