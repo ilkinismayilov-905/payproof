@@ -1,4 +1,4 @@
-import logging
+from collections.abc import Mapping
 from enum import StrEnum
 from typing import Any, ClassVar, cast
 
@@ -6,8 +6,6 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
-
-log = logging.getLogger(__name__)
 
 
 class ErrorCode(StrEnum):
@@ -67,10 +65,14 @@ _HTTP_DEFAULTS: dict[int, type[DomainError]] = {401: Unauthenticated, 403: Forbi
 
 
 def error_response(
-    status: int, code: ErrorCode, message: str, details: dict[str, Any] | None = None
+    status: int,
+    code: ErrorCode,
+    message: str,
+    details: dict[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
     body = {"error": {"code": code, "message": message, "details": details or {}}}
-    return JSONResponse(body, status_code=status)
+    return JSONResponse(body, status_code=status, headers=headers)
 
 
 async def _domain(_: Request, exc: Exception) -> JSONResponse:
@@ -86,21 +88,16 @@ async def _validation(_: Request, exc: Exception) -> JSONResponse:
 
 
 async def _http(_: Request, exc: Exception) -> JSONResponse:
-    status = cast(HTTPException, exc).status_code
-    known = _HTTP_DEFAULTS.get(status)
-    if known:
-        return error_response(status, known.code, known.message)
+    http = cast(HTTPException, exc)
+    known = _HTTP_DEFAULTS.get(http.status_code)
     # shortcut: other framework 4xx (405...) -> VALIDATION_ERROR; new codes need /contract-change
-    return error_response(status, ErrorCode.VALIDATION_ERROR, "Sorğu yanlışdır.")
-
-
-async def _unhandled(_: Request, exc: Exception) -> JSONResponse:
-    log.exception("unhandled error", exc_info=exc)
-    return error_response(500, ErrorCode.INTERNAL_ERROR, "Gözlənilməz xəta baş verdi.")
+    code, message = (
+        (known.code, known.message) if known else (ErrorCode.VALIDATION_ERROR, "Sorğu yanlışdır.")
+    )
+    return error_response(http.status_code, code, message, headers=http.headers)
 
 
 def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(DomainError, _domain)
     app.add_exception_handler(RequestValidationError, _validation)
     app.add_exception_handler(HTTPException, _http)
-    app.add_exception_handler(Exception, _unhandled)

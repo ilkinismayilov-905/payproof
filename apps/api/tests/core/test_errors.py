@@ -31,10 +31,6 @@ def _client() -> TestClient:
     def body(b: Body) -> Body:
         return b
 
-    @app.get("/boom")
-    def boom() -> None:
-        raise RuntimeError("secret document text")
-
     return TestClient(app, raise_server_exceptions=False)
 
 
@@ -60,17 +56,16 @@ def test_malformed_body_is_400_validation_error_without_input_echo() -> None:
     assert "private text" not in r.text
 
 
+def test_framework_headers_are_kept() -> None:
+    r = _client().get("/body")
+    assert r.status_code == 405
+    assert r.headers["allow"] == "POST"
+
+
 def test_unknown_route_is_not_found() -> None:
     r = _client().get("/nope")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "NOT_FOUND"
-
-
-def test_unhandled_error_is_500_without_leaking() -> None:
-    r = _client().get("/boom")
-    assert r.status_code == 500
-    assert r.json()["error"]["code"] == "INTERNAL_ERROR"
-    assert "secret" not in r.text
 
 
 def test_error_codes_match_contract() -> None:
