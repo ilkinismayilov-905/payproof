@@ -1,0 +1,58 @@
+[
+  {
+    "id": "u1",
+    "full_name": "Aygün Məmmədova",
+    "title": "Maliyyə əməkdaşı",
+    "role": "operator",
+    "avatar_tone": 1,
+    "demo_login": true
+  },
+  {
+    "id": "u2",
+    "full_name": "Rəşad Əliyev",
+    "title": "Maliyyə direktoru",
+    "role": "approver",
+    "avatar_tone": 3,
+    "demo_login": true
+  },
+  {
+    "id": "u3",
+    "full_name": "Elvin Qasımov",
+    "title": "Anbar və logistika",
+    "role": "warehouse",
+    "avatar_tone": 4,
+    "demo_login": false
+  },
+  {
+    "id": "u4",
+    "full_name": "Nigar Hüseynova",
+    "title": "Satış meneceri",
+    "role": "sales",
+    "avatar_tone": 5,
+    "demo_login": false
+  },
+  {
+    "id": "u5",
+    "full_name": "Kamran Babayev",
+    "title": "Daxili auditor",
+    "role": "readonly",
+    "avatar_tone": 2,
+    "demo_login": true
+  },
+  {
+    "id": "u6",
+    "full_name": "Leyla Rzayeva",
+    "title": "Mühasib",
+    "role": "accounting",
+    "avatar_tone": 2,
+    "demo_login": false
+  },
+  {
+    "id": "u7",
+    "full_name": "Səbinə Quliyeva",
+    "title": "Maliyyə əməkdaşı",
+    "role": "operator",
+    "avatar_tone": 4,
+    "demo_login": false
+  }
+]
