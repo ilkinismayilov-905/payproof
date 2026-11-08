@@ -7,7 +7,7 @@ import type { FormEvent, Ref } from "react";
 import { UserMenu } from "./user-menu";
 
 const iconButton =
-  "text-text-2 hover:bg-surface-2 hover:text-text focus-visible:ring-ring inline-grid size-10 shrink-0 place-items-center rounded-md outline-none focus-visible:ring-2 disabled:opacity-50";
+  "text-text-2 hover:bg-surface-2 hover:text-text focus-visible:ring-ring inline-grid size-10 shrink-0 pointer-coarse:size-11 place-items-center rounded-md outline-none focus-visible:ring-2 disabled:opacity-50";
 
 export function Topbar({
   onOpenNav,
@@ -42,7 +42,7 @@ export function Topbar({
       </button>
       <Link
         href="/overview"
-        className="focus-visible:ring-ring flex shrink-0 items-center gap-2.5 rounded-md text-lg font-bold tracking-tight outline-none focus-visible:ring-2"
+        className="focus-visible:ring-ring flex shrink-0 items-center gap-2.5 rounded-md pointer-coarse:min-h-11 text-lg font-bold tracking-tight outline-none focus-visible:ring-2"
       >
         <span className="bg-brand text-brand-foreground grid size-[30px] place-items-center rounded-[9px]">
           <ShieldCheck aria-hidden className="size-[18px]" strokeWidth={2.4} />
@@ -57,7 +57,7 @@ export function Topbar({
       </span>
 
       <form role="search" onSubmit={search} className="mx-auto w-full max-w-md min-w-0">
-        <label className="border-border-strong bg-surface focus-within:ring-ring flex h-10 items-center gap-2 rounded-md border px-3 focus-within:ring-2">
+        <label className="border-border-strong bg-surface focus-within:ring-ring flex h-10 items-center gap-2 rounded-md border px-3 pointer-coarse:h-11 focus-within:ring-2">
           <Search aria-hidden className="text-text-3 size-4 shrink-0" />
           <span className="sr-only">Paket axtar</span>
           <input
@@ -66,7 +66,7 @@ export function Topbar({
             maxLength={100}
             autoComplete="off"
             placeholder="Faktura, müştəri və ya PO axtar…"
-            className="placeholder:text-text-3 w-full min-w-0 bg-transparent outline-none"
+            className="placeholder:text-text-3 h-full w-full min-w-0 bg-transparent outline-none"
           />
         </label>
       </form>
