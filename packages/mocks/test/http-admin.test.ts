@@ -54,4 +54,32 @@ describe("admin handlers", () => {
       }),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 422 });
   });
+
+  it("a duplicate invoice is accepted (202) and reported by the job as FAILED", async () => {
+    const api = await as("u1");
+    const create = (k: string) =>
+      unwrap(
+        api.POST("/v1/packages", {
+          params: { header: { "Idempotency-Key": `00000000-0000-4000-8000-00000000${k}` } },
+          body: {
+            customer_id: id.customer("c2"),
+            owner_id: id.user("u1"),
+            invoice: pdf("INV-1051.pdf"),
+          },
+          bodySerializer: toFormData,
+        }),
+      );
+    await create("0001");
+    const dup = await create("0002");
+    expect(dup.package_id).toBeUndefined();
+    const job = await unwrap(
+      api.GET("/v1/jobs/{job_id}", { params: { path: { job_id: dup.job_id } } }),
+    );
+    assertSchema("Job", job);
+    expect(job).toMatchObject({
+      status: "FAILED",
+      result: null,
+      error: { code: "DUPLICATE_INVOICE" },
+    });
+  });
 });

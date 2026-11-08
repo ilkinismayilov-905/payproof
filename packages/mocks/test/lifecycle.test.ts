@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { deletePackage } from "../src/domain/packages";
+import { createPackage, deletePackage } from "../src/domain/packages";
 import { saveRequirements } from "../src/domain/rules";
 import { info } from "../src/engine/status";
 import { createMockDb } from "../src/store";
 
 describe("delete and requirement changes", () => {
+  it("re-creating a deleted invoice gets a new id (no history mixing)", async () => {
+    const db = createMockDb();
+    const input = { customer_id: "c1", owner_id: "u1", files: { invoice: "INV-1052.pdf" } };
+    const first = await createPackage(db, input, "u1");
+    deletePackage(db, first, "u1");
+    const again = await createPackage(db, input, "u1");
+    expect(again.id).not.toBe(first.id);
+    const actions = db.audit.filter((e) => e.package_id === again.id).map((e) => e.action);
+    expect(actions).not.toContain("package.deleted");
+  });
+
   it("deletes only packages that were never approved (soft, audited)", () => {
     const db = createMockDb();
     deletePackage(db, db.pkg("pkg_1043"), "u1");
