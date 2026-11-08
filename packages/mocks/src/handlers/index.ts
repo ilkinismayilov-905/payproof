@@ -9,6 +9,7 @@ import { jobHandlers } from "./jobs";
 import type { Ctx } from "./http";
 import { listHandlers } from "./lists";
 import { readHandlers } from "./read";
+import { reportHandlers } from "./report";
 import { reviewHandlers } from "./review";
 import { taskHandlers } from "./tasks";
 
@@ -31,6 +32,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...jobHandlers(ctx),
     ...taskHandlers(ctx),
     ...approvalHandlers(ctx),
+    ...reportHandlers(ctx),
   ];
   return {
     handlers,
