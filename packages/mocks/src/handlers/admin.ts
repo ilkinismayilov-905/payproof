@@ -28,22 +28,35 @@ export const adminHandlers = (ctx: Ctx) => [
       const owner = slugOf.user(String(f.get("owner_id") ?? ""));
       if (!customer || !db.customers.some((c) => c.id === customer) || !owner || !db.user(owner))
         throw new MockError("VALIDATION_ERROR", "Müştəri və məsul şəxs məcburidir.", 422);
-      const files = [
-        fileField(f, "invoice"),
-        fileField(f, "order", true),
-        fileField(f, "delivery", true),
-      ]
-        .filter((x): x is File => x !== null)
-        .map((x) => x.name);
-      return idempotent(db, request, `create:${customer}:${owner}:${files.join(",")}`, async () => {
-        const p = await createPackage(
-          db,
-          { customer_id: customer, owner_id: owner, files },
-          user.id,
-        );
-        const job = startJob(db, "create_package", p);
-        return json({ job_id: job.id, package_id: id.pkg(p.id) }, 202);
-      });
+      const files = {
+        invoice: fileField(f, "invoice")!.name,
+        order: fileField(f, "order", true)?.name,
+        delivery: fileField(f, "delivery", true)?.name,
+      };
+      return idempotent(
+        db,
+        request,
+        `create:${customer}:${owner}:${JSON.stringify(files)}`,
+        async () => {
+          try {
+            const p = await createPackage(
+              db,
+              { customer_id: customer, owner_id: owner, files },
+              user.id,
+            );
+            const job = startJob(db, "create_package", p);
+            return json({ job_id: job.id, package_id: id.pkg(p.id) }, 202);
+          } catch (e) {
+            // contract: a duplicate invoice is only known after extraction → reported by the job
+            if (!(e instanceof MockError) || e.code !== "DUPLICATE_INVOICE") throw e;
+            const job = startJob(db, "create_package", null, undefined, {
+              code: e.code,
+              message: e.message,
+            });
+            return json({ job_id: job.id }, 202);
+          }
+        },
+      );
     }),
   ),
   http.delete(

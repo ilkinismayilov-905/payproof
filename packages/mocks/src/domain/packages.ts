@@ -11,15 +11,24 @@ import { validate } from "./validate";
 export interface CreateInput {
   customer_id: string;
   owner_id: string;
-  /** Uploaded file names in invoice, order, delivery order. */
-  files: string[];
+  /** Uploaded file names by form field. */
+  files: { invoice: string; order?: string | undefined; delivery?: string | undefined };
 }
 
 const TYPES = ["invoice", "order", "delivery"] as const;
 
+/** Never reuse a (soft-)deleted package's id: its audit history must not leak into the new one. */
+function freshId(db: MockDb, invoiceNumber: string) {
+  const n = Number(invoiceNumber.slice(4));
+  for (let k = 0; ; k++) {
+    const slug = `pkg_${k * 100_000 + n}`;
+    if (!db.packages.some((p) => p.id === slug)) return slug;
+  }
+}
+
 export async function createPackage(db: MockDb, input: CreateInput, actor: string): Promise<Pkg> {
   const set = db.newsets.find(
-    (n) => n.files[0] === input.files[0] && n.customer_id === input.customer_id,
+    (n) => n.files[0] === input.files.invoice && n.customer_id === input.customer_id,
   );
   if (!set)
     throw new MockError(
@@ -27,6 +36,12 @@ export async function createPackage(db: MockDb, input: CreateInput, actor: strin
       `Mock rejimində yalnız demo dəstləri tanınır: ${db.newsets.map((n) => n.files[0]).join(", ")}.`,
       422,
     );
+  const uploaded = TYPES.filter((t) => input.files[t]).map((type) => ({
+    type,
+    file_name: input.files[type]!,
+  }));
+  // hash first: from here to unshift() nothing awaits, so the duplicate check cannot race
+  const hashes = await Promise.all(uploaded.map((u) => sha256(u.file_name)));
   if (
     db.packages.some(
       (p) =>
@@ -39,9 +54,8 @@ export async function createPackage(db: MockDb, input: CreateInput, actor: strin
       409,
     );
   const at = db.tick();
-  const files = input.files.slice(0, set.delivery ? 3 : 2);
   const p: Pkg = {
-    id: `pkg_${set.invoice_number.slice(4)}`,
+    id: freshId(db, set.invoice_number),
     invoice_number: set.invoice_number,
     customer_id: set.customer_id,
     currency: set.currency as Pkg["currency"],
@@ -60,32 +74,34 @@ export async function createPackage(db: MockDb, input: CreateInput, actor: strin
     },
     order_link: { po_number: null, confirmed: false, confirmed_by: null, method: null },
     candidates: [],
-    delivery: set.delivery && {
-      note_number: set.delivery.note_number,
-      po_ref: set.delivery.po_ref,
-      customer_id: set.customer_id,
-      delivery_date: set.invoice_date,
-      signed: true,
-      lines: set.lines.map((l) => ({ product_code: l.product_code, qty: l.qty })),
-    },
+    // the delivery note exists only if its document was uploaded — no evidence without a source
+    delivery:
+      set.delivery && input.files.delivery
+        ? {
+            note_number: set.delivery.note_number,
+            po_ref: set.delivery.po_ref,
+            customer_id: set.customer_id,
+            delivery_date: set.invoice_date,
+            signed: true,
+            lines: set.lines.map((l) => ({ product_code: l.product_code, qty: l.qty })),
+          }
+        : null,
     signature_reviewed: false,
-    documents: await Promise.all(
-      files.map(async (file_name, i) => ({
-        type: TYPES[i]!,
-        versions: [
-          {
-            version_no: 1,
-            file_name,
-            sha256: await sha256(file_name),
-            source_kind: sourceKind(file_name),
-            uploaded_by: actor,
-            uploaded_at: at,
-            status: "PROCESSING" as const,
-            package_version_at_upload: 1,
-          },
-        ],
-      })),
-    ),
+    documents: uploaded.map(({ type, file_name }, i) => ({
+      type,
+      versions: [
+        {
+          version_no: 1,
+          file_name,
+          sha256: hashes[i]!,
+          source_kind: sourceKind(file_name),
+          uploaded_by: actor,
+          uploaded_at: at,
+          status: "PROCESSING" as const,
+          package_version_at_upload: 1,
+        },
+      ],
+    })),
     approvals: [],
     exports: [],
     problem_since: null,
