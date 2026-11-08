@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import (
     ApprovalRecord,
+    CheckResult,
     Company,
     Customer,
     DeliveryNote,
@@ -27,7 +28,7 @@ from payproof.seed.extraction import extraction_rows
 from payproof.seed.fixtures import EXPECTED, ORDERS, PACKAGES, load, uid
 from payproof.seed.identity import identity_rows
 from payproof.seed.packages import package_rows
-from payproof.seed.workflow import workflow_rows
+from payproof.seed.workflow import current_run_id, workflow_rows
 
 
 async def _count(db: AsyncSession, model: type) -> int:
@@ -92,8 +93,16 @@ async def test_workflow_rows(db: AsyncSession) -> None:
     bind_tenant(db, uid("company_a"))
     packages = list(PACKAGES.values())
     assert await _count(db, ApprovalRecord) == sum(len(p["approvals"]) for p in packages) == 4
-    # every approval sits on a run of its own version and rule set (5-column FK)
-    assert await _count(db, ValidationRun) == 4
+    # one current run per finished package (13), plus INV-1036's old v2 run behind its
+    # invalidated approval; approvals of current versions reuse the current run
+    assert await _count(db, ValidationRun) == 14
+    assert await _count(db, CheckResult) == 13 * 9
+    run_id = current_run_id(PACKAGES["INV-1044"])
+    query = select(CheckResult.rule_id, CheckResult.outcome).where(
+        CheckResult.validation_run_id == run_id
+    )
+    outcomes = {rule: outcome for rule, outcome in (await db.execute(query)).all()}
+    assert outcomes == EXPECTED["packages"]["INV-1044"]["checks"]
     assert await _count(db, ExportRecord) == 2
     assert await _count(db, ResolutionTask) == EXPECTED["counts"]["tasks"] == 9
     assert await _count(db, Notification) == len(load("notifications.json"))
