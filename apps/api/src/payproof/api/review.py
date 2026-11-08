@@ -12,6 +12,7 @@ from payproof.core.errors import NotFound
 from payproof.domain.permissions import Permission
 from payproof.repositories.models import InvoicePackage
 from payproof.schemas.detail import MatchCandidate, PackageDetail
+from payproof.services import review
 from payproof.services.linking import confirm_link
 from payproof.services.package_detail import match_candidates, package_detail
 
@@ -51,6 +52,38 @@ async def confirm_match(
         actor_id=member.user_id,
         package_id=package_id,
         order_id=body.order_id,
+        expected_version=body.expected_version,
+    )
+    return await package_detail(session, package_id, viewer_role=member.role)
+
+
+class Versioned(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_version: int = Field(ge=1)
+
+
+@router.post("/packages/{package_id}/validate")
+async def validate_package(
+    package_id: uuid.UUID, body: Versioned, session: Session, member: Editor
+) -> PackageDetail:
+    await review.validate_now(
+        session,
+        actor_id=member.user_id,
+        package_id=package_id,
+        expected_version=body.expected_version,
+    )
+    return await package_detail(session, package_id, viewer_role=member.role)
+
+
+@router.post("/packages/{package_id}/signature-review")
+async def review_signature(
+    package_id: uuid.UUID, body: Versioned, session: Session, member: Editor
+) -> PackageDetail:
+    await review.review_signature(
+        session,
+        actor_id=member.user_id,
+        package_id=package_id,
         expected_version=body.expected_version,
     )
     return await package_detail(session, package_id, viewer_role=member.role)
