@@ -54,3 +54,14 @@ async def test_refusals(
     status: int,
 ) -> None:
     assert (await _patch(client, auth, body)).status_code == status
+
+
+async def test_line_values_must_be_positive(
+    client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
+) -> None:
+    qty = field_id("pkg_1047", "invoice.lines[GY-1L].qty")
+    body = {"value": "-3", "reason": "mənbəyə baxıldı", "expected_version": 1}
+    r = await client.patch(f"/v1/fields/{qty}", headers=auth("u1"), json=body)
+    assert r.status_code == 422
+    readonly = await client.patch(f"/v1/fields/{qty}", headers=auth("u5"), json=body)
+    assert readonly.status_code == 403

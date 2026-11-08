@@ -3,6 +3,7 @@ itself does not change: the raw value stays, the corrected one is used by the ru
 
 import re
 import uuid
+from decimal import Decimal, InvalidOperation
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +16,7 @@ from payproof.repositories.models import (
     Document,
     DocumentVersion,
     ExtractedField,
+    ExtractedInvoiceLine,
 )
 from payproof.services.audit import record
 from payproof.services.linking import locked_package
@@ -28,6 +30,16 @@ _LINE = re.compile(r"^invoice\.lines\[([^\]]+)\]\.(qty|unit_price)$")
 
 def _bad(message: str, field: str = "value") -> InvalidInput:
     return InvalidInput(message, {"fields": {field: message}})
+
+
+def _amount(value: str, places: int, message: str) -> Decimal:
+    try:
+        number = Decimal(value)
+    except InvalidOperation:
+        raise _bad(message) from None
+    if not number.is_finite() or number <= 0 or number != round(number, places):
+        raise _bad(message)
+    return number
 
 
 async def correct_field(
@@ -67,6 +79,19 @@ async def correct_field(
         if not _PO.match(value):
             raise _bad("Sifariş nömrəsi PO-123 formatında olmalıdır.")
         inv.po_ref, inv.po_raw = value, None
+    elif m := _LINE.match(field.field_path):
+        line = await session.scalar(
+            select(ExtractedInvoiceLine).where(
+                ExtractedInvoiceLine.extracted_invoice_id == inv.id,
+                ExtractedInvoiceLine.product_code == m.group(1),
+            )
+        )
+        if line is None:
+            raise NotFound
+        if m.group(2) == "qty":
+            line.qty = _amount(value, 3, "Miqdar müsbət ədəd olmalıdır.")
+        else:
+            line.unit_price = _amount(value, 2, "Vahid qiymət 100.00 formatında olmalıdır.")
     else:
         raise _bad("Bu sahə düzəldilə bilməz.", "field")
     field.normalized_value, field.review_status = value, "CORRECTED"
