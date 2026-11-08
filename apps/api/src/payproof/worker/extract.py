@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.domain.enums import DocumentStatus
 from payproof.repositories.models import DocumentVersion, InvoicePackage, Job
 from payproof.services.audit import record
+from payproof.services.linking import after_extraction
 from payproof.worker.runner import Handler
 
 Extractor = Callable[[AsyncSession, DocumentVersion], Awaitable[DocumentStatus]]
@@ -53,6 +54,7 @@ def extract_handler(extract: Extractor = no_extraction) -> Handler:
         else:
             action, what = "document.review", "sahələr avtomatik oxunmadı — əl ilə yoxlayın"
         await _audit(s, version, pkg, action, f"{version.file_name}: {what}")
+        await after_extraction(s, pkg)  # exact PO link + re-validation, same transaction
         return {
             "package_id": str(pkg.id),
             "package_version": pkg.version,

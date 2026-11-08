@@ -31,10 +31,9 @@ async def test_detail_of_inv_1042(
     ]
     r001 = d["checks"][0]
     assert (r001["title"], r001["fix_hint"]) == ("Məcburi sifariş nömrəsi (PO)", "upload_invoice")
-    assert d["link"] == {
-        "confirmed": False, "order_id": None, "order_po": None, "method": None,
-        "confirmed_by": None, "candidates": [],
-    }  # fmt: skip
+    link = d["link"]
+    assert (link["confirmed"], link["order_id"], link["method"]) == (False, None, None)
+    assert [c["po_number"] for c in link["candidates"]] == ["PO-381"]  # suggested, not chosen
     assert [doc["type"] for doc in d["documents"]] == ["invoice", "order"]
     assert d["fields"][0]["field_path"] == "invoice.po_ref"
     assert d["requirement_set"]["version"] == 2

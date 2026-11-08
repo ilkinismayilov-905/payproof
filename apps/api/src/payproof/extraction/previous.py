@@ -12,7 +12,6 @@ from payproof.repositories.models import (
     ExtractedInvoiceLine,
     InvoicePackage,
 )
-from payproof.services.snapshot_builder import latest_delivery
 
 
 async def _invoice(s: AsyncSession, pkg: InvoicePackage) -> InvoiceData | None:
@@ -34,7 +33,7 @@ async def _invoice(s: AsyncSession, pkg: InvoicePackage) -> InvoiceData | None:
 
 
 async def _delivery(s: AsyncSession, pkg: InvoicePackage) -> DeliveryData | None:
-    note = await latest_delivery(s, pkg.id)
+    note = await reads.latest_delivery(s, pkg.id)
     if note is None:
         return None
     rows = await s.scalars(
