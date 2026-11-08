@@ -48,7 +48,8 @@ def _qty(li: LineData) -> str:
     return f"{format_qty(li.qty) if li.qty is not None else UNREAD} {li.unit or UNREAD}"
 
 
-def _invoice_evidence(inv: InvoiceData, customer: str) -> list[Evidence]:
+def invoice_evidence(inv: InvoiceData, customer: str) -> list[Evidence]:
+    """Quotes as the pre-made files print them (also used by the seed)."""
     po = f"{inv.po_raw or '?'} ({UNREAD})" if INVOICE_PO in inv.unreadable else inv.po_ref
     out = [
         Evidence(INVOICE_PO, 1, f"Sifariş №: {po or '—'}"),
@@ -64,7 +65,7 @@ def _invoice_evidence(inv: InvoiceData, customer: str) -> list[Evidence]:
     return out
 
 
-def _delivery_evidence(d: DeliveryData, customer: str) -> list[Evidence]:
+def delivery_evidence(d: DeliveryData, customer: str) -> list[Evidence]:
     signed = {None: UNREAD, True: "doldurulub", False: "boş"}[d.signed]
     out = [
         Evidence(DELIVERY_PO, 1, f"Əsas: sifariş {d.po_ref or UNREAD}"),
@@ -114,12 +115,12 @@ class MockExtractionAdapter:
             elif src.scanned:
                 inv = replace(inv, po_ref=None, po_raw=None, unreadable=frozenset({INVOICE_PO}))
             return ExtractionResult(
-                "mock", invoice=inv, evidence=tuple(_invoice_evidence(inv, src.customer))
+                "mock", invoice=inv, evidence=tuple(invoice_evidence(inv, src.customer))
             )
         if src.doc_type == "delivery" and ((x and "delivery" in x) or src.delivery):
             d = self._delivery(src, x["delivery"] if x else None)
             return ExtractionResult(
-                "mock", delivery=d, evidence=tuple(_delivery_evidence(d, src.customer))
+                "mock", delivery=d, evidence=tuple(delivery_evidence(d, src.customer))
             )
         return ExtractionResult("mock", warnings=("no pre-made result for this file",))
 

@@ -19,7 +19,7 @@ from payproof.seed.identity import COMPANY_ID
 from payproof.seed.packages import version_id
 
 
-def _latest(p: Fixture, doc_type: str) -> int | None:
+def latest_version(p: Fixture, doc_type: str) -> int | None:
     doc = next((d for d in p["documents"] if d["type"] == doc_type), None)
     return max(v["version_no"] for v in doc["versions"]) if doc else None
 
@@ -114,9 +114,9 @@ def extraction_rows() -> list[Sequence[Base]]:
     for p in PACKAGES.values():
         if p["processing"]:
             continue  # extraction not finished yet
-        if (no := _latest(p, "invoice")) is not None:
+        if (no := latest_version(p, "invoice")) is not None:
             heads += _invoice(p, no)
-        if p["delivery"] and (no := _latest(p, "delivery")) is not None:
+        if p["delivery"] and (no := latest_version(p, "delivery")) is not None:
             heads += _delivery(p, p["delivery"], no)
     first = [r for r in heads if isinstance(r, ExtractedInvoice | DeliveryNote)]
     return [first, [r for r in heads if r not in first]]
