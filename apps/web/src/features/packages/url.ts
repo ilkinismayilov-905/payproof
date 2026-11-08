@@ -30,6 +30,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const RULE = /^R-0(0[1-9]|10)$/;
 
+// A real calendar date (rejects 2026-13-45 and 2026-02-30, which Date would roll over).
+const isDate = (v: string) => {
+  const t = Date.parse(`${v}T00:00:00Z`);
+  return DATE.test(v) && !Number.isNaN(t) && new Date(t).toISOString().startsWith(v);
+};
 const isSort = (v: string): v is SortValue =>
   (SORT_KEYS as readonly string[]).includes(v.replace(/^-/, ""));
 const isStatus = (v: string): v is Schemas["PackageStatus"] =>
@@ -41,15 +46,17 @@ export function listParams(sp: URLSearchParams): ListParams {
     const v = sp.get(key)?.trim();
     return v && ok(v) ? v : undefined;
   };
-  const status = (sp.get("status") ?? "").split(",").filter(isStatus);
+  const status = [...new Set((sp.get("status") ?? "").split(",").filter(isStatus))];
+  const from = get("from", isDate);
+  const to = get("to", (v) => isDate(v) && (!from || v >= from));
   const params: ListParams = {
     q: get("q", (v) => v.length <= 100),
     status: status.length ? status : undefined,
     customer_id: get("customer_id", (v) => UUID.test(v)),
     issue: get("issue", (v) => RULE.test(v)),
     owner_id: get("owner_id", (v) => UUID.test(v)),
-    from: get("from", (v) => DATE.test(v)),
-    to: get("to", (v) => DATE.test(v)),
+    from,
+    to,
     sort: get("sort", isSort) as SortValue | undefined,
     cursor: get("cursor", () => true),
   };

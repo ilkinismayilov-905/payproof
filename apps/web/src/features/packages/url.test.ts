@@ -37,6 +37,13 @@ describe("listParams (URL → API query)", () => {
     });
   });
 
+  test("de-duplicates statuses, drops impossible dates and an inverted range (all would 422)", () => {
+    expect(listParams(sp("status=NEEDS_FIX,NEEDS_FIX&from=2026-13-45&to=2026-02-30"))).toEqual({
+      status: ["NEEDS_FIX"],
+    });
+    expect(listParams(sp("from=2026-10-31&to=2026-10-01"))).toEqual({ from: "2026-10-31" });
+  });
+
   test("an empty URL means the default list", () => {
     expect(listParams(sp(""))).toEqual({});
   });
