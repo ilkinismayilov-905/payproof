@@ -4,9 +4,9 @@ import type { Schemas } from "@payproof/api-client";
 import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
 import { X } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
+import { useRestoreFocus } from "@/components/ui/restore-focus";
 import { PaperPage } from "./paper-page";
 import { SourceFile } from "./source-file";
 
@@ -30,18 +30,14 @@ interface Props {
 
 /** Shows where a value comes from: page, quote and — when known — the highlighted area. */
 export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
-  const opener = useRef<HTMLElement | null>(null);
+  const focus = useRestoreFocus(); // opened from state, not a Dialog.Trigger
   const source = evidence && sourceOf(pkg, evidence.document_version_id);
   return (
     <Dialog.Root open={Boolean(evidence)} onOpenChange={(open) => open || onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-overlay fixed inset-0 z-50" />
         <Dialog.Content
-          onOpenAutoFocus={() => (opener.current = document.activeElement as HTMLElement | null)}
-          onCloseAutoFocus={(e) => {
-            e.preventDefault(); // opened from state, not a Dialog.Trigger
-            opener.current?.focus();
-          }}
+          {...focus}
           className="bg-surface border-border shadow-3 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(760px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border"
         >
           {evidence && source && (
