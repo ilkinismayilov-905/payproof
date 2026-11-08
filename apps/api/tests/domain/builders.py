@@ -35,6 +35,8 @@ EVIDENCE_PATHS = (
     "order.customer",
     "order.total",
     "delivery.customer",
+    "delivery.po_ref",
+    "delivery.signed",
 )
 
 
