@@ -14,7 +14,6 @@ from payproof.domain.format import format_qty
 from payproof.domain.rules.paths import INVOICE_PO
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import ExtractedInvoiceLine, InvoicePackage, Order, OrderLine
-from payproof.services.snapshot_builder import latest_delivery
 
 
 @dataclass(frozen=True)
@@ -72,7 +71,7 @@ async def candidates(session: AsyncSession, pkg: InvoicePackage) -> list[Candida
         orders[order.id] = order
         lines[order.id][li.product_code] = li.qty
         totals[order.id] += li.qty * li.unit_price
-    note = await latest_delivery(session, pkg.id)
+    note = await reads.latest_delivery(session, pkg.id)
     extra = ""
     if (inv.document_version_id, INVOICE_PO) in unread:
         extra = " PO sahəsi skanda oxunmadı."

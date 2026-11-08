@@ -68,6 +68,18 @@ async def invoices(
     return found, {(vid, path) for vid, path in (await session.execute(fields)).all()}
 
 
+async def latest_delivery(session: AsyncSession, package_id: uuid.UUID) -> DeliveryNote | None:
+    """Delivery note of the package's newest extracted delivery version."""
+    return await session.scalar(
+        select(DeliveryNote)
+        .join(DocumentVersion, DocumentVersion.id == DeliveryNote.document_version_id)
+        .join(Document, Document.id == DocumentVersion.document_id)
+        .where(Document.package_id == package_id)
+        .order_by(DocumentVersion.version_no.desc())
+        .limit(1)
+    )
+
+
 async def delivery_numbers(session: AsyncSession, ids: Ids) -> dict[uuid.UUID, str | None]:
     q = (
         select(Document.package_id, DocumentVersion.version_no, DeliveryNote.note_number)

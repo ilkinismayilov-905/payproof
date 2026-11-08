@@ -6,18 +6,20 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import NotFound
-from payproof.domain.enums import CheckOutcome, PackageStatus, Role
+from payproof.domain.enums import CheckOutcome, Currency, PackageStatus, Role
+from payproof.domain.money import Money as DomainMoney
 from payproof.domain.permissions import Permission, can
 from payproof.domain.rules.catalog import TITLES
 from payproof.domain.rules.engine import evaluate
 from payproof.domain.snapshot import EvidenceRef
 from payproof.repositories import detail_reads as dr
 from payproof.repositories import package_reads as reads
-from payproof.repositories.models import RequirementSet, User
+from payproof.repositories.models import InvoicePackage, RequirementSet, User
 from payproof.schemas import detail as d
 from payproof.schemas.auth import UserRef
 from payproof.schemas.packages import Blocker, CustomerRef, Money
 from payproof.services import detail_parts as parts
+from payproof.services import matching
 from payproof.services.comparison import comparison_rows
 from payproof.services.package_query import load_states
 from payproof.services.snapshot_builder import build_snapshot
@@ -105,7 +107,7 @@ async def package_detail(
             order_po=st.order_po,
             method=p.link_method,
             confirmed_by=ref(p.link_confirmed_by) if p.link_confirmed_by else None,
-            candidates=[],  # shortcut: suggestions are computed by matching (B-16)
+            candidates=await match_candidates(session, p),
         ),
         documents=[parts.document(doc, versions, ref) for doc, versions in docs if versions],
         fields=fields,
@@ -164,6 +166,19 @@ async def package_detail(
             and st.status in _DELETABLE,
         ),
     )
+
+
+async def match_candidates(session: AsyncSession, p: InvoicePackage) -> list[d.MatchCandidate]:
+    return [
+        d.MatchCandidate(
+            order_id=c.order.id,
+            po_number=c.order.po_number,
+            order_date=c.order.order_date,
+            total=Money.of(DomainMoney(c.total, Currency(c.order.currency))),
+            reason=c.reason,
+        )
+        for c in await matching.candidates(session, p)
+    ]
 
 
 def _evidence(e: EvidenceRef) -> d.Evidence:
