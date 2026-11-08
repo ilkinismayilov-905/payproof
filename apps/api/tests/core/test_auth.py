@@ -7,7 +7,7 @@ import pytest
 from payproof.core.auth import TOKEN_TTL, DevTokenVerifier, issue_dev_token
 from payproof.core.errors import Unauthenticated
 
-SECRET = "test-only-not-a-secret"  # noqa: S105 — test key
+SECRET = "test-only-not-a-secret-32-bytes-min"  # noqa: S105 — test key (HS256 wants >= 32 bytes)
 USER = uuid.UUID("00000000-0000-0000-0000-0000000000a1")
 
 
@@ -22,7 +22,7 @@ def test_round_trip() -> None:
     [
         "",
         "not.a.jwt",
-        issue_dev_token(USER, "other-secret")[0],
+        issue_dev_token(USER, "another-test-only-secret-32-bytes")[0],
         jwt.encode({"sub": str(USER)}, SECRET, algorithm="HS256"),  # no exp / aud / iss
         jwt.encode(
             {"sub": "nope", "exp": 4102444800, "aud": "payproof-api", "iss": "payproof-dev"},
