@@ -8,7 +8,15 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.repositories.models import Company, Customer, InvoicePackage, Membership, User
+from payproof.repositories.models import (
+    Company,
+    Customer,
+    Document,
+    DocumentVersion,
+    InvoicePackage,
+    Membership,
+    User,
+)
 
 _seq = itertools.count(1)
 
@@ -54,3 +62,35 @@ def package(t: Tenant, number: str = "INV-1042", /, **over: object) -> InvoicePa
     }
     fields.update(over)
     return InvoicePackage(company_id=t.company.id, **fields)
+
+
+async def make_document(db: AsyncSession, t: Tenant, type_: str = "invoice") -> Document:
+    pkg = package(t)
+    await add(db, pkg)
+    doc = Document(company_id=t.company.id, package_id=pkg.id, type=type_)
+    await add(db, doc)
+    return doc
+
+
+def version(doc: Document, t: Tenant, no: int = 1, /, **over: object) -> DocumentVersion:
+    fields: dict[str, object] = {
+        "version_no": no,
+        "file_name": "INV-1042.pdf",
+        "storage_key": f"{doc.id}/{no}",
+        "sha256": "a" * 64,
+        "mime": "application/pdf",
+        "size": 1024,
+        "pages": 1,
+        "source_kind": "pdf",
+        "uploaded_by": t.user.id,
+        "package_version_at_upload": 1,
+    }
+    fields.update(over)
+    return DocumentVersion(company_id=doc.company_id, document_id=doc.id, **fields)
+
+
+async def make_version(db: AsyncSession, t: Tenant, type_: str = "invoice") -> DocumentVersion:
+    doc = await make_document(db, t, type_)
+    v = version(doc, t)
+    await add(db, v)
+    return v
