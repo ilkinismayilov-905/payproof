@@ -20,6 +20,11 @@ PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi 
 3. `./scripts/setup.sh` — git hook-larını aktivləşdirir və alətləri yoxlayır.
 4. Claude Code-u repo kökündə açın və `/next-step shared` yazın.
 
+### Lokal infrastruktur
+`make up` PostgreSQL 16 və MinIO-nu qaldırır və `payproof-docs` bucket-ini yaradır; `make down` dayandırır (məlumat `.data/`-da qalır), `make logs`, `make psql`.
+- Postgres: `localhost:5432`, MinIO API: `localhost:9000`, konsol: http://localhost:9001 (giriş: `S3_ACCESS_KEY` / `S3_SECRET_KEY`).
+- Port məşğuldursa `.env`-də `POSTGRES_PORT`, `MINIO_PORT`, `MINIO_CONSOLE_PORT`-u dəyişin və `DATABASE_URL` / `S3_ENDPOINT_URL`-u uyğunlaşdırın.
+
 ## Sənədlər
 - Məhsul: `docs/product/` (brif, prototip, komanda bələdçisi PDF)
 - Arxitektura: `docs/architecture/`
