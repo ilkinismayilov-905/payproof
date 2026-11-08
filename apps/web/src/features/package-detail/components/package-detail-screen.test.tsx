@@ -53,3 +53,19 @@ test("PROCESSING: only the banner and history, no results yet", async () => {
   await screen.findByRole("region", { name: "Fəaliyyət tarixçəsi" });
   expect(screen.queryByRole("region", { name: "Sənədlər və versiyalar" })).toBeNull();
 });
+
+test("INV-1042: the order choice opens from the check card and from the banner", async () => {
+  const { default: userEvent } = await import("@testing-library/user-event");
+  renderWithQuery(<PackageDetailScreen id={PKG_1042} />);
+  const checks = await screen.findByRole("region", { name: "Yoxlamalar" });
+  await userEvent.click(within(checks).getAllByRole("button", { name: "Sifarişi seç" })[0]!);
+  expect(
+    await screen.findByRole("dialog", { name: "INV-1042: sifarişi seçin və təsdiqləyin" }),
+  ).toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await userEvent.click(screen.getByRole("button", { name: "Bax və təsdiqlə" }));
+  expect(
+    await screen.findByRole("dialog", { name: "INV-1042: sifarişi seçin və təsdiqləyin" }),
+  ).toBeInTheDocument();
+});

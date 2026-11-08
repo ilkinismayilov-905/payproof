@@ -80,3 +80,22 @@ test("evidence pointing at an unknown version still opens a titled dialog with t
   expect(dialog).toHaveTextContent("Sifariş №: PO-3?7");
   expect(screen.getByRole("button", { name: "Bağla" })).toBeInTheDocument();
 });
+
+test("signature review (R-008): visual presence only, confirmed by a person", async () => {
+  const onConfirm = vi.fn();
+  const { default: userEvent } = await import("@testing-library/user-event");
+  render(
+    <EvidenceViewer
+      pkg={pkg(version("v2", 2))}
+      evidence={{ ...evidence("v2"), quote: "Qəbul edənin imzası və möhürü: doldurulub" }}
+      label="İmza"
+      onClose={vi.fn()}
+      signature={{ onConfirm, pending: false }}
+    />,
+  );
+  const dialog = screen.getByRole("dialog");
+  expect(dialog).toHaveTextContent("İmza tələbi (R-008)");
+  expect(dialog).toHaveTextContent("hüquqi autentifikasiya deyil");
+  await userEvent.click(screen.getByRole("button", { name: "İmzanın mövcudluğunu təsdiqləyirəm" }));
+  expect(onConfirm).toHaveBeenCalledOnce();
+});

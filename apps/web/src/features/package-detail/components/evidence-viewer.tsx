@@ -2,7 +2,7 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
-import { X } from "lucide-react";
+import { Check, PenLine, X } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
@@ -26,10 +26,12 @@ interface Props {
   evidence: Schemas["Evidence"] | null;
   label: string;
   onClose: () => void;
+  /** R-008 review: the viewer becomes the place where a person confirms the signature. */
+  signature?: { onConfirm: () => void; pending: boolean };
 }
 
 /** Shows where a value comes from: page, quote and — when known — the highlighted area. */
-export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
+export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Props) {
   const focus = useRestoreFocus(); // opened from state, not a Dialog.Trigger
   const source = evidence && sourceOf(pkg, evidence.document_version_id);
   return (
@@ -69,18 +71,28 @@ export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
                     title="Skan sənəd: mətn OCR ilə oxunub — dəyəri mənbə ilə müqayisə edin."
                   />
                 )}
+                {signature && (
+                  <Banner tone="warning" icon={PenLine} title="İmza tələbi (R-008)">
+                    Qəbul edənin imza sahəsinə baxın. Təsdiqiniz yalnız imzanın vizual mövcudluğunu
+                    qeyd edir — hüquqi autentifikasiya deyil.
+                  </Banner>
+                )}
                 {!evidence.bbox && (
                   <Banner
                     tone="neutral"
                     title="Vurğulama koordinatı yoxdur — səhifə və sitat göstərilir."
                   />
                 )}
-                <figure>
-                  <figcaption className="text-text-3 text-xs font-bold uppercase">Sitat</figcaption>
-                  <blockquote className="border-brand mt-1 border-l-4 pl-3">
-                    {evidence.quote}
-                  </blockquote>
-                </figure>
+                {evidence.quote && (
+                  <figure>
+                    <figcaption className="text-text-3 text-xs font-bold uppercase">
+                      Sitat
+                    </figcaption>
+                    <blockquote className="border-brand mt-1 border-l-4 pl-3">
+                      {evidence.quote}
+                    </blockquote>
+                  </figure>
+                )}
                 {process.env.NEXT_PUBLIC_API_MOCK === "1" ? (
                   <PaperPage
                     pkg={pkg}
@@ -97,6 +109,23 @@ export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
                   />
                 )}
               </div>
+              {signature && (
+                <div className="border-border flex flex-wrap justify-end gap-2 border-t px-6 py-4">
+                  <Dialog.Close asChild>
+                    <Button variant="outline" size="lg">
+                      {actionLabel.close}
+                    </Button>
+                  </Dialog.Close>
+                  <Button
+                    size="lg"
+                    aria-disabled={signature.pending}
+                    onClick={() => signature.pending || signature.onConfirm()}
+                  >
+                    <Check aria-hidden />
+                    İmzanın mövcudluğunu təsdiqləyirəm
+                  </Button>
+                </div>
+              )}
             </>
           )}
           {evidence && !source && (

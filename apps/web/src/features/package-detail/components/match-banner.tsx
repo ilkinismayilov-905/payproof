@@ -2,13 +2,19 @@ import type { Schemas } from "@payproof/api-client";
 import { Link2 } from "lucide-react";
 import { Banner } from "@/components/ui/layout";
 import { detailText as t } from "../texts";
-import { Inert } from "./package-actions";
+import { Button } from "@/components/ui/button";
 
 /**
  * The order link is an AI suggestion until a human confirms it (prototype `#matchBanner`).
  * The choice dialog itself is W-10.
  */
-export function MatchBanner({ pkg }: { pkg: Schemas["PackageDetail"] }) {
+export function MatchBanner({
+  pkg,
+  onReview,
+}: {
+  pkg: Schemas["PackageDetail"];
+  onReview: () => void;
+}) {
   const { confirmed, candidates } = pkg.link;
   if (confirmed || pkg.status === "PROCESSING") return null;
   const title =
@@ -22,7 +28,12 @@ export function MatchBanner({ pkg }: { pkg: Schemas["PackageDetail"] }) {
       tone="warning"
       icon={Link2}
       title={title}
-      actions={<Inert primary size="sm" icon={Link2} label={t.reviewMatch} reason={t.soon} />}
+      actions={
+        <Button size="sm" onClick={onReview}>
+          <Link2 aria-hidden />
+          {t.reviewMatch}
+        </Button>
+      }
     >
       {`${candidates.map((c) => `${c.po_number}: ${c.reason}`).join(" · ")} Semantik oxşarlıq sübut deyil — əlaqəni insan təsdiqləyir.`.trim()}
     </Banner>
