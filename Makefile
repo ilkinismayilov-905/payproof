@@ -31,8 +31,8 @@ psql: ## Open psql in the postgres container
 migrate: ## Apply database migrations
 	cd $(API) && uv run alembic upgrade head
 
-seed: ## Load demo fixtures into the database
-	$(call not_ready,seed,B-09)
+seed: ## Load demo fixtures (RESET=1 truncates all tables first)
+	cd $(API) && uv run payproof-seed $(if $(RESET),--reset,)
 
 test: ## Run all tests
 	pnpm turbo run test
