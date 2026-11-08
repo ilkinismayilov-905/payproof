@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from payproof.api import auth, health
+from payproof.api import auth, health, packages
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
@@ -17,6 +17,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if settings.env == "dev":  # demo login does not exist outside dev, not even as a 403
         app.include_router(auth.dev_router, prefix="/v1")
     app.include_router(auth.router, prefix="/v1")
+    app.include_router(packages.router, prefix="/v1")
     return app
 
 
