@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PayProof API
-  version: 0.1.0
+  version: 0.1.1
   description: |
     PayProof P0 API contract — the single source of truth (docs/architecture/api-contract.md).
     Conventions: `snake_case` fields; money is a decimal **string** with its currency, never a float;
@@ -868,7 +868,7 @@ paths:
                         id: 0193a000-0000-7000-8000-000000000004,
                         full_name: Nigar Hüseynova,
                         title: Satış meneceri,
-                        role: sales,
+                        role: assignee,
                       }
                     step: "KY-10 üçün aktual qiymət razılaşmasını yoxlayın: fakturada 110,00 AZN, sifarişdə 100,00 AZN. Düzgün qiyməti təsdiqləyin."
                     due_date: "2026-11-10"
@@ -1504,13 +1504,13 @@ paths:
                       id: 0193a000-0000-7000-8000-000000000003,
                       full_name: Elvin Qasımov,
                       title: Anbar və logistika,
-                      role: warehouse,
+                      role: assignee,
                     }
                   - {
                       id: 0193a000-0000-7000-8000-000000000006,
                       full_name: Leyla Rzayeva,
                       title: Mühasib,
-                      role: accounting,
+                      role: assignee,
                     }
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/exports/{export_id}/download:
@@ -1681,10 +1681,10 @@ components:
             created_at: "2026-11-01T05:45:00Z"
             actor:
               {
-                id: 0193a000-0000-7000-8000-000000000003,
-                full_name: Elvin Qasımov,
-                title: Anbar və logistika,
-                role: warehouse,
+                id: 0193a000-0000-7000-8000-000000000001,
+                full_name: Aygün Məmmədova,
+                title: Maliyyə əməkdaşı,
+                role: operator,
               }
             action: document.uploaded
             message: "Təhvil sənədi: TS-5518_imzali_tam.pdf (sənəd v3) · paket v3"
@@ -1706,7 +1706,7 @@ components:
             id: 0193a000-0000-7000-8000-000000000004,
             full_name: Nigar Hüseynova,
             title: Satış meneceri,
-            role: sales,
+            role: assignee,
           }
         step: "KY-10 üçün aktual qiymət razılaşmasını yoxlayın: fakturada 110,00 AZN, sifarişdə 100,00 AZN. Düzgün qiyməti təsdiqləyin."
         due_date: "2026-11-10"
@@ -1861,7 +1861,10 @@ components:
       description: FAILED is a technical processing error, not a business FAIL.
     Role:
       type: string
-      enum: [operator, approver, readonly, admin, accounting, warehouse, sales]
+      enum: [operator, approver, readonly, admin, assignee]
+      description: |
+        `assignee` (ADR-0008) — task assignee only (warehouse, sales, accounting staff): cannot sign in, has no
+        permissions, never an audit actor. Operators upload their documents and move their tasks.
     Permission:
       type: string
       enum:
