@@ -1,10 +1,11 @@
 "use client";
 
 import { shellText } from "@payproof/api-client/i18n";
-import { Bell, Menu, Search, ShieldCheck } from "lucide-react";
+import { Menu, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent, Ref } from "react";
+import { NotificationBell } from "@/features/notifications";
 import { UserMenu } from "./user-menu";
 
 const iconButton =
@@ -72,15 +73,7 @@ export function Topbar({
         </label>
       </form>
 
-      <button
-        type="button"
-        aria-label={shellText.notifications}
-        title={shellText.notificationsSoon}
-        disabled
-        className={iconButton}
-      >
-        <Bell aria-hidden className="size-5" />
-      </button>
+      <NotificationBell className={iconButton} />
       <UserMenu />
     </header>
   );
