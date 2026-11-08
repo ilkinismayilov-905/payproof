@@ -2,6 +2,7 @@
 the package's current extraction with the sample's correction applied. The UI labels it as a
 pre-made result ("əvvəlcədən hazırlanmış nəticə"). A scan without a sample leaves the PO unread."""
 
+import datetime as dt
 from dataclasses import replace
 from decimal import Decimal
 from functools import cache
@@ -11,12 +12,16 @@ from payproof.domain.enums import Currency
 from payproof.domain.format import format_money, format_qty
 from payproof.domain.money import Money
 from payproof.domain.rules.paths import (
+    DELIVERY_CUSTOMER,
+    DELIVERY_PO,
+    DELIVERY_SIGNATURE,
     INVOICE_CUSTOMER,
     INVOICE_PO,
     INVOICE_TOTAL,
     line,
 )
 from payproof.extraction.base import (
+    DeliveryData,
     Evidence,
     ExtractionInput,
     ExtractionResult,
@@ -59,6 +64,20 @@ def _invoice_evidence(inv: InvoiceData, customer: str) -> list[Evidence]:
     return out
 
 
+def _delivery_evidence(d: DeliveryData, customer: str) -> list[Evidence]:
+    signed = {None: UNREAD, True: "doldurulub", False: "boş"}[d.signed]
+    out = [
+        Evidence(DELIVERY_PO, 1, f"Əsas: sifariş {d.po_ref or UNREAD}"),
+        Evidence(DELIVERY_CUSTOMER, 1, f"Qəbul edən: {customer}"),
+        Evidence(DELIVERY_SIGNATURE, 1, f"Qəbul edənin imzası: {signed}"),
+    ]
+    for li in d.lines:
+        qty = format_qty(li.qty) if li.qty is not None else UNREAD
+        quote = f"{li.product_code} — {qty} təhvil verilib"
+        out.append(Evidence(line("delivery", li.product_code, "qty"), 1, quote))
+    return out
+
+
 def _corrected_invoice(inv: InvoiceData, x: dict[str, Any]) -> InvoiceData:
     lines = list(inv.lines)
     if fix := x.get("line"):
@@ -97,4 +116,24 @@ class MockExtractionAdapter:
             return ExtractionResult(
                 "mock", invoice=inv, evidence=tuple(_invoice_evidence(inv, src.customer))
             )
+        if src.doc_type == "delivery" and ((x and "delivery" in x) or src.delivery):
+            d = self._delivery(src, x["delivery"] if x else None)
+            return ExtractionResult(
+                "mock", delivery=d, evidence=tuple(_delivery_evidence(d, src.customer))
+            )
         return ExtractionResult("mock", warnings=("no pre-made result for this file",))
+
+    @staticmethod
+    def _delivery(src: ExtractionInput, x: dict[str, Any] | None) -> DeliveryData:
+        if x is None:
+            assert src.delivery is not None  # noqa: S101 — checked by the caller
+            return src.delivery
+        lines = src.invoice.lines if src.invoice else ()
+        return DeliveryData(
+            note_number=x["note_number"],
+            po_ref=x["po_ref"],
+            customer_id=src.customer_id,
+            signed=x["signed"],
+            delivery_date=dt.datetime.now(dt.UTC).date(),
+            lines=tuple(LineData(li.product_code, li.qty, li.unit) for li in lines),
+        )  # the sample delivers what was invoiced (mock convention)

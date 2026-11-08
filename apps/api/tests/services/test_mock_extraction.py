@@ -51,6 +51,17 @@ async def test_scan_without_a_sample_leaves_the_po_for_a_person() -> None:
     assert "oxunmur" in {e.field_path: e.quote for e in r.evidence}["invoice.po_ref"]
 
 
+async def test_signed_delivery_sample() -> None:
+    src = replace(SRC, file_name="TS-5531_imzali.pdf", doc_type="delivery")
+    r = await mock.extract(src)
+    validate(r, pages=1)
+    assert r.delivery is not None and (r.delivery.note_number, r.delivery.signed) == (
+        "TS-5531",
+        True,
+    )
+    assert [li.qty for li in r.delivery.lines] == [Decimal(10)]
+
+
 async def test_unknown_file_changes_nothing() -> None:
     r = await mock.extract(replace(SRC, file_name="note.pdf", doc_type="order"))
     assert (r.invoice, r.delivery, r.evidence) == (None, None, ())
