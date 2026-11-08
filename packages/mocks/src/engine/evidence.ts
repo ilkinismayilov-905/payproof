@@ -15,6 +15,9 @@ const PRODUCT = Object.fromEntries(products.map((p) => [p.code, p]));
 export const money = (c: number, currency?: string) => formatMoney(decimal(c), currency);
 export const qty = (n: number) => formatQuantity(String(n));
 const UNREAD = "oxunmur";
+/** Unit as read; a line without its own unit uses the product's. */
+export const unitOf = (l: { product_code: string; unit?: string | null }) =>
+  l.unit === undefined ? (PRODUCT[l.product_code]?.unit ?? null) : l.unit;
 
 function lineQuote(
   lines: { product_code: string; qty: number | null; unit_price?: string | null }[],

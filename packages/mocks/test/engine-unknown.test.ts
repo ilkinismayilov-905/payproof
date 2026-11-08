@@ -69,3 +69,32 @@ describe("R-007 / R-008 unread delivery note fields", () => {
     expect(run((p) => (p.delivery!.signed = null))["R-008"]!.outcome).toBe("PASS");
   });
 });
+
+describe("R-004 units", () => {
+  it("UNKNOWN on a unit mismatch; prices and quantities cascade", () => {
+    const c = run((p) => (p.invoice.lines[1]!.unit = "ədəd"));
+    expect(c["R-004"]).toMatchObject({
+      outcome: "UNKNOWN",
+      fix_hint: null,
+      data: { unit_mismatch: ["CQ-250"] },
+      message:
+        "Ölçü vahidi fərqlidir: CQ-250 (faktura: ədəd, sifariş: qutu). Təsdiqlənmiş çevirmə qaydası olmadığı üçün qiymət müqayisəsi dayandırıldı.",
+    });
+    expect(c["R-005"]).toMatchObject({ outcome: "UNKNOWN", cascade: true });
+    expect(c["R-006"]).toMatchObject({ outcome: "UNKNOWN", cascade: true });
+  });
+
+  it("UNKNOWN when a unit was not read, naming the document", () => {
+    const c = run((p, db) => {
+      p.invoice.lines[0]!.unit = null;
+      db.orders["PO-377"]!.lines.find((l) => l.product_code === "CQ-250")!.unit = null;
+    });
+    expect(c["R-004"]).toMatchObject({
+      outcome: "UNKNOWN",
+      fix_hint: "edit_field",
+      data: { unit_unread: ["ST-1", "CQ-250"] },
+      message:
+        "Ölçü vahidi oxunmadı: ST-1 (faktura); CQ-250 (sifariş). Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı.",
+    });
+  });
+});

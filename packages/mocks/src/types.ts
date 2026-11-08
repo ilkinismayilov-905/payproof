@@ -6,6 +6,8 @@ export interface PricedLine {
   product_code: string;
   qty: number;
   unit_price: string;
+  /** Unit as read; absent = the product's unit, null = not read. */
+  unit?: string | null;
 }
 export interface QtyLine {
   product_code: string;

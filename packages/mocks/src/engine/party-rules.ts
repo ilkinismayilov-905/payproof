@@ -1,4 +1,5 @@
 // R-003 same buyer on every document, R-004 same currency (sets ctx.comparable for R-005/R-006).
+import { unitOf } from "./evidence";
 import type { Ctx } from "./index";
 
 export function r003({ db, o, p, add, E }: Ctx) {
@@ -38,6 +39,14 @@ export function r003({ db, o, p, add, E }: Ctx) {
 
 export function r004(ctx: Ctx) {
   const { o, p, add, E } = ctx;
+  const totals = [E("invoice", "total"), E("order", "total")];
+  // lines missing from the order are R-005's finding; only shared lines are compared here
+  const shared = p.invoice.lines.flatMap((l) => {
+    const ol = o?.lines.find((x) => x.product_code === l.product_code);
+    return ol ? [{ code: l.product_code, inv: unitOf(l), ord: unitOf(ol) }] : [];
+  });
+  const mismatch = shared.filter((x) => x.inv && x.ord && x.inv !== x.ord);
+  const unread = shared.filter((x) => !x.inv || !x.ord);
   if (!o)
     add("R-004", "UNKNOWN", "Sifariş təsdiqlənmədən valyuta və vahid müqayisə olunmur.", [], {
       cascade: true,
@@ -47,14 +56,28 @@ export function r004(ctx: Ctx) {
       "R-004",
       "UNKNOWN",
       `Faktura ${p.currency}, sifariş ${o.currency} ilə tərtib olunub. Valyuta avtomatik çevrilmir — qiymət müqayisəsi dayandırıldı.`,
-      [E("invoice", "total"), E("order", "total")],
+      totals,
       { fix_hint: "upload_invoice" },
+    );
+  else if (mismatch.length)
+    add(
+      "R-004",
+      "UNKNOWN",
+      `Ölçü vahidi fərqlidir: ${mismatch.map((x) => `${x.code} (faktura: ${x.inv}, sifariş: ${x.ord})`).join("; ")}. Təsdiqlənmiş çevirmə qaydası olmadığı üçün qiymət müqayisəsi dayandırıldı.`,
+      totals,
+      { data: { unit_mismatch: mismatch.map((x) => x.code) } },
+    );
+  else if (unread.length)
+    // an unread unit is never "units match": prices could be per box vs per piece
+    add(
+      "R-004",
+      "UNKNOWN",
+      `Ölçü vahidi oxunmadı: ${unread.map((x) => `${x.code} (${x.inv ? "sifariş" : "faktura"})`).join("; ")}. Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı.`,
+      totals,
+      { fix_hint: "edit_field", data: { unit_unread: unread.map((x) => x.code) } },
     );
   else {
     ctx.comparable = true;
-    add("R-004", "PASS", `Valyuta (${p.currency}) və ölçü vahidləri uyğundur.`, [
-      E("invoice", "total"),
-      E("order", "total"),
-    ]);
+    add("R-004", "PASS", `Valyuta (${p.currency}) və ölçü vahidləri uyğundur.`, totals);
   }
 }
