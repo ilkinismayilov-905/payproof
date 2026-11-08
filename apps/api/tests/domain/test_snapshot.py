@@ -16,6 +16,7 @@ from payproof.domain.snapshot import (
     Order,
     OrderLine,
     PackageSnapshot,
+    Party,
     Rules,
 )
 
@@ -57,6 +58,7 @@ def _snapshot(**over: Any) -> PackageSnapshot:
         ),
         "signature_reviewed": False,
         "rules": Rules(True, True, False, Decimal("0.01")),
+        "parties": {C1: Party("B Mağazalar Şəbəkəsi", "1402375611")},
         "evidence": {
             "invoice.po_ref": EvidenceRef(uuid.uuid4(), 1, "Sifariş: PO-381", None),
         },
@@ -101,6 +103,16 @@ def test_line_codes_are_unique() -> None:
     invoice = dataclasses.replace(_snapshot().invoice, lines=(line, line))
     with pytest.raises(ValueError, match="GY-1L"):
         _snapshot(invoice=invoice)
+
+
+def test_every_referenced_customer_has_a_party() -> None:
+    # R-003 names both buyers (INV-1046: delivery note for another buyer)
+    other = uuid.uuid4()
+    delivery = dataclasses.replace(_snapshot().delivery, customer_id=other)  # type: ignore[type-var]
+    with pytest.raises(ValueError, match=str(other)):
+        _snapshot(delivery=delivery)
+    s = _snapshot(delivery=delivery, parties={C1: Party("B", "1"), other: Party("C", "2")})
+    assert s.parties[other].name == "C"
 
 
 def test_confirmed_order_has_no_candidates() -> None:

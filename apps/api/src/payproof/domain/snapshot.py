@@ -85,6 +85,14 @@ class Rules:
 
 
 @dataclass(frozen=True)
+class Party:
+    """Buyer display data for messages (R-003 names both buyers when they differ)."""
+
+    name: str
+    voen: str
+
+
+@dataclass(frozen=True)
 class PackageSnapshot:
     currency: Currency
     customer_id: uuid.UUID
@@ -94,9 +102,16 @@ class PackageSnapshot:
     delivery: Delivery | None
     signature_reviewed: bool
     rules: Rules
+    parties: Mapping[uuid.UUID, Party]  # every customer id referenced above
     evidence: Mapping[str, EvidenceRef] = field(default_factory=dict)  # by field path
 
     def __post_init__(self) -> None:
+        referenced = {self.customer_id}
+        referenced |= {self.order.customer_id} if self.order else set()
+        if self.delivery is not None and self.delivery.customer_id is not None:
+            referenced.add(self.delivery.customer_id)
+        if missing := referenced - set(self.parties):
+            raise ValueError(f"no party data for customers {sorted(map(str, missing))}")
         inv = self.invoice
         _same_currency([inv.total, *(line.unit_price for line in inv.lines)], self.currency)
         _unique_codes(line.code for line in inv.lines)
