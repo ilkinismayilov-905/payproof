@@ -76,8 +76,23 @@ class ExtractionResult:
         return bool(self.invoice and self.invoice.unreadable)
 
 
+@dataclass(frozen=True)
+class ExtractionInput:
+    """The file, plus the package's current stored extraction (the mock adapter applies its
+    sample delta on top of it; real adapters read the file)."""
+
+    file_name: str
+    data: bytes
+    doc_type: str
+    scanned: bool  # image: no text layer
+    customer_id: uuid.UUID
+    customer: str  # "name, VÖEN ..." for evidence quotes
+    invoice: InvoiceData | None  # current, before this version
+    delivery: DeliveryData | None
+
+
 class ExtractionAdapter(Protocol):
-    async def extract(self, file_name: str, data: bytes, doc_type: str) -> ExtractionResult: ...
+    async def extract(self, src: ExtractionInput) -> ExtractionResult: ...
 
 
 def _known(path: str) -> bool:

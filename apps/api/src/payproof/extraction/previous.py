@@ -1,13 +1,9 @@
-"""What an adapter is given: the file, plus the package's current stored extraction (the mock
-adapter applies its sample delta on top of it; real adapters ignore it)."""
-
-import uuid
-from dataclasses import dataclass
+"""Load an adapter's input: the file plus the package's current stored extraction."""
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.extraction.base import DeliveryData, InvoiceData, LineData
+from payproof.extraction.base import DeliveryData, ExtractionInput, InvoiceData, LineData
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import (
     Customer,
@@ -17,18 +13,6 @@ from payproof.repositories.models import (
     InvoicePackage,
 )
 from payproof.services.snapshot_builder import latest_delivery
-
-
-@dataclass(frozen=True)
-class ExtractionInput:
-    file_name: str
-    data: bytes
-    doc_type: str
-    scanned: bool  # image: no text layer
-    customer_id: uuid.UUID
-    customer: str  # "name, VÖEN ..." for evidence quotes
-    invoice: InvoiceData | None  # current, before this version
-    delivery: DeliveryData | None
 
 
 async def _invoice(s: AsyncSession, pkg: InvoicePackage) -> InvoiceData | None:
