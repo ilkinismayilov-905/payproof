@@ -2,7 +2,8 @@
 service and never from ORM objects inside rules. `None` means "not read" -> rules give UNKNOWN."""
 
 import uuid
-from dataclasses import dataclass
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass, field
 from decimal import Decimal
 
 from payproof.domain.enums import Currency
@@ -81,3 +82,42 @@ class Rules:
     def __post_init__(self) -> None:
         if not Decimal(0) <= self.tolerance <= Decimal(1):
             raise ValueError(f"tolerance must be 0.00-1.00, got {self.tolerance}")
+
+
+@dataclass(frozen=True)
+class PackageSnapshot:
+    currency: Currency
+    customer_id: uuid.UUID
+    invoice: Invoice
+    order: Order | None
+    candidates: tuple[str, ...]  # PO numbers suggested while the link is not confirmed
+    delivery: Delivery | None
+    signature_reviewed: bool
+    rules: Rules
+    evidence: Mapping[str, EvidenceRef] = field(default_factory=dict)  # by field path
+
+    def __post_init__(self) -> None:
+        inv = self.invoice
+        _same_currency([inv.total, *(line.unit_price for line in inv.lines)], self.currency)
+        _unique_codes(line.code for line in inv.lines)
+        if self.order is not None:
+            if self.candidates:
+                raise ValueError("a confirmed order leaves no candidates")
+            _same_currency((line.unit_price for line in self.order.lines), self.order.currency)
+            _unique_codes(line.code for line in self.order.lines)
+        if self.delivery is not None:
+            _unique_codes(line.code for line in self.delivery.lines)
+
+
+def _same_currency(amounts: Iterable[Money | None], currency: Currency) -> None:
+    for amount in amounts:
+        if amount is not None and amount.currency != currency:
+            raise ValueError(f"{amount!r} is not in the document currency {currency}")
+
+
+def _unique_codes(codes: Iterable[str]) -> None:
+    seen: set[str] = set()
+    for code in codes:
+        if code in seen:
+            raise ValueError(f"duplicate line for product {code}")  # rules address lines by code
+        seen.add(code)
