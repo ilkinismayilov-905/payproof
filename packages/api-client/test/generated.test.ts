@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
-import openapiTS, { astToString } from "openapi-typescript";
 import { describe, expect, it } from "vitest";
-
-const contract = new URL("../../contracts/openapi.yaml", import.meta.url);
-const committed = readFileSync(new URL("../src/generated/schema.ts", import.meta.url), "utf8");
+// @ts-expect-error — plain .mjs helper shared with the generate script
+import { OUTPUT, generateSchema } from "../scripts/schema.mjs";
 
 describe("generated schema", () => {
   it("is up to date with packages/contracts/openapi.yaml (run `pnpm generate`)", async () => {
-    const fresh = astToString(await openapiTS(contract));
-    // The CLI prepends a banner; compare the generated body only.
-    expect(committed.endsWith(fresh)).toBe(true);
+    expect(readFileSync(OUTPUT, "utf8")).toBe(await generateSchema());
   }, 30_000);
+
+  it("types multipart file fields as Blob", () => {
+    expect(readFileSync(OUTPUT, "utf8")).toMatch(/file: Blob;/);
+  });
 });

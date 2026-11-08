@@ -9,7 +9,7 @@
     "./i18n": "./src/i18n/az.ts"
   },
   "scripts": {
-    "generate": "openapi-typescript ../contracts/openapi.yaml -o src/generated/schema.ts",
+    "generate": "node scripts/generate.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

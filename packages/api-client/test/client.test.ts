@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { expectTypeOf } from "vitest";
-import { ApiError, createApiClient, unwrap, type Schemas } from "../src";
+import { ApiError, createApiClient, toFormData, unwrap, type Schemas } from "../src";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -105,6 +105,28 @@ describe("createApiClient", () => {
       json(403, { error: { code: "FORBIDDEN", message: "Səlahiyyət yoxdur.", details: {} } }),
     );
     await expect(unwrap(client.GET("/v1/me"))).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("uploads a Blob as multipart/form-data with the Idempotency-Key", async () => {
+    const { client, seen } = setup(() =>
+      json(202, { job_id: "0193a000-0000-7000-8007-000010420002" }),
+    );
+    const file = new File(["%PDF-1.7"], "INV-1042_v2_PO-381.pdf", { type: "application/pdf" });
+    await client.POST("/v1/packages/{package_id}/documents", {
+      params: {
+        path: { package_id: "0193a000-0000-7000-8002-000000001042" },
+        header: { "Idempotency-Key": "6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b" },
+      },
+      body: { type: "invoice", file, expected_version: 2 },
+      bodySerializer: toFormData,
+    });
+    const req = seen[0]!;
+    expect(req.headers.get("Content-Type")).toMatch(/^multipart\/form-data; boundary=/);
+    expect(req.headers.get("Idempotency-Key")).toBe("6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b");
+    const form = await req.formData();
+    expect(form.get("type")).toBe("invoice");
+    expect(form.get("expected_version")).toBe("2");
+    expect((form.get("file") as File).name).toBe("INV-1042_v2_PO-381.pdf");
   });
 
   it("uses globalThis.fetch at request time (MSW in node patches it after the client exists)", async () => {

@@ -74,6 +74,19 @@ export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
 /**
+ * `bodySerializer` for multipart endpoints (create package, upload document / version):
+ * Blob/File fields are attached as files, numbers and booleans as strings, undefined is skipped.
+ */
+export function toFormData(body: unknown): FormData {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
+    if (value === undefined || value === null) continue;
+    form.append(key, value instanceof Blob ? value : String(value));
+  }
+  return form;
+}
+
+/**
  * `await unwrap(client.GET(...))` → the response body. Errors are already thrown as ApiError by the
  * middleware, so a resolved call always has data (`undefined` only for 204 endpoints).
  */
