@@ -88,6 +88,8 @@ describe("az labels match the prototype", () => {
 
 describe("az texts", () => {
   const all = JSON.stringify(az);
+  it("never says the package is paid in the new UI texts either", () =>
+    expect(JSON.stringify([az.loginText, az.shellText, az.actionLabel])).not.toMatch(/ödən/i));
   it.each([
     "Ödəniş təmin edildi",
     "Faktura ödənildi",
@@ -97,5 +99,47 @@ describe("az texts", () => {
   ])("never says %j", (phrase) => expect(all.toLowerCase()).not.toContain(phrase.toLowerCase()));
   it("says the package is ready to send, not paid", () => {
     expect(az.ui.approvedTitle).toBe("Paket göndərilməyə hazırdır");
+  });
+});
+
+describe("login, shell and action texts", () => {
+  const strings = (o: object): string[] =>
+    Object.values(o).flatMap((v) =>
+      typeof v === "string" ? [v] : typeof v === "object" && v ? strings(v) : [],
+    );
+  // Written for the web app (a11y labels, the dev-login hint) — not in the prototype.
+  const webOnly = new Set([
+    "Demo rejimində parol tələb olunmur. Real versiyada şirkət hesabı ilə giriş və server tərəfində rol yoxlaması olacaq.",
+    "Məzmuna keç",
+    "Menyu",
+    "Əsas naviqasiya",
+    "Menyunu genişləndir",
+    "Menyunu aç",
+    "Yığ",
+    "Genişləndir",
+    "Paket axtar",
+    "Bildirişlər tezliklə",
+    "Çıxış",
+    "Sil",
+    "Yadda saxla",
+    "Yenilə",
+  ]);
+  const flat = (s: string) => s.replace(/…$/, "");
+
+  it.each(strings({ ...az.loginText, ...az.shellText, ...az.actionLabel }).map((s) => [s]))(
+    "%j comes from the prototype or is a known web text",
+    (s) => {
+      expect(s.trim()).not.toBe("");
+      if (!webOnly.has(s)) expect(prototype).toContain(flat(s));
+    },
+  );
+
+  it("formats the texts that carry a value", () => {
+    expect(az.loginText.signedInAs("Rəşad Əliyev")).toBe("Rəşad Əliyev kimi daxil oldunuz.");
+    expect(az.shellText.withOpenCount("Tapşırıqlar", 6)).toBe("Tapşırıqlar, 6 açıq");
+    expect(az.shellText.soonTitle("ERP inteqrasiyası")).toBe("ERP inteqrasiyası — tezliklə");
+    expect(az.shellText.soonToast("ERP inteqrasiyası")).toBe(
+      "ERP inteqrasiyası — tezliklə. MVP-yə daxil deyil.",
+    );
   });
 });

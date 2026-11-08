@@ -1,5 +1,6 @@
 // Package list items and the dashboard — amounts per currency, never converted or summed across.
 import type { Schemas } from "@payproof/api-client";
+import { bakuDaysBetween } from "@payproof/api-client/format";
 import { ruleCategory } from "@payproof/api-client/i18n";
 import { info } from "../engine/status";
 import { cents, decimal } from "../money";
@@ -44,9 +45,6 @@ function perCurrency(ps: Pkg[]): Schemas["CurrencyTotal"][] {
   }));
 }
 
-// Problem age in whole calendar days on the Baku clock (UTC+4, no DST).
-const bakuDay = (iso: string) => Math.floor((Date.parse(iso) + 4 * 3_600_000) / 86_400_000);
-
 export function dashboard(db: MockDb): Schemas["Dashboard"] {
   const ps = live(db).map((p) => ({ p, i: info(db, p) }));
   const status_counts = {
@@ -73,10 +71,10 @@ export function dashboard(db: MockDb): Schemas["Dashboard"] {
       categories.set(name, cat);
     }
   const top = [...categories].sort((a, b) => b[1].invoices.size - a[1].invoices.size)[0];
-  const now = bakuDay(db.nowIso());
+  const now = db.nowIso();
   const ages = open.map((x) => ({
     p: x.p,
-    days: Math.max(0, now - bakuDay(x.p.problem_since ?? x.p.created_at)),
+    days: bakuDaysBetween(x.p.problem_since ?? x.p.created_at, now),
   }));
   const longest = ages.reduce<(typeof ages)[number] | null>(
     (m, a) => (!m || a.days > m.days ? a : m),

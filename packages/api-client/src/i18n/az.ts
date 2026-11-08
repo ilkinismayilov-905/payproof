@@ -178,3 +178,61 @@ export const ui = {
   aiSuggestion: "AI təklifi · insan təsdiqi tələb olunur",
   system: "Sistem",
 } as const;
+
+/** Login screen (dev auth: pick a demo user). */
+export const loginText = {
+  brand: "PayProof",
+  tagline: "Faktura paketlərinin hazırlığı və təsdiqi",
+  demoBadge: "Sintetik məlumatlarla demo",
+  pickTitle: "Demo hesabını seçin",
+  submit: "Daxil ol",
+  noPasswordHint:
+    "Demo rejimində parol tələb olunmur. Real versiyada şirkət hesabı ilə giriş və server tərəfində rol yoxlaması olacaq.",
+  signedInAs: (name: string) => `${name} kimi daxil oldunuz.`,
+} as const;
+
+/** App shell: skip link, sidebar, top bar and the user menu. */
+export const shellText = {
+  skipToContent: "Məzmuna keç",
+  menu: "Menyu",
+  navLabel: "Əsas naviqasiya",
+  nav: {
+    overview: "İcmal",
+    packages: "Faktura paketləri",
+    tasks: "Tapşırıqlar",
+    rules: "Müştəri qaydaları",
+    audit: "Audit tarixçəsi",
+  },
+  /** Screen-reader label of a nav item with a counter. */
+  withOpenCount: (label: string, count: number) => `${label}, ${count} açıq`,
+  soonSection: "Tezliklə (P1)",
+  soon: { erp: "ERP inteqrasiyası", contracts: "Müqavilə çıxarışı" },
+  soonTitle: (label: string) => `${label} — tezliklə`,
+  soonToast: (label: string) => `${label} — tezliklə. MVP-yə daxil deyil.`,
+  demoNote: "Sintetik məlumatlarla demo. Real bank, e-poçt və ERP əməliyyatı yoxdur.",
+  collapse: "Menyunu yığ",
+  expand: "Menyunu genişləndir",
+  collapseShort: "Yığ",
+  expandShort: "Genişləndir",
+  openMenu: "Menyunu aç",
+  demoTag: "Sintetik demo",
+  demoTagTitle: "Bütün məlumatlar sintetikdir",
+  searchLabel: "Paket axtar",
+  searchPlaceholder: "Faktura, müştəri və ya PO axtar…",
+  notifications: "Bildirişlər",
+  notificationsSoon: "Bildirişlər tezliklə",
+  switchAccount: "Demo hesabına keç",
+  signOut: "Çıxış",
+} as const;
+
+/** Common button labels. */
+export const actionLabel = {
+  cancel: "Ləğv et",
+  delete: "Sil",
+  confirm: "Təsdiqlə",
+  close: "Bağla",
+  save: "Yadda saxla",
+  send: "Göndər",
+  back: "Geri",
+  refresh: "Yenilə",
+} as const;

@@ -109,6 +109,16 @@ export function formatDateTime(value: string): string {
   return p.time ? `${p.d}.${p.m}.${p.y}, ${p.time}` : `${p.d}.${p.m}.${p.y}`;
 }
 
+const bakuDayNumber = (value: string) => {
+  const { y, m, d } = parts(value);
+  return Date.UTC(Number(y), Number(m) - 1, Number(d)) / 86_400_000;
+};
+
+/** Whole calendar days from `from` to `to` on the Baku clock, never negative (problem age). */
+export function bakuDaysBetween(from: string, to: string): number {
+  return Math.max(0, bakuDayNumber(to) - bakuDayNumber(from));
+}
+
 /** `"2026-11-08"` → `"8 noyabr 2026"`. */
 export function formatDateLong(value: string): string {
   const { y, m, d } = parts(value);

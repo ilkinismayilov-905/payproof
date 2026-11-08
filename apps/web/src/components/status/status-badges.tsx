@@ -79,12 +79,6 @@ const icons = {
   document: Record<Schemas["DocumentVersionStatus"], LucideIcon>;
 };
 
-// documentStatusTone (design-tokens) has no UPLOADED yet; until it does, it reads as in progress.
-const documentTone: Record<Schemas["DocumentVersionStatus"], Tone> = {
-  UPLOADED: "info",
-  ...documentStatusTone,
-};
-
 /** A badge for one status enum; all three maps are keyed by the same contract enum. */
 function statusBadge<S extends string>(
   tone: Record<S, Tone>,
@@ -106,4 +100,8 @@ function statusBadge<S extends string>(
 export const PackageStatusBadge = statusBadge(packageStatusTone, icons.package, packageStatusLabel);
 export const CheckOutcomeBadge = statusBadge(checkOutcomeTone, icons.outcome, checkOutcomeLabel);
 export const TaskStatusBadge = statusBadge(taskStatusTone, icons.task, taskStatusLabel);
-export const DocumentStatusBadge = statusBadge(documentTone, icons.document, documentStatusLabel);
+export const DocumentStatusBadge = statusBadge(
+  documentStatusTone,
+  icons.document,
+  documentStatusLabel,
+);
