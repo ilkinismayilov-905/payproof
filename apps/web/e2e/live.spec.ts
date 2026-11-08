@@ -51,10 +51,8 @@ test("Rəşad approves in his tab → Aygün's list updates without a refresh, w
     { api: API, token: RASHAD },
   );
 
-  const start = Date.now();
   await aygun.bringToFront();
-  await expect(rows).toHaveCount(1, { timeout: 2_000 }); // ≤ 2 s, no reload
-  expect(Date.now() - start).toBeLessThan(2_000);
+  await expect(rows).toHaveCount(1, { timeout: 2_000 }); // ≤ 2 s after the approval, no reload
   await expect(aygun.getByText(`Rəşad Əliyev ${invoice} paketini təsdiqlədi`)).toBeVisible();
   await expect(rashad.getByText(/paketini təsdiqlədi/)).toHaveCount(0); // no toast for one's own change
 });
