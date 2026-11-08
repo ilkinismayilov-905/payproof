@@ -73,4 +73,22 @@ test("INV-1042 end to end: operator fixes every problem, approver approves and e
     .click();
   expect((await zip).suggestedFilename()).toMatch(/^PayProof_INV-1042_v\d+\.zip$/);
   await expect(status(page)).toContainText("İxrac edilib");
+
+  // 6. (I-01) the audit log holds every step above (client-side navigation: mock data stays)
+  await page.getByRole("navigation").getByRole("link", { name: "Audit tarixçəsi" }).click();
+  await page.getByRole("searchbox", { name: "Auditdə axtar" }).fill("INV-1042");
+  await expect(page).toHaveURL(/\/audit\?q=INV-1042$/);
+  const audit = page.getByRole("table", { name: "Audit hadisələri" });
+  for (const step of [
+    "link.confirmed",
+    "document.uploaded",
+    "signature.reviewed",
+    "validation.run",
+    "approval.created",
+    "export.created",
+  ])
+    await expect(audit.getByText(step, { exact: true }).first(), step).toBeVisible();
+  for (const file of ["TS-5531_imzali.pdf", "INV-1042_v2_PO-381.pdf"])
+    await expect(audit.getByText(file).first(), file).toBeVisible();
+  await expect(audit.getByText(/Bu, ödəniş təsdiqi deyil/).first()).toBeVisible();
 });
