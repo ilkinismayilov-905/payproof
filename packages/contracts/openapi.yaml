@@ -756,6 +756,91 @@ components:
               message: "Sorğuda xəta var."
               details: { fields: { reason: "Səbəb məcburidir." } }
 
+  examples:
+    PackageDetailInv1042Linked:
+      summary: INV-1042 after the PO-381 link was confirmed — v2, NEEDS_FIX (R-001, R-007)
+      value:
+        id: 0193a000-0000-7000-8002-000000001042
+        invoice_number: INV-1042
+        version: 2
+        status: NEEDS_FIX
+        processing: false
+        customer: { id: 0193a000-0000-7000-8001-000000000001, name: B Mağazalar Şəbəkəsi }
+        invoice_date: "2026-11-03"
+        owner:
+          &ex_u1 {
+            id: 0193a000-0000-7000-8000-000000000001,
+            full_name: Aygün Məmmədova,
+            role: operator,
+          }
+        created_at: "2026-11-03T05:12:00Z"
+        updated_at: "2026-11-08T06:32:00Z"
+        total: { amount: "12000.00", currency: AZN }
+        requirement_set:
+          id: 0193a000-0000-7000-800d-000000000102
+          version: 2
+          require_po: true
+          require_delivery: true
+          require_signature: true
+          tolerance: "0.01"
+          effective_from: "2026-10-01"
+          approved_by:
+            { id: 0193a000-0000-7000-8000-000000000002, full_name: Rəşad Əliyev, role: approver }
+          reason: Müştəri 01.10.2026-dan imzalanmış təhvil-təslim aktı tələb edir.
+          created_at: "2026-09-25T08:00:00Z"
+        link:
+          {
+            confirmed: true,
+            order_id: 0193a000-0000-7000-8003-000000000381,
+            order_po: PO-381,
+            method: human,
+            confirmed_by: *ex_u1,
+            candidates: [],
+          }
+        documents: []
+        fields: []
+        comparison: { rows: [] }
+        checks:
+          - {
+              rule_id: R-001,
+              title: Məcburi sifariş nömrəsi (PO),
+              outcome: FAIL,
+              cascade: false,
+              message: "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, fakturada isə PO göstərilməyib.",
+              evidence: [],
+              fix_hint: upload_invoice,
+              data: {},
+            }
+          - {
+              rule_id: R-007,
+              title: Məcburi təhvil sənədi,
+              outcome: FAIL,
+              cascade: false,
+              message: Müştəri qaydası imzalanmış təhvil sənədi tələb edir; paketdə təhvil sənədi yoxdur.,
+              evidence: [],
+              fix_hint: upload_delivery,
+              data: {},
+            }
+        summary:
+          {
+            pass: 5,
+            fail: 2,
+            unknown: 0,
+            not_applicable: 2,
+            blocking: [{ rule_id: R-001, outcome: FAIL }, { rule_id: R-007, outcome: FAIL }],
+          }
+        current_approval: null
+        approvals: []
+        exports: []
+        tasks: []
+        permissions:
+          {
+            can_edit: true,
+            can_manage_tasks: true,
+            can_approve: false,
+            can_export: false,
+            can_delete: true,
+          }
   schemas:
     Uuid:
       type: string
@@ -1455,3 +1540,14 @@ components:
       properties:
         url: { type: string, format: uri }
         expires_at: { type: string, format: date-time }
+    VersionedRequest:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version:
+          {
+            type: integer,
+            minimum: 1,
+            description: Current package version; otherwise 409 VERSION_CONFLICT,
+          }
