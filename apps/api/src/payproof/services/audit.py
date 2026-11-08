@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.core.logging import correlation_id
 from payproof.repositories.base import TENANT_KEY, TenantContextMissing
 from payproof.repositories.models import AuditEvent, InvoicePackage
+from payproof.services import events
 
 
 async def record(
@@ -43,5 +44,6 @@ async def record(
         created_at=at,
     )
     session.add(event)
-    await session.flush()  # id + created_at now: live events (B-12b) publish them
+    await session.flush()  # id + created_at now: the live event carries them
+    await events.publish(session, event)  # same transaction: sent only if this commits
     return event
