@@ -21,8 +21,8 @@ async def seeded(db: AsyncSession) -> AsyncSession:
 
 @pytest.fixture
 def app(db: AsyncSession) -> FastAPI:
-    """App on the test transaction; a fresh session per request, like production."""
-    application = create_app()
+    """Dev app (as `make dev-api`) on the test transaction; a fresh session per request."""
+    application = create_app(get_settings().model_copy(update={"env": "dev"}))
 
     async def session() -> AsyncIterator[AsyncSession]:
         async with AsyncSession(
