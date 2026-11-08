@@ -11,6 +11,7 @@ import { usePackageList } from "../queries";
 import { listParams, listSearch, sortFromParam, sortParam, type ListParams } from "../url";
 import { packageColumns } from "./package-columns";
 import { PackageFilters } from "./package-filters";
+import { Pagination } from "./pagination";
 
 /** Filters, sort and page live in the URL: a shared link shows the same list, Back restores it. */
 export function PackageListScreen() {
@@ -71,10 +72,13 @@ export function PackageListScreen() {
                 />
               }
             />
-            <p className="border-border text-text-3 border-t px-4 py-3 text-xs">
-              {/* no case suffix on the number: Azerbaijani suffixes depend on it (14-ü, 2-si) */}
-              {`Göstərilir: ${list.data.items.length} / ${list.data.total_count} paket`}
-            </p>
+            <Pagination
+              shown={list.data.items.length}
+              total={list.data.total_count}
+              cursor={params.cursor}
+              nextCursor={list.data.next_cursor}
+              onPage={(cursor) => go({ ...params, cursor })}
+            />
           </div>
         )}
       </section>
