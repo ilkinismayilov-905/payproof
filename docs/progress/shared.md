@@ -15,4 +15,4 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | S-06 | `packages/mocks` (MSW + mock mühərriki) | ✅ | `feat/S-06-mocks` | 2026-11-08 | 35/35 əməliyyat, golden = expected.json, INV-1042 axını; ADR-0009 |
 | S-07 | `packages/design-tokens` | ✅ | `feat/S-07-design-tokens` | 2026-11-08 | tokens.css (prototype parity test), Tailwind preset + shadcn aliases, badge tones |
 | S-08 | CI, PR şablonu və repo-nun paylaşılması | ✅ | `feat/S-08-ci` | 2026-11-08 | GitHub Actions; tələb olunan yoxlama: `ci`; branch protection quruldu (PR + ci tələb olunur) |
-| S-09 | Canlı hadisələr müqaviləsi və mock axını | 🟡 | `feat/S-09-live-events` | | ADR-0010 |
+| S-09 | Canlı hadisələr müqaviləsi və mock axını | ✅ | `feat/S-09-live-events` | 2026-11-08 | ADR-0010; müqavilə 0.2.0 (`GET /v1/events`, `LiveEvent`); `subscribeEvents` (fetch SSE, `Last-Event-ID`, backoff, 401-də dayanır, callback xətası bağlantını qırmır); mock: hadisə uğurlu yazmanın audit/bildiriş sətirlərindən, MSW SSE axını, `BroadcastChannel` tab sinxronu (DB snapshot). Brauzerdə (Chromium, :3010) iki tab: ~0,4 s. Açıq (W-05b/M-04b): StrictMode-da axının təmizlənməsini real brauzerdə yoxla |
