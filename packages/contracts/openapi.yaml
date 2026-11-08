@@ -263,6 +263,163 @@ paths:
                 total_count: 14
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/packages/{package_id}:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [packages]
+      operationId: getPackage
+      summary: Package detail — version, documents, comparison, checks, tasks, approvals
+      responses:
+        "200":
+          description: Package detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PackageDetail" }
+              example:
+                id: 0193a000-0000-7000-8002-000000001042
+                invoice_number: INV-1042
+                version: 1
+                status: NEEDS_REVIEW
+                processing: false
+                customer: { id: 0193a000-0000-7000-8001-000000000001, name: B Mağazalar Şəbəkəsi }
+                invoice_date: "2026-11-03"
+                owner:
+                  &u1 {
+                    id: 0193a000-0000-7000-8000-000000000001,
+                    full_name: Aygün Məmmədova,
+                    role: operator,
+                  }
+                created_at: "2026-11-03T05:12:00Z"
+                updated_at: "2026-11-03T05:18:00Z"
+                total: { amount: "12000.00", currency: AZN }
+                requirement_set:
+                  id: 0193a000-0000-7000-800d-000000000102
+                  version: 2
+                  require_po: true
+                  require_delivery: true
+                  require_signature: true
+                  tolerance: "0.01"
+                  effective_from: "2026-10-01"
+                  approved_by:
+                    {
+                      id: 0193a000-0000-7000-8000-000000000002,
+                      full_name: Rəşad Əliyev,
+                      role: approver,
+                    }
+                  reason: Müştəri 01.10.2026-dan imzalanmış təhvil-təslim aktı tələb edir.
+                  created_at: "2026-09-25T08:00:00Z"
+                link:
+                  confirmed: false
+                  order_id: null
+                  order_po: null
+                  method: null
+                  confirmed_by: null
+                  candidates:
+                    - order_id: 0193a000-0000-7000-8003-000000000381
+                      po_number: PO-381
+                      order_date: "2026-10-28"
+                      total: { amount: "12000.00", currency: AZN }
+                      reason: "Alıcı, hər iki məhsul kodu (GY-1L, DY-5) və miqdarlar uyğundur. Sifariş tarixi: 28.10.2026."
+                documents:
+                  - id: 0193a000-0000-7000-8004-000010420001
+                    type: invoice
+                    current: &inv_v1
+                      id: 0193a000-0000-7000-8005-000010420001
+                      version_no: 1
+                      file_name: INV-1042.pdf
+                      source_kind: pdf
+                      status: EXTRACTED
+                      sha256: 3f0a1c9e5b7d2468ace0f1b3d5e7092a4c6e8f0b2d4f6a8c0e2a4c6e8f0b2d4f
+                      uploaded_by: *u1
+                      uploaded_at: "2026-11-03T05:12:00Z"
+                      package_version_at_upload: 1
+                    history: []
+                fields:
+                  - id: 0193a000-0000-7000-800c-000010420001
+                    document_version_id: 0193a000-0000-7000-8005-000010420001
+                    field_path: invoice.po_ref
+                    label: Sifariş № (PO)
+                    raw_value: null
+                    value: null
+                    review_status: EXTRACTED
+                    evidence:
+                      &ev_po {
+                        document_version_id: 0193a000-0000-7000-8005-000010420001,
+                        page: 1,
+                        quote: "Sifariş №: —",
+                        bbox: null,
+                      }
+                comparison:
+                  rows:
+                    - key: po_ref
+                      group: null
+                      label: Sifariş № (PO)
+                      invoice:
+                        {
+                          value: null,
+                          state: mismatch,
+                          field_id: 0193a000-0000-7000-800c-000010420001,
+                          evidence: *ev_po,
+                        }
+                      order: { value: null, state: empty, field_id: null, evidence: null }
+                      delivery: { value: null, state: empty, field_id: null, evidence: null }
+                checks:
+                  - {
+                      rule_id: R-001,
+                      title: Məcburi sifariş nömrəsi (PO),
+                      outcome: FAIL,
+                      cascade: false,
+                      message: "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, fakturada isə PO göstərilməyib.",
+                      evidence: [*ev_po],
+                      fix_hint: upload_invoice,
+                      data: {},
+                    }
+                  - {
+                      rule_id: R-002,
+                      title: PO təsdiqlənmiş sifarişə uyğundur,
+                      outcome: UNKNOWN,
+                      cascade: false,
+                      message: Təklif olunan sifariş əlaqəsi hələ insan tərəfindən təsdiqlənməyib.,
+                      evidence: [],
+                      fix_hint: link_order,
+                      data: {},
+                    }
+                  - {
+                      rule_id: R-007,
+                      title: Məcburi təhvil sənədi,
+                      outcome: FAIL,
+                      cascade: false,
+                      message: Müştəri qaydası imzalanmış təhvil sənədi tələb edir; paketdə təhvil sənədi yoxdur.,
+                      evidence: [],
+                      fix_hint: upload_delivery,
+                      data: {},
+                    }
+                summary:
+                  pass: 1
+                  fail: 2
+                  unknown: 5
+                  not_applicable: 1
+                  blocking:
+                    [
+                      { rule_id: R-001, outcome: FAIL },
+                      { rule_id: R-002, outcome: UNKNOWN },
+                      { rule_id: R-007, outcome: FAIL },
+                    ]
+                current_approval: null
+                approvals: []
+                exports: []
+                tasks: []
+                permissions:
+                  {
+                    can_edit: true,
+                    can_manage_tasks: true,
+                    can_approve: false,
+                    can_export: false,
+                    can_delete: true,
+                  }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   securitySchemes:
