@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.repositories.base import bind_tenant
@@ -78,6 +79,22 @@ async def test_inactive_membership_is_ignored(db: AsyncSession, world: World) ->
     membership.active = False
     await db.flush()
     assert await MembershipRepository(db).active(world.user.id, world.a.id) is None
+
+
+async def test_sign_in_needs_exactly_one_login_membership(db: AsyncSession, world: World) -> None:
+    repo = MembershipRepository(db)
+    signed_in = await repo.sign_in(world.user.id)
+    assert signed_in is not None and signed_in.company_id == world.a.id
+    # shortcut under test: with two active login memberships no tenant is guessed
+    in_b = await db.scalar(
+        select(Membership).where(
+            Membership.user_id == world.user.id, Membership.company_id == world.b.id
+        )
+    )
+    assert in_b is not None
+    in_b.active = True
+    await db.flush()
+    assert await repo.sign_in(world.user.id) is None
 
 
 async def test_customer_of_other_tenant_is_not_found(db: AsyncSession, world: World) -> None:
