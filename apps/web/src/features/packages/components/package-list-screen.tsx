@@ -10,13 +10,16 @@ import { cn } from "@/lib/utils";
 import { usePackageList } from "../queries";
 import { listParams, listSearch, sortFromParam, sortParam, type ListParams } from "../url";
 import { packageColumns } from "./package-columns";
+import { PackageFilters } from "./package-filters";
 
 /** Filters, sort and page live in the URL: a shared link shows the same list, Back restores it. */
 export function PackageListScreen() {
   const router = useRouter();
   const params = listParams(new URLSearchParams(useSearchParams().toString()));
   const list = usePackageList(params);
-  const go = (next: ListParams) => router.push(`/packages${listSearch(next)}`, { scroll: false });
+  // filters push (Back restores them); typing in search replaces, so history isn't one entry per key
+  const go = (next: ListParams, mode: "push" | "replace" = "push") =>
+    router[mode](`/packages${listSearch(next)}`, { scroll: false });
 
   return (
     <>
@@ -25,6 +28,7 @@ export function PackageListScreen() {
         description="Hər paket bir fakturanı, onun sifarişini və təhvil sənədini birləşdirir. Kütləvi təsdiq P0-a daxil deyil."
       />
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
+        <PackageFilters params={params} onChange={go} />
         {list.isPending && <SkeletonTable rows={6} columns={8} />}
         {list.isError && (
           <Banner
