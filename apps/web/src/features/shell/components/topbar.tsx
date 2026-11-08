@@ -3,13 +3,20 @@
 import { Bell, Menu, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { FormEvent, Ref } from "react";
 import { UserMenu } from "./user-menu";
 
 const iconButton =
   "text-text-2 hover:bg-surface-2 hover:text-text focus-visible:ring-ring inline-grid size-10 shrink-0 place-items-center rounded-md outline-none focus-visible:ring-2 disabled:opacity-50";
 
-export function Topbar({ onOpenNav }: { onOpenNav: () => void }) {
+export function Topbar({
+  onOpenNav,
+  menuButtonRef,
+}: {
+  onOpenNav: () => void;
+  /** The drawer returns focus here when it closes. */
+  menuButtonRef?: Ref<HTMLButtonElement>;
+}) {
   const router = useRouter();
 
   const search = (event: FormEvent<HTMLFormElement>) => {
@@ -21,6 +28,7 @@ export function Topbar({ onOpenNav }: { onOpenNav: () => void }) {
   return (
     <header className="bg-surface border-border flex h-topbar shrink-0 items-center gap-3 border-b px-3 md:px-5">
       <button
+        ref={menuButtonRef}
         type="button"
         aria-label="Menyunu aç"
         onClick={onOpenNav}

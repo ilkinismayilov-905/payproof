@@ -39,6 +39,7 @@ test("mobile drawer: opens from the menu button, closes on Esc and after navigat
   expect(drawer).toContainElement(screen.getAllByRole("link", { name: "İcmal" }).at(-1)!);
   await userEvent.keyboard("{Escape}");
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.getByRole("button", { name: "Menyunu aç" })).toHaveFocus();
 
   await userEvent.click(screen.getByRole("button", { name: "Menyunu aç" }));
   const links = await screen.findAllByRole("link", { name: /^Tapşırıqlar/ });

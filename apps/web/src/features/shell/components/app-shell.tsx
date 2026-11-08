@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "radix-ui";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -20,6 +20,7 @@ const readCollapsed = () => {
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [navOpen, setNavOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -46,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Məzmuna keç
       </a>
-      <Topbar onOpenNav={() => setNavOpen(true)} />
+      <Topbar menuButtonRef={menuButton} onOpenNav={() => setNavOpen(true)} />
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
@@ -70,6 +71,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Dialog.Overlay className="bg-overlay fixed inset-0 z-40" />
           <Dialog.Content
             aria-describedby={undefined}
+            // not a Dialog.Trigger, so Radix can't restore focus by itself
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              menuButton.current?.focus();
+            }}
             className="bg-surface shadow-3 fixed inset-y-0 left-0 z-50 w-[272px] max-w-[85vw]"
           >
             <Dialog.Title className="sr-only">Menyu</Dialog.Title>
