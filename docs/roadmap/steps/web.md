@@ -33,7 +33,7 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`.
 ### W-05 · Ümumi UI dəsti
 **Branch:** `feat/W-05-ui-kit` · **Asılılıq:** W-04
 **Daxildir:** `PageHeader`, `Banner` (danger/warning/success/brand/neutral), `EmptyState`, `Skeleton` variantları, `ConfirmDialog` (dağıdıcı əməliyyatlar), `DataTable` (TanStack Table wrapper: sort başlıqları `aria-sort` ilə), `Panel`.
-**Qəbul:** [ ] hər komponentin Vitest testi [ ] a11y: dialog focus trap, Esc
+**Qəbul:** [ ] hər komponentin Vitest testi [ ] a11y: dialog focus trap, Esc [ ] toxunma sahəsi: vebdə düymələr 32–40px qala bilər, `@media (pointer: coarse)` altında min 44px (interaktiv elementlər, o cümlədən shadcn `Button` ölçüləri)
 
 ### W-06 · İcmal (dashboard)
 **Branch:** `feat/W-06-dashboard` · **Asılılıq:** W-05
