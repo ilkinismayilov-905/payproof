@@ -64,7 +64,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-11 · Oxuma API-ləri
 **Branch:** `feat/B-11-read-api` · **Asılılıq:** B-10, B-08
 **Daxildir:** `services/package_query.py` (snapshot qurmaq, qaydaları işlətmək, status törətmək), `GET /v1/packages` (filtr: status, customer_id, owner_id, issue, period, q; sort; cursor), `GET /v1/packages/{id}` (api-contract.md forması: documents, comparison, checks, summary, tasks, permissions), `GET /v1/dashboard` (statuslar, valyuta üzrə açıq məbləğ — hər paket bir dəfə, ən çox təkrarlanan problem kateqoriyası, yaş, qayda üzrə FAIL/UNKNOWN sayları — cascade sayılmır, son təsdiqlər).
-**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun
+**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun [ ] access log-da query string yoxdur (axtarış sözləri log-a düşmür) və `correlation_id` doludur (test)
 
 ### B-12 · Audit servisi
 **Branch:** `feat/B-12-audit` · **Asılılıq:** B-10

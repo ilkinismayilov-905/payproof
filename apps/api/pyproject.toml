@@ -4,8 +4,11 @@ version = "0.1.0"
 description = "PayProof backend API"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
     "fastapi>=0.162.2",
     "pydantic-settings>=2.16.2",
+    "sqlalchemy[asyncio]>=2.1.8",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -17,6 +20,7 @@ dev = [
     "httpx>=0.28.1",
     "mypy",
     "pytest",
+    "pytest-asyncio>=1.4.1.post1",
     "ruff",
 ]
 
@@ -36,6 +40,9 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "SIM", "RUF", "ASYNC", "DTZ",
 # RUF001-003: Azerbaijani UI text uses "ı"; N818: errors are named NotFound, Forbidden (CLAUDE.md)
 ignore = ["RUF001", "RUF002", "RUF003", "N818"]
 
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = ["sqlalchemy.orm.declared_attr"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
 
@@ -48,5 +55,8 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 # shortcut: starlette nags about httpx in TestClient; drop once starlette's replacement is vetted
 filterwarnings = ["ignore:Using `httpx`"]
