@@ -95,3 +95,37 @@ jobs:
       - run: pnpm fixtures:check
       - run: pnpm format:check
       - run: pnpm turbo run lint typecheck test --filter='./packages/*'
+
+  # Backend (B track) — runs once apps/api/pyproject.toml exists (B-01).
+  api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: payproof
+          POSTGRES_PASSWORD: payproof
+          POSTGRES_DB: payproof
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U payproof -d payproof"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      ENV: test
+      DATABASE_URL: postgresql+asyncpg://payproof:payproof@localhost:5432/payproof
+      AI_PROVIDER: mock
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy .
+      - run: uv run pytest
