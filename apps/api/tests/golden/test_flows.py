@@ -9,7 +9,7 @@ import pytest
 
 from payproof.domain.enums import CheckOutcome, PackageStatus, Role
 from payproof.domain.permissions import Permission, can
-from tests.golden.fixtures import (
+from payproof.seed.fixtures import (
     EXPECTED,
     PACKAGES,
     Fixture,

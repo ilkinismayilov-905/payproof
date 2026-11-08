@@ -1,5 +1,7 @@
 """All ORM models; importing this package registers every table on `Base.metadata`."""
 
+# the tenant guard is a Session event: anyone who can query models must also get the guard
+from payproof.repositories import base as _tenant_guard  # noqa: F401
 from payproof.repositories.models.approvals import ApprovalRecord, ExportRecord
 from payproof.repositories.models.audit import AuditEvent
 from payproof.repositories.models.customers import Customer, RequirementSet

@@ -23,7 +23,7 @@ from payproof.domain.snapshot import (
 )
 from payproof.domain.status import derive_status
 
-FIXTURES = Path(__file__).parents[4] / "fixtures"
+FIXTURES = Path(__file__).parents[5] / "fixtures"  # repo root; dev/test data only
 Fixture = dict[str, Any]
 
 

@@ -64,12 +64,12 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-11 · Oxuma API-ləri
 **Branch:** `feat/B-11-read-api` · **Asılılıq:** B-10, B-08
 **Daxildir:** `services/package_query.py` (snapshot qurmaq, qaydaları işlətmək, status törətmək), `GET /v1/packages` (filtr: status, customer_id, owner_id, issue, period, q; sort; cursor), `GET /v1/packages/{id}` (api-contract.md forması: documents, comparison, checks, summary, tasks, permissions), `GET /v1/dashboard` (statuslar, valyuta üzrə açıq məbləğ — hər paket bir dəfə, ən çox təkrarlanan problem kateqoriyası, yaş, qayda üzrə FAIL/UNKNOWN sayları — cascade sayılmır, son təsdiqlər).
-**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun (`CheckResult.title` domen nəticəsində yoxdur — API qatı qaydanın adını əlavə edir) [ ] access log-da query string yoxdur (axtarış sözləri log-a düşmür) və `correlation_id` doludur (test)
+**Qəbul:** [ ] dashboard dəyərləri `expected.json`-a uyğun (29.706,00 AZN / 1.800,00 USD / 3,0 gün — yaş = `problem_since` ilə `now` arasında **Asia/Baku tarixinə görə təqvim günü** fərqi, prototip kimi; kəsr və ya `floor` fərq 2,9 / 2,5 verir) [ ] status cari versiyanın son validation run-ından törədilir (seed hər bitmiş paket üçün nəticəli run yazır — B-09) [ ] N+1 sorğu yoxdur (sorğu sayı testi) [ ] cavablar openapi sxeminə uyğun (`CheckResult.title` domen nəticəsində yoxdur — API qatı qaydanın adını əlavə edir) [ ] access log-da query string yoxdur (axtarış sözləri log-a düşmür) və `correlation_id` doludur (test)
 
 ### B-12 · Audit servisi
 **Branch:** `feat/B-12-audit` · **Asılılıq:** B-10
 **Daxildir:** `services/audit.py` (`record(actor, action, object, package_version, detail)`, correlation id), `GET /v1/packages/{id}/audit`, `GET /v1/audit` (filtr, `?format=csv` — UTF-8 BOM).
-**Qəbul:** [ ] hər yazma servisi audit çağırır (sonrakı step-lərdə yoxlanır) [ ] CSV Excel-də düzgün açılır
+**Qəbul:** [ ] hər yazma servisi audit çağırır (sonrakı step-lərdə yoxlanır) [ ] CSV Excel-də düzgün açılır [ ] seed demo audit tarixçəsini yazır (fixtures/README.md: paket yaradıldı → sənədlər → çıxarış → əlaqə → təsdiq/ixrac → yoxlama; B-09-da hələ yoxdur)
 
 ### B-12b · SSE canlı hadisələr
 **Branch:** `feat/B-12b-live-events` · **Asılılıq:** B-12 · **Skills:** `security-and-hardening`
@@ -91,7 +91,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-13 · Storage və yükləmə
 **Branch:** `feat/B-13-upload` · **Asılılıq:** B-12 · **Skills:** `security-and-hardening`
 **Daxildir:** `storage/s3.py`, `POST /v1/packages/{id}/documents`, `POST /v1/documents/{id}/versions` (multipart, `Idempotency-Key`, `expected_version`), magic-bytes MIME yoxlaması, ölçü/səhifə limiti, sha256 dublikat (`409 DUPLICATE_FILE` + mövcud versiya məlumatı, audit "Təkrar fayl aşkarlandı"), versiya artımı + təsdiqin etibarsızlaşması, job yaratmaq (B-14 hazır deyilsə sinxron stub), `GET /v1/documents/versions/{id}/file` (5 dəq imzalı link).
-**Qəbul:** [ ] dublikat yeni versiya yaratmır [ ] `.exe`-ni `.pdf` adlandırmaq rədd olunur [ ] köhnə versiya saxlanılır
+**Qəbul:** [ ] dublikat yeni versiya yaratmır [ ] `.exe`-ni `.pdf` adlandırmaq rədd olunur [ ] köhnə versiya saxlanılır [ ] seed fixture sənədləri üçün storage-a placeholder fayllar yazır və `document_versions.size` real olur (B-09: yalnız `storage_key`, `size=1`)
 
 ### B-14 · Job növbəsi və worker
 **Branch:** `feat/B-14-jobs` · **Asılılıq:** B-13
