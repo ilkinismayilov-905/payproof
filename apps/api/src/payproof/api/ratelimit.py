@@ -8,10 +8,11 @@ from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
-from fastapi import Request
+from fastapi import Request, Response
 
 from payproof.api.deps import CurrentMember
-from payproof.core.errors import DomainError, ErrorCode
+from payproof.core.errors import DomainError, ErrorCode, FileTooLarge, error_response
+from payproof.services.files import MAX_BYTES, MAX_MB
 
 
 class RateLimited(DomainError):
@@ -62,5 +63,22 @@ def per_address(bucket: str, limit: int, window: float = 60) -> Callable[..., Aw
     return check
 
 
+MAX_MULTIPART = 3 * (MAX_BYTES + 1024 * 1024)  # invoice, order, delivery + the form fields
 UPLOADS = per_user("upload", 30)  # documents, new versions, new packages
+
+
+async def body_limit_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """413 before a multipart body is read: FastAPI spools the whole form to disk before any
+    route dependency runs, so the per-file cap alone would not stop a huge request.
+    shortcut: needs Content-Length — a chunked upload is left to the proxy's body limit."""
+    size = request.headers.get("content-length", "")
+    multipart = request.headers.get("content-type", "").startswith("multipart/")
+    if multipart and size.isdigit() and int(size) > MAX_MULTIPART:
+        err = FileTooLarge(details={"max_mb": MAX_MB})
+        return error_response(err.status_code, err.code, err.message, err.details)
+    return await call_next(request)
+
+
 LOGINS = per_address("login", 10)

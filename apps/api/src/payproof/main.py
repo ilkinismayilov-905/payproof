@@ -22,6 +22,7 @@ from payproof.api import (
     review,
     tasks,
 )
+from payproof.api.ratelimit import body_limit_middleware
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
@@ -41,6 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings.log_level)
     app = FastAPI(title="PayProof API", version="0.1.0", lifespan=_lifespan)
     app.state.hub = Hub(settings.database_url)
+    app.middleware("http")(body_limit_middleware)  # inner: still gets a correlation id
     app.middleware("http")(correlation_id_middleware)
     # added last = outermost: preflights are answered before auth and logging
     app.add_middleware(
