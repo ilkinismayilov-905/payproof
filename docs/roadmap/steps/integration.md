@@ -5,7 +5,7 @@
 ### I-01 · Tam axın real stack-də
 **Branch:** `feat/I-01-e2e-real` · **Asılılıq:** W-18, M-12
 **Daxildir:** `docker compose up` (postgres, minio, api, worker, web, mobile — Dockerfile-lar), `make demo` (up + migrate + seed), Playwright: veb-də INV-1042 düzəliş axını → mobildə təsdiq → veb-də ixrac; audit-də bütün addımlar.
-**Qəbul:** [ ] təmiz maşında `make demo` ilə 5 dəqiqədə işləyir
+**Qəbul:** [ ] təmiz maşında `make demo` ilə 5 dəqiqədə işləyir [ ] iki cihazda (Aygün veb, Rəşad mobil) dəyişiklik ≤ 2 s-də refresh-siz görünür — hər iki istiqamətdə (SSE, ADR-0010)
 
 ### I-02 · Demo hazırlığı
 **Branch:** `feat/I-02-demo-ready` · **Asılılıq:** I-01
