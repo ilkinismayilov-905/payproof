@@ -25,6 +25,8 @@ tags:
     description: Order link, field corrections, signature review and re-validation
   - name: tasks
     description: Resolution tasks routed to the responsible person
+  - name: approval
+    description: Version-bound approval, idempotent export and the internal report
 paths:
   /v1/auth/dev-users:
     get:
@@ -899,6 +901,63 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /v1/packages/{package_id}/approve:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [approval]
+      operationId: approvePackage
+      summary: Approve the current version (approver only). "Ready to send" — not a payment approval
+      description: Repeating the request for an already approved version returns the existing approval with 200 and creates no new audit event.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expected_version, documents_reviewed]
+              properties:
+                expected_version: { type: integer, minimum: 1 }
+                documents_reviewed:
+                  { const: true, description: The approver confirms every document was opened }
+            example: { expected_version: 4, documents_reviewed: true }
+      responses:
+        "200":
+          description: Approval of the current version (new or existing)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalRecord" }
+              example:
+                id: 0193a000-0000-7000-8008-000010420004
+                package_version: 4
+                requirement_set_version: 2
+                approver:
+                  {
+                    id: 0193a000-0000-7000-8000-000000000002,
+                    full_name: Rəşad Əliyev,
+                    role: approver,
+                  }
+                approved_at: "2026-11-08T06:40:00Z"
+                valid: true
+                invalidated_reason: null
+                invalidated_at: null
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: PACKAGE_NOT_READY (status is not READY_FOR_APPROVAL), VERSION_CONFLICT or IDEMPOTENCY_IN_PROGRESS
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: PACKAGE_NOT_READY
+                  message: Bloklayan və ya naməlum yoxlama var — paket təsdiqlənə bilməz.
+                  details: { status: NEEDS_FIX, blocking: [R-001, R-007] }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
   securitySchemes:
