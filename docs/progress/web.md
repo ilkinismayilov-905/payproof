@@ -10,7 +10,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | W-01 | Next.js skeleti | ✅ | `feat/W-01-web-skeleton` | 2026-11-08 | Next 16.4 + Tailwind 4 (tokens preset) + shadcn (radix-nova, token rəngləri) + ESLint/Vitest/Playwright; light/dark e2e ilə yoxlanır |
 | W-02 | Data qatı və dev auth | ✅ | `feat/W-02-data-layer` | 2026-11-08 | api client + token (memory/sessionStorage), TanStack Query (401 → /login, toast), MSW client-only, `/login` demo seçimi, `AuthGuard`, `useMe`/`useCan`. Borc (W-03): login ekranı mətnləri hələ `i18n`-də deyil |
 | W-03 | i18n və status komponentləri | ✅ | `feat/W-03-status-ui` | 2026-11-08 | `components/status` (4 badge: ikon + mətn + ton; test glossary.md-ni parse edir), `components/format` (`Money` — valyuta məcburi, `DateTime`); Tailwind `@source` design-tokens. `t` helper yoxdur — tipli map-lar birbaşa. Açıq: `documentStatusTone`-da `UPLOADED` yoxdur (web-də lokal info); login mətnləri i18n-də deyil (shared) |
-| W-04 | Tətbiq çərçivəsi (shell) | 🟡 | `feat/W-04-app-shell` | 2026-11-08 | |
+| W-04 | Tətbiq çərçivəsi (shell) | ✅ | `feat/W-04-app-shell` | 2026-11-08 | `features/shell`: sidebar (aktiv route, açıq tapşırıq sayı, yığma localStorage-də, P1 toast), topbar (axtarış → `/packages?q=`, bildiriş yeri — W-16, istifadəçi menyusu: demo hesabı / çıxış), <768 drawer (Radix Dialog), skip link; route placeholder-ləri W-06+ üçün. Radix birbaşa (`radix-ui`), shadcn dropdown/sheet yox |
 | W-05 | Ümumi UI dəsti | ⬜ | | | |
 | W-05b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
 | W-06 | İcmal (dashboard) | ⬜ | | | |
