@@ -40,6 +40,9 @@ Hər app-in öz `CLAUDE.md` faylı var — həmin qovluqda işləyəndə onu da 
 - Audit append-only-dir. Sənəd mətni log-lara yazılmır.
 - UI mətnləri Azərbaycan dilindədir: "Paket göndərilməyə hazırdır" — heç vaxt "Ödəniş təmin edildi".
 
+## Alətlər
+- Bu repo macOS-da işləyir (BSD sed). Faylları dəyişmək üçün sed/perl/heredoc yox, Edit və Write alətlərindən istifadə et; Bash yalnız əmrləri işlətmək üçündür.
+
 ## Əmrlər (S-01-dən sonra işləyir)
 - `make setup` · `make up` (postgres + minio) · `make seed` · `make test` · `make lint`
 - Backend: `cd apps/api && uv run pytest` · `uv run ruff check .` · `uv run mypy .`
