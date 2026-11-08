@@ -159,6 +159,8 @@ paths:
                 open_problem_amounts:
                   - { total: { amount: "29706.00", currency: AZN }, package_count: 7 }
                   - { total: { amount: "1800.00", currency: USD }, package_count: 1 }
+                ready_amounts:
+                  - { total: { amount: "11060.00", currency: AZN }, package_count: 2 }
                 top_issue:
                   {
                     category: PO istinadı,
@@ -192,6 +194,8 @@ paths:
                       }
                     approved_at: "2026-11-06T11:10:00Z"
                     total: { amount: "3100.00", currency: AZN }
+                    valid: true
+                    exported: false
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/packages:
     get:
@@ -824,10 +828,20 @@ paths:
               schema:
                 type: object
                 additionalProperties: false
-                required: [items, next_cursor]
+                required: [items, next_cursor, status_counts]
                 properties:
                   items: { type: array, items: { $ref: "#/components/schemas/Task" } }
                   next_cursor: { type: ["string", "null"] }
+                  status_counts:
+                    type: object
+                    description: Counts per status for the other filters (ignores `status`) — tabs and the sidebar badge.
+                    additionalProperties: false
+                    required: [OPEN, IN_PROGRESS, SUBMITTED_FOR_RECHECK, RESOLVED]
+                    properties:
+                      OPEN: { type: integer }
+                      IN_PROGRESS: { type: integer }
+                      SUBMITTED_FOR_RECHECK: { type: integer }
+                      RESOLVED: { type: integer }
               example:
                 items:
                   - id: 0193a000-0000-7000-8006-000000000118
@@ -855,6 +869,7 @@ paths:
                       }
                     resolved_at: null
                 next_cursor: null
+                status_counts: { OPEN: 4, IN_PROGRESS: 2, SUBMITTED_FOR_RECHECK: 0, RESOLVED: 3 }
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/packages/{package_id}/tasks:
     parameters:
@@ -1894,6 +1909,7 @@ components:
           customer_count,
           status_counts,
           open_problem_amounts,
+          ready_amounts,
           top_issue,
           rule_counts,
           problem_age,
@@ -1920,13 +1936,11 @@ components:
         open_problem_amounts:
           type: array
           description: NEEDS_FIX + NEEDS_REVIEW invoice totals, one entry per currency (never converted). Not a financial loss.
-          items:
-            type: object
-            additionalProperties: false
-            required: [total, package_count]
-            properties:
-              total: { $ref: "#/components/schemas/Money" }
-              package_count: { type: integer }
+          items: { $ref: "#/components/schemas/CurrencyTotal" }
+        ready_amounts:
+          type: array
+          description: READY_FOR_APPROVAL invoice totals per currency (mobile approver home).
+          items: { $ref: "#/components/schemas/CurrencyTotal" }
         top_issue:
           description: Most frequent primary (non-cascade) problem category among non-exported packages.
           oneOf:
@@ -1978,13 +1992,24 @@ components:
           items:
             type: object
             additionalProperties: false
-            required: [package, version, approver, approved_at, total]
+            required: [package, version, approver, approved_at, total, valid, exported]
             properties:
               package: { $ref: "#/components/schemas/PackageRef" }
               version: { type: integer }
               approver: { $ref: "#/components/schemas/UserRef" }
               approved_at: { type: string, format: date-time }
               total: { $ref: "#/components/schemas/Money" }
+              valid:
+                { type: boolean, description: false once a new version or rule set invalidated it }
+              exported: { type: boolean }
+    CurrencyTotal:
+      type: object
+      additionalProperties: false
+      required: [total, package_count]
+      description: Sum of invoice totals in one currency — computed on the server, never across currencies.
+      properties:
+        total: { $ref: "#/components/schemas/Money" }
+        package_count: { type: integer }
     CustomerRef:
       type: object
       additionalProperties: false
