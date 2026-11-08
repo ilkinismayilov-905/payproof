@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, NotFound, PackageNotReady
+from payproof.core.errors import Conflict, ErrorCode, NotFound, PackageNotReady
 from payproof.core.ids import uuid7
 from payproof.repositories.models import Document, DocumentVersion, InvoicePackage, Job
 from payproof.services import files, idempotency
@@ -56,6 +56,48 @@ async def _locked_package(session: AsyncSession, package_id: uuid.UUID) -> Invoi
     return pkg
 
 
+async def _duplicate(
+    session: AsyncSession, pkg: InvoicePackage, sha256: str
+) -> tuple[DocumentVersion, str] | None:
+    """Same bytes anywhere in this package (any document, any version)."""
+    row = (
+        await session.execute(
+            select(DocumentVersion, Document.type)
+            .join(Document, Document.id == DocumentVersion.document_id)
+            .where(Document.package_id == pkg.id, DocumentVersion.sha256 == sha256)
+            .limit(1)
+        )
+    ).first()
+    return (row[0], row[1]) if row else None
+
+
+async def _reject_duplicate(
+    session: AsyncSession,
+    actor_id: uuid.UUID,
+    pkg: InvoicePackage,
+    name: str,
+    same: DocumentVersion,
+    same_type: str,
+) -> Outcome:
+    """No new version; the attempt itself is audited (and committed) like any other event."""
+    of = f"{LABEL[same_type]} v{same.version_no}"
+    await record(
+        session,
+        actor_id=actor_id,
+        action="document.duplicate",
+        message=f"Təkrar fayl aşkarlandı: {name} — {of} ilə eyni; yeni versiya yaradılmadı",
+        object_type="document_version",
+        object_id=same.id,
+        package=pkg,
+    )
+    error = {
+        "code": ErrorCode.DUPLICATE_FILE.value,
+        "message": f"{name}: {of} ilə eyni fayldır — yeni versiya yaradılmadı.",
+        "details": {"document_version_id": str(same.id), "version_no": same.version_no},
+    }
+    return Outcome(409, {"error": error})
+
+
 async def upload(
     session: AsyncSession,
     storage: Storage,
@@ -86,7 +128,10 @@ async def upload(
             f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
             {"current_version": pkg.version, "expected_version": up.expected_version},
         )
-    outcome = await _store(session, storage, actor_id, pkg, doc_type, name, up.data, info)
+    if dup := await _duplicate(session, pkg, info.sha256):
+        outcome = await _reject_duplicate(session, actor_id, pkg, name, *dup)
+    else:
+        outcome = await _store(session, storage, actor_id, pkg, doc_type, name, up.data, info)
     await idempotency.complete(
         session, endpoint=endpoint, key=key, status_code=outcome.status_code, body=outcome.body
     )

@@ -120,3 +120,24 @@ async def test_new_version_bumps_package_invalidates_approval_and_queues_job(
         uid("u1"),
     )
     assert uploaded.message == f"Faktura: INV-1035_v2.pdf (sənəd v2) · paket v{before + 1}"
+
+
+async def test_duplicate_is_audited_and_creates_no_version(seeded: AsyncSession) -> None:
+    db = seeded
+    version = (await db.get_one(InvoicePackage, uid("pkg_1035"))).version
+    _, first = await _upload(db, "pkg_1035", PDF + b"dup", version)
+    count = await db.scalar(select(func.count()).select_from(DocumentVersion))
+    pkg = await db.get_one(InvoicePackage, uid("pkg_1035"))
+
+    status, body = await _upload(db, "pkg_1035", PDF + b"dup", pkg.version)
+
+    assert status == 409
+    assert body["error"] == {
+        "code": "DUPLICATE_FILE",
+        "message": "INV-1035_v2.pdf: Faktura v2 ilə eyni fayldır — yeni versiya yaradılmadı.",
+        "details": {"document_version_id": first["document_version_id"], "version_no": 2},
+    }
+    assert await db.scalar(select(func.count()).select_from(DocumentVersion)) == count
+    assert pkg.version == version + 1  # unchanged by the duplicate
+    audit = await db.scalar(select(AuditEvent).where(AuditEvent.action == "document.duplicate"))
+    assert audit is not None and audit.message.startswith("Təkrar fayl aşkarlandı: INV-1035_v2.pdf")
