@@ -161,6 +161,7 @@ export function CustomerRulesCard({
             type="submit"
             aria-disabled={!canSave || save.isPending}
             title={canSave ? undefined : APPROVER_ONLY}
+            className="aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
           >
             <Check aria-hidden />
             {save.isPending ? "Saxlanılır…" : "Yeni versiya kimi təsdiqlə"}
