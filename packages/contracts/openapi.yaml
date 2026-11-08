@@ -27,6 +27,8 @@ tags:
     description: Resolution tasks routed to the responsible person
   - name: approval
     description: Version-bound approval, idempotent export and the internal report
+  - name: audit
+    description: Append-only audit log
 paths:
   /v1/auth/dev-users:
     get:
@@ -1091,6 +1093,58 @@ paths:
                 exports: []
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /v1/packages/{package_id}/audit:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [audit]
+      operationId: listPackageAudit
+      summary: Audit events of one package, newest first
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of events
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditPage" }
+              examples: { inv1036: { $ref: "#/components/examples/AuditPageInv1036" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/audit:
+    get:
+      tags: [audit]
+      operationId: listAudit
+      summary: Company-wide audit log with search; `format=csv` downloads it
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - {
+            name: actor_id,
+            in: query,
+            description: "`system` for system events",
+            schema: { type: string },
+          }
+        - { name: package_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: format, in: query, schema: { type: string, enum: [json, csv], default: json } }
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of events (JSON) or the full filtered log (CSV)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditPage" }
+              examples: { inv1036: { $ref: "#/components/examples/AuditPageInv1036" } }
+            text/csv:
+              schema: { type: string }
+              example: |
+                created_at,actor,action,invoice_number,package_version,message
+                2026-11-01T05:46:00Z,Sistem,approval.invalidated,INV-1036,3,"v2 təsdiqi qüvvədən düşdü: təhvil sənədinin yeni versiyası yükləndi."
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
   securitySchemes:
@@ -1211,6 +1265,36 @@ components:
               details: { fields: { reason: "Səbəb məcburidir." } }
 
   examples:
+    AuditPageInv1036:
+      summary: A new delivery version invalidated the v2 approval of INV-1036
+      value:
+        items:
+          - id: 0193a000-0000-7000-800a-000010360002
+            created_at: "2026-11-01T05:46:00Z"
+            actor: null
+            action: approval.invalidated
+            message: "v2 təsdiqi qüvvədən düşdü: təhvil sənədinin yeni versiyası yükləndi. Əvvəlki təsdiq auditdə saxlanılır."
+            package: { id: 0193a000-0000-7000-8002-000000001036, invoice_number: INV-1036 }
+            package_version: 3
+            object_type: approval
+            object_id: 0193a000-0000-7000-8008-000010360002
+            details: { approval_version: 2 }
+          - id: 0193a000-0000-7000-800a-000010360001
+            created_at: "2026-11-01T05:45:00Z"
+            actor:
+              {
+                id: 0193a000-0000-7000-8000-000000000003,
+                full_name: Elvin Qasımov,
+                role: warehouse,
+              }
+            action: document.uploaded
+            message: "Təhvil sənədi: TS-5518_imzali_tam.pdf (sənəd v3) · paket v3"
+            package: { id: 0193a000-0000-7000-8002-000000001036, invoice_number: INV-1036 }
+            package_version: 3
+            object_type: document_version
+            object_id: 0193a000-0000-7000-8005-000010360003
+            details: { document_type: delivery, version_no: 3 }
+        next_cursor: null
     TaskT118:
       summary: Price task for INV-1044 (R-005)
       value:
@@ -2054,3 +2138,41 @@ components:
         checks: { type: array, items: { $ref: "#/components/schemas/CheckResult" } }
         approvals: { type: array, items: { $ref: "#/components/schemas/ApprovalRecord" } }
         exports: { type: array, items: { $ref: "#/components/schemas/ExportRecord" } }
+    AuditEvent:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          created_at,
+          actor,
+          action,
+          message,
+          package,
+          package_version,
+          object_type,
+          object_id,
+          details,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        created_at: { type: string, format: date-time }
+        actor:
+          {
+            description: null = system,
+            oneOf: [{ type: "null" }, { $ref: "#/components/schemas/UserRef" }],
+          }
+        action: { type: string, pattern: "^[a-z_]+\\.[a-z_]+$", examples: ["package.approved"] }
+        message: { type: string, description: Azerbaijani summary (no document text) }
+        package: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/PackageRef" }] }
+        package_version: { type: ["integer", "null"] }
+        object_type: { type: string, examples: ["approval"] }
+        object_id: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Uuid" }] }
+        details: { type: object, additionalProperties: true }
+    AuditPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AuditEvent" } }
+        next_cursor: { type: ["string", "null"] }
