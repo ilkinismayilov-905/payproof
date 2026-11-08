@@ -1,5 +1,6 @@
 import type { RequestHandler } from "msw";
 import { createDemoDb } from "../domain/seed";
+import { EventBus } from "../events";
 import type { MockDb, MockDbOptions } from "../store";
 import { adminHandlers } from "./admin";
 import { approvalHandlers } from "./approval";
@@ -26,7 +27,8 @@ export function createMockApi(options: MockApiOptions = {}) {
   const reset = () => {
     db = createDemoDb(options);
   };
-  const ctx: Ctx = { db: () => db, latencyMs: options.latencyMs ?? 0, reset };
+  const events = new EventBus();
+  const ctx: Ctx = { db: () => db, events, latencyMs: options.latencyMs ?? 0, reset };
   const handlers: RequestHandler[] = [
     ...authHandlers(ctx),
     ...readHandlers(ctx),
@@ -46,6 +48,8 @@ export function createMockApi(options: MockApiOptions = {}) {
     get db() {
       return db;
     },
+    /** Live events of successful writes (ADR-0010). */
+    events,
     /** Back to the fixtures dataset (demo reset, test isolation). */
     reset,
   };

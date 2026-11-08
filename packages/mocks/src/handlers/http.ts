@@ -1,6 +1,7 @@
 // HTTP plumbing shared by all handlers: auth, contract errors, version/permission checks, idempotency, paging.
 import { delay, HttpResponse } from "msw";
 import { MockError } from "../domain/audit";
+import { type EventBus, mark, newEvents } from "../events";
 import { slugOf } from "../ids";
 import { can, type Permission } from "../permissions";
 import type { MockDb } from "../store";
@@ -8,6 +9,7 @@ import type { Pkg, User } from "../types";
 
 export interface Ctx {
   db: () => MockDb;
+  events: EventBus;
   latencyMs: number;
   /** Replace the store with a fresh fixtures copy (POST /v1/demo/reset). */
   reset: () => void;
@@ -166,8 +168,13 @@ export const route =
   <A extends Args>(ctx: Ctx, fn: (args: A, db: MockDb) => Promise<Response> | Response) =>
   async (args: A) => {
     if (ctx.latencyMs) await delay(ctx.latencyMs);
+    const db = ctx.db();
+    const before = mark(db);
     try {
-      return await fn(args, ctx.db());
+      const res = await fn(args, db);
+      // like the server's NOTIFY-on-commit: only a successful request publishes what it changed
+      if (res.ok) for (const e of newEvents(db, before)) ctx.events.emit(e);
+      return res;
     } catch (e) {
       if (e instanceof MockError) return json(errorBody(e), e.status);
       console.error("[mocks]", e);
