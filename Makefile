@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help setup up down seed test lint typecheck dev-api dev-web dev-mobile
+.PHONY: help setup up down logs psql seed test lint typecheck dev-api dev-web dev-mobile
 
 API := apps/api
 has_api := $(wildcard $(API)/pyproject.toml)
@@ -15,11 +15,18 @@ help: ## Show all targets
 setup: ## Git hooks, toolchain check, install deps
 	./scripts/setup.sh
 
-up: ## Start postgres + minio
-	$(call not_ready,docker-compose.yml,S-02)
+up: ## Start postgres + minio and create the bucket
+	docker compose up -d --wait postgres minio
+	docker compose run --rm minio-init
 
-down: ## Stop local infrastructure
-	$(call not_ready,docker-compose.yml,S-02)
+down: ## Stop local infrastructure (data stays in .data/)
+	docker compose down
+
+logs: ## Follow infrastructure logs
+	docker compose logs -f
+
+psql: ## Open psql in the postgres container
+	docker compose exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 seed: ## Load demo fixtures into the database
 	$(call not_ready,seed,B-09)
