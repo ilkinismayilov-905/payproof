@@ -9,6 +9,7 @@ export const packageKeys = {
   all: ["packages"] as const,
   list: (params: ListParams) => [...packageKeys.all, "list", params] as const,
   detail: (id: string) => [...packageKeys.all, "detail", id] as const,
+  audit: (id: string) => [...packageKeys.all, "audit", id] as const,
 };
 
 const ATTENTION: ListParams = {
