@@ -1,5 +1,6 @@
 "use client";
 
+import { shellText } from "@payproof/api-client/i18n";
 import { Bell, Menu, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ export function Topbar({
       <button
         ref={menuButtonRef}
         type="button"
-        aria-label="Menyunu aç"
+        aria-label={shellText.openMenu}
         aria-haspopup="dialog"
         aria-expanded={navOpen}
         onClick={onOpenNav}
@@ -50,22 +51,22 @@ export function Topbar({
         <span className="max-md:sr-only">PayProof</span>
       </Link>
       <span
-        title="Bütün məlumatlar sintetikdir"
+        title={shellText.demoTagTitle}
         className="bg-warning-bg text-warning shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold max-md:hidden"
       >
-        Sintetik demo
+        {shellText.demoTag}
       </span>
 
       <form role="search" onSubmit={search} className="mx-auto w-full max-w-md min-w-0">
         <label className="border-border-strong bg-surface focus-within:ring-ring flex h-10 items-center gap-2 rounded-md border px-3 pointer-coarse:h-11 focus-within:ring-2">
           <Search aria-hidden className="text-text-3 size-4 shrink-0" />
-          <span className="sr-only">Paket axtar</span>
+          <span className="sr-only">{shellText.searchLabel}</span>
           <input
             type="search"
             name="q"
             maxLength={100}
             autoComplete="off"
-            placeholder="Faktura, müştəri və ya PO axtar…"
+            placeholder={shellText.searchPlaceholder}
             className="placeholder:text-text-3 h-full w-full min-w-0 bg-transparent outline-none"
           />
         </label>
@@ -73,8 +74,8 @@ export function Topbar({
 
       <button
         type="button"
-        aria-label="Bildirişlər"
-        title="Bildirişlər tezliklə"
+        aria-label={shellText.notifications}
+        title={shellText.notificationsSoon}
         disabled
         className={iconButton}
       >

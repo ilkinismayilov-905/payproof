@@ -1,5 +1,6 @@
 "use client";
 
+import { shellText } from "@payproof/api-client/i18n";
 import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -45,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         href="#content"
         className="bg-brand text-brand-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
       >
-        Məzmuna keç
+        {shellText.skipToContent}
       </a>
       <Topbar menuButtonRef={menuButton} navOpen={navOpen} onOpenNav={() => setNavOpen(true)} />
       <div className="flex min-h-0 flex-1">
@@ -78,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             }}
             className="bg-surface shadow-3 fixed inset-y-0 left-0 z-50 w-[272px] max-w-[85vw]"
           >
-            <Dialog.Title className="sr-only">Menyu</Dialog.Title>
+            <Dialog.Title className="sr-only">{shellText.menu}</Dialog.Title>
             <Sidebar collapsed={false} onNavigate={() => setNavOpen(false)} />
           </Dialog.Content>
         </Dialog.Portal>

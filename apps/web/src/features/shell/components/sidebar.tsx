@@ -12,6 +12,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { shellText } from "@payproof/api-client/i18n";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
@@ -20,15 +21,15 @@ import { useOpenTaskCount } from "@/features/tasks";
 import { cn } from "@/lib/utils";
 
 const NAV: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/overview", label: "İcmal", icon: LayoutGrid },
-  { href: "/packages", label: "Faktura paketləri", icon: Package },
-  { href: "/tasks", label: "Tapşırıqlar", icon: ListChecks },
-  { href: "/rules", label: "Müştəri qaydaları", icon: Scale },
-  { href: "/audit", label: "Audit tarixçəsi", icon: History },
+  { href: "/overview", label: shellText.nav.overview, icon: LayoutGrid },
+  { href: "/packages", label: shellText.nav.packages, icon: Package },
+  { href: "/tasks", label: shellText.nav.tasks, icon: ListChecks },
+  { href: "/rules", label: shellText.nav.rules, icon: Scale },
+  { href: "/audit", label: shellText.nav.audit, icon: History },
 ];
 const SOON: { label: string; icon: LucideIcon }[] = [
-  { label: "ERP inteqrasiyası", icon: Plug },
-  { label: "Müqavilə çıxarışı", icon: Sparkles },
+  { label: shellText.soon.erp, icon: Plug },
+  { label: shellText.soon.contracts, icon: Sparkles },
 ];
 
 const item = (collapsed: boolean) =>
@@ -55,7 +56,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
 
   return (
     <nav
-      aria-label="Əsas naviqasiya"
+      aria-label={shellText.navLabel}
       className="flex h-full flex-col gap-0.5 overflow-x-hidden overflow-y-auto p-3"
     >
       {NAV.map(({ href, label: text, icon: Icon }) => {
@@ -67,7 +68,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
             href={href}
             title={text}
             aria-current={current ? "page" : undefined}
-            aria-label={count ? `${text}, ${count} açıq` : undefined}
+            aria-label={count ? shellText.withOpenCount(text, count) : undefined}
             onClick={onNavigate}
             className={item(collapsed)}
           >
@@ -91,14 +92,14 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
           collapsed && "sr-only",
         )}
       >
-        Tezliklə (P1)
+        {shellText.soonSection}
       </div>
       {SOON.map(({ label: text, icon: Icon }) => (
         <button
           key={text}
           type="button"
-          title={`${text} — tezliklə`}
-          onClick={() => toast.info(`${text} — tezliklə. MVP-yə daxil deyil.`)}
+          title={shellText.soonTitle(text)}
+          onClick={() => toast.info(shellText.soonToast(text))}
           className={item(collapsed)}
         >
           <Icon aria-hidden className="size-5 shrink-0" />
@@ -118,16 +119,16 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
         <p className="bg-surface-2 text-text-2 mt-auto rounded-md p-3 text-xs">
           <b>{company}</b>
           <br />
-          Sintetik məlumatlarla demo. Real bank, e-poçt və ERP əməliyyatı yoxdur.
+          {shellText.demoNote}
         </p>
       )}
       {onToggleCollapse && (
         <button
           type="button"
           onClick={onToggleCollapse}
-          aria-label={collapsed ? "Menyunu genişləndir" : "Menyunu yığ"}
+          aria-label={collapsed ? shellText.expand : shellText.collapse}
           aria-expanded={!collapsed}
-          title={collapsed ? "Genişləndir" : "Yığ"}
+          title={collapsed ? shellText.expandShort : shellText.collapseShort}
           className={cn(item(collapsed), collapsed ? "mt-auto" : "mt-2")}
         >
           {collapsed ? (
@@ -136,7 +137,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
             <ChevronLeft aria-hidden className="size-5" />
           )}
           <span aria-hidden className={label(collapsed)}>
-            Menyunu yığ
+            {shellText.collapse}
           </span>
         </button>
       )}
