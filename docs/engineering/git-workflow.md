@@ -33,7 +33,7 @@
 1. `/sync` — `main`-i branch-a rebase et, testləri işlət.
 2. `/finish-step <ID>` — DoD.
 3. GitHub-da PR (`.github/pull_request_template.md`), CI yaşıl.
-4. **"Create a merge commit"** (squash yox — kiçik commit tarixçəsi qalsın). Merge-dən sonra branch silinir.
+4. **"Create a merge commit"** (squash yox — kiçik commit tarixçəsi qalsın). Merge-dən sonra branch-lar silinmir, saxlanılır (`--delete-branch` istifadə etmə).
 5. Remote olmadan lokal: `git switch main && git merge --no-ff feat/<...>`.
 
 ## Qadağanlar

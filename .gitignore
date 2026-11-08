@@ -31,3 +31,6 @@ apps/*/.env.local
 !.vscode/extensions.json
 # claude code local overrides
 .claude/settings.local.json
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

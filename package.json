@@ -13,7 +13,8 @@
     "build": "turbo run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "fixtures:check": "node fixtures/validate.mjs"
+    "fixtures:check": "node fixtures/validate.mjs",
+    "fixtures:generate": "node scripts/fixtures/generate.mjs && prettier --write \"fixtures/*.json\" && node fixtures/validate.mjs"
   },
   "devDependencies": {
     "ajv": "^8",
