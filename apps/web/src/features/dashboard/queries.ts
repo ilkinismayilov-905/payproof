@@ -12,7 +12,8 @@ export const useDashboard = () =>
     queryFn: ({ signal }) => unwrap(api.GET("/v1/dashboard", { signal })),
   });
 
-const day = (iso: string) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
+// Calendar day on the Baku clock (UTC+4, no DST) — the same rule the server uses for problem age.
+const bakuDay = (iso: string) => Math.floor((Date.parse(iso) + 4 * 3_600_000) / 86_400_000);
 
-/** Whole calendar days from `from` to `to` (prototype `days()`), for the "Gün" column. */
-export const daysBetween = (from: string, to: string) => Math.round((day(to) - day(from)) / 864e5);
+/** Whole Baku calendar days from `from` to `to`, never negative (the "Gün" column). */
+export const daysBetween = (from: string, to: string) => Math.max(0, bakuDay(to) - bakuDay(from));
