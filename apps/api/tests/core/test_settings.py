@@ -6,8 +6,15 @@ from payproof.core.settings import Settings
 
 @pytest.fixture(autouse=True)
 def _database_url(monkeypatch: pytest.MonkeyPatch) -> None:
-    # these tests skip .env, so give them a URL; nothing connects to it
+    # these tests skip .env, so give them a URL and storage; nothing connects to them
     monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost:1/db")
+    for name, value in {
+        "S3_ENDPOINT_URL": "http://localhost:1",
+        "S3_ACCESS_KEY": "k",
+        "S3_SECRET_KEY": "s",
+        "S3_BUCKET": "payproof-docs",
+    }.items():
+        monkeypatch.setenv(name, value)
 
 
 def test_loads_ci_environment() -> None:
