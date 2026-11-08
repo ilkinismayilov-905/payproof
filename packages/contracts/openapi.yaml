@@ -453,12 +453,27 @@ paths:
                       invoice:
                         {
                           value: null,
+                          currency: null,
                           state: mismatch,
                           field_id: 0193a000-0000-7000-800c-000010420001,
                           evidence: *ev_po,
                         }
-                      order: { value: null, state: empty, field_id: null, evidence: null }
-                      delivery: { value: null, state: empty, field_id: null, evidence: null }
+                      order:
+                        {
+                          value: null,
+                          currency: null,
+                          state: empty,
+                          field_id: null,
+                          evidence: null,
+                        }
+                      delivery:
+                        {
+                          value: null,
+                          currency: null,
+                          state: empty,
+                          field_id: null,
+                          evidence: null,
+                        }
                 checks:
                   - {
                       rule_id: R-001,
@@ -1331,9 +1346,9 @@ paths:
                 require_po: { type: boolean }
                 require_delivery: { type: boolean }
                 require_signature: { type: boolean }
-                tolerance: { $ref: "#/components/schemas/Decimal" }
+                tolerance: { $ref: "#/components/schemas/Tolerance" }
                 effective_from: { type: string, format: date }
-                reason: { type: string, minLength: 3, maxLength: 500 }
+                reason: { type: string, minLength: 10, maxLength: 500 }
                 expected_version:
                   { type: integer, minimum: 1, description: Current requirement set version }
             example:
@@ -1765,6 +1780,11 @@ components:
       type: string
       enum: [AZN, USD]
       description: Amounts in different currencies are never summed or converted.
+    Tolerance:
+      type: string
+      description: R-009 rounding tolerance in the invoice currency, 0.00–1.00.
+      pattern: "^(0\\.[0-9]{2}|1\\.00)$"
+      examples: ["0.01"]
     Money:
       type: object
       additionalProperties: false
@@ -2101,7 +2121,7 @@ components:
         require_po: { type: boolean }
         require_delivery: { type: boolean }
         require_signature: { type: boolean }
-        tolerance: { $ref: "#/components/schemas/Decimal" }
+        tolerance: { $ref: "#/components/schemas/Tolerance" }
         effective_from: { type: string, format: date }
         approved_by: { $ref: "#/components/schemas/UserRef" }
         reason: { type: string }
@@ -2242,13 +2262,16 @@ components:
     ComparisonCell:
       type: object
       additionalProperties: false
-      required: [value, state, field_id, evidence]
+      required: [value, currency, state, field_id, evidence]
       properties:
         value:
           {
             type: ["string", "null"],
             description: Display value (money/quantity as decimal strings),
           }
+        currency:
+          description: Currency of a money value in this cell (the order may differ from the invoice — R-004); null otherwise.
+          oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Currency" }]
         state: { type: string, enum: [ok, mismatch, unknown, empty] }
         field_id:
           {
