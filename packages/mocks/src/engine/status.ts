@@ -43,7 +43,8 @@ export function info(db: MockDb, p: Pkg): Info {
   let status: PackageStatus;
   if (!p.order_link.confirmed) status = "NEEDS_REVIEW";
   else if (counts.fail) status = "NEEDS_FIX";
-  else if (blockers.length) status = "NEEDS_REVIEW";
+  else if (!checks.length || blockers.length)
+    status = "NEEDS_REVIEW"; // no run yet is never ready
   else if (currentApproval(db, p))
     status = p.exports.some((e) => e.package_version === p.version) ? "EXPORTED" : "APPROVED_READY";
   else status = "READY_FOR_APPROVAL";

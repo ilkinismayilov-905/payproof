@@ -1,7 +1,7 @@
 // Deterministic rule engine — TS port of the prototype's runChecks()/info() (docs/architecture/rules-engine.md).
 // Money in integer cents. UNKNOWN is never PASS.
 import type { MockDb } from "../store";
-import type { Order, Pkg, RequirementSet } from "../types";
+import type { EnginePkg, Order, RequirementSet } from "../types";
 import { ev, type Ev } from "./evidence";
 import { r007, r008, r009 } from "./delivery-rules";
 import { r005, r006 } from "./line-rules";
@@ -22,7 +22,7 @@ export interface Check {
 }
 
 /** Rule set in force: the one used by the current version's export, else the customer's latest. */
-export function rulesFor(db: MockDb, p: Pkg): RequirementSet {
+export function rulesFor(db: MockDb, p: EnginePkg): RequirementSet {
   const sets = db.customer(p.customer_id).requirement_sets;
   const exp = p.exports.find((e) => e.package_version === p.version);
   return (
@@ -32,7 +32,7 @@ export function rulesFor(db: MockDb, p: Pkg): RequirementSet {
 
 export interface Ctx {
   db: MockDb;
-  p: Pkg;
+  p: EnginePkg;
   r: RequirementSet;
   o: Order | null;
   out: Check[];
@@ -51,7 +51,7 @@ export interface Ctx {
 /** Evaluation order matters: R-004 sets `comparable`, R-008 reads R-007's outcome. */
 export const RULES: ((ctx: Ctx) => void)[] = [r001, r002, r003, r004, r005, r006, r007, r008, r009];
 
-export function evaluate(db: MockDb, p: Pkg): Check[] {
+export function evaluate(db: MockDb, p: EnginePkg): Check[] {
   const o =
     p.order_link.confirmed && p.order_link.po_number
       ? (db.orders[p.order_link.po_number] ?? null)

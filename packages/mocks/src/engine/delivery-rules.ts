@@ -1,10 +1,13 @@
 // R-007 delivery note present and linked, R-008 signature (human review), R-009 invoice arithmetic.
 import { cents, sumLines } from "../money";
+import type { PricedLine } from "../types";
 import { money } from "./evidence";
 import type { Ctx } from "./index";
+import { noLines } from "./line-rules";
 
 export function r007({ r, o, p, add, E }: Ctx) {
   const d = p.delivery;
+  const note = d?.note_number || "Təhvil";
   if (!r.require_delivery)
     add("R-007", "NOT_APPLICABLE", "Müştəri qaydası təhvil sənədi tələb etmir.");
   else if (!d)
@@ -19,16 +22,25 @@ export function r007({ r, o, p, add, E }: Ctx) {
     add("R-007", "UNKNOWN", "Sifariş təsdiqlənmədən təhvil sənədinin bağlılığı yoxlanmır.", [], {
       cascade: true,
     });
+  else if (d.po_ref === null)
+    // not in the rules table: an unread PO on the note is never "linked"
+    add(
+      "R-007",
+      "UNKNOWN",
+      `${note} sənədində sifariş nömrəsi oxunmadı. Uyğunluq təsdiqlənməyib.`,
+      [E("delivery", "po")],
+      { fix_hint: "edit_field" },
+    );
   else if (d.po_ref !== o.po_number)
     add(
       "R-007",
       "UNKNOWN",
-      `${d.note_number} sənədində sifariş: ${d.po_ref}; təsdiqlənmiş sifariş: ${o.po_number}. Uyğunluq təsdiqlənməyib.`,
+      `${note} sənədində sifariş: ${d.po_ref}; təsdiqlənmiş sifariş: ${o.po_number}. Uyğunluq təsdiqlənməyib.`,
       [E("delivery", "po"), E("order", "po")],
       { fix_hint: "upload_delivery" },
     );
   else
-    add("R-007", "PASS", `${d.note_number} paketdədir və ${o.po_number} sifarişinə bağlıdır.`, [
+    add("R-007", "PASS", `${note} paketdədir və ${o.po_number} sifarişinə bağlıdır.`, [
       E("delivery", "po"),
     ]);
 }
@@ -43,7 +55,8 @@ export function r008({ r, p, out, add, E }: Ctx) {
     add("R-008", "UNKNOWN", "Təhvil sənədinin uyğunluğu təsdiqlənmədən imza yoxlanmır.", [], {
       cascade: true,
     });
-  else if (!d.signed)
+  else if (d.signed === false)
+    // null = not read: a person decides, like a present signature
     add(
       "R-008",
       "FAIL",
@@ -70,9 +83,25 @@ export function r008({ r, p, out, add, E }: Ctx) {
     );
 }
 
-export function r009({ r, p, add, E }: Ctx) {
+export function r009(ctx: Ctx) {
+  const { r, p, add, E } = ctx;
+  if (noLines(ctx, "R-009")) return;
   const cur = p.currency;
-  const sum = sumLines(p.invoice.lines);
+  const read = p.invoice.lines.filter(
+    (l): l is typeof l & PricedLine => l.qty !== null && l.unit_price !== null,
+  );
+  if (p.invoice.total === null || read.length !== p.invoice.lines.length) {
+    // not in the rules table: arithmetic on an unread amount is never PASS
+    add(
+      "R-009",
+      "UNKNOWN",
+      "Sətirlərin cəmi və ya yekun məbləğ oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+      [E("invoice", "total")],
+      { fix_hint: "edit_field" },
+    );
+    return;
+  }
+  const sum = sumLines(read);
   const total = cents(p.invoice.total);
   const diff = sum - total;
   if (Math.abs(diff) <= cents(r.tolerance))
