@@ -31,6 +31,10 @@ tags:
     description: Append-only audit log
   - name: customers
     description: Customers and their versioned requirement sets
+  - name: notifications
+    description: In-app notifications of the current user
+  - name: demo
+    description: Demo utilities (ENV=dev only)
 paths:
   /v1/auth/dev-users:
     get:
@@ -1272,6 +1276,71 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/notifications:
+    get:
+      tags: [notifications]
+      operationId: listNotifications
+      summary: Notifications of the current user, newest first
+      parameters:
+        - { name: unread_only, in: query, schema: { type: boolean, default: false } }
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items, next_cursor, unread_count]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+                  next_cursor: { type: ["string", "null"] }
+                  unread_count: { type: integer }
+              example:
+                items:
+                  - id: 0193a000-0000-7000-800b-000000001036
+                    text: "INV-1036: təhvil sənədinin yeni versiyası yükləndi. v2 təsdiqi etibarsızlaşdı — v3 yenidən təsdiq tələb edir."
+                    package: { id: 0193a000-0000-7000-8002-000000001036, invoice_number: INV-1036 }
+                    created_at: "2026-11-01T05:47:00Z"
+                    read_at: null
+                next_cursor: null
+                unread_count: 2
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/notifications/{notification_id}/read:
+    parameters:
+      - {
+          name: notification_id,
+          in: path,
+          required: true,
+          schema: { $ref: "#/components/schemas/Uuid" },
+        }
+    post:
+      tags: [notifications]
+      operationId: markNotificationRead
+      summary: Mark one notification as read (idempotent)
+      responses:
+        "204": { description: Marked as read }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/notifications/read-all:
+    post:
+      tags: [notifications]
+      operationId: markAllNotificationsRead
+      summary: Mark all notifications of the current user as read (idempotent)
+      responses:
+        "204": { description: All marked as read }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/demo/reset:
+    post:
+      tags: [demo]
+      operationId: resetDemo
+      summary: Reset the demo company to the fixtures dataset (ENV=dev only; 404 otherwise)
+      responses:
+        "204": { description: Demo data restored }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   securitySchemes:
@@ -2313,3 +2382,13 @@ components:
         external_id: { type: string }
         voen: { type: string, pattern: "^[0-9]{10}$" }
         current_requirements: { $ref: "#/components/schemas/RequirementSet" }
+    Notification:
+      type: object
+      additionalProperties: false
+      required: [id, text, package, created_at, read_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        text: { type: string }
+        package: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/PackageRef" }] }
+        created_at: { type: string, format: date-time }
+        read_at: { type: ["string", "null"], format: date-time }
