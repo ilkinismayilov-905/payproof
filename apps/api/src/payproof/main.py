@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from payproof.api import auth, health, packages
+from payproof.api import audit, auth, health, packages
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
@@ -18,6 +18,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.include_router(auth.dev_router, prefix="/v1")
     app.include_router(auth.router, prefix="/v1")
     app.include_router(packages.router, prefix="/v1")
+    app.include_router(audit.router, prefix="/v1")
     return app
 
 
