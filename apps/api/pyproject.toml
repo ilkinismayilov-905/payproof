@@ -47,3 +47,5 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+# shortcut: starlette nags about httpx in TestClient; drop once starlette's replacement is vetted
+filterwarnings = ["ignore:Using `httpx`"]
