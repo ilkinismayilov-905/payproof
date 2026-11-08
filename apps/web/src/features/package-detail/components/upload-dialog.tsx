@@ -51,7 +51,9 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
   const existing = pkg.documents.flatMap((d) => [d.current, ...d.history].map((v) => v.file_name));
   const samples = mock ? samplesFor(pkg.invoice_number ?? "", type, existing) : [];
   const status = job.data?.status;
-  const busy = upload.isPending || (Boolean(jobId) && !checked && status !== "FAILED");
+  // polling that cannot reach the job is final too: the dialog must stay closable
+  const ended = status === "FAILED" || job.isError;
+  const busy = upload.isPending || (Boolean(jobId) && !checked && !ended);
 
   const choose = (next: File | null) => {
     setFile(next);
@@ -97,7 +99,10 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
         onSuccess: (accepted) => setJobId(accepted.job_id),
         onError: (error) => {
           if (error.code === "DUPLICATE_FILE") setRefusal("duplicate");
-          if (error.code === "VERSION_CONFLICT") setRefusal("conflict");
+          if (error.code === "VERSION_CONFLICT") {
+            setRefusal("conflict");
+            setKey(newKey()); // a retry after refreshing is a new intent on a new version
+          }
         },
       },
     );
@@ -114,7 +119,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number}: sənəd yüklə`}</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number ?? "Paket"}: sənəd yüklə`}</Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
                 Faylın qəbulu, emalı və xətası ayrıca göstərilir.
               </Dialog.Description>
@@ -129,7 +134,12 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
                 />
               )}
               {jobId ? (
-                <UploadStages fileName={file?.name ?? ""} stage={stage} job={job.data} />
+                <UploadStages
+                  fileName={file?.name ?? ""}
+                  stage={stage}
+                  job={job.data}
+                  lost={job.isError}
+                />
               ) : (
                 <>
                   <label htmlFor={typeId} className="text-sm font-semibold">

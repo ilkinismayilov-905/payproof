@@ -10,25 +10,29 @@ import { usePackage } from "./queries";
 
 // multipart cannot run in jsdom (see upload-request.test.ts): the request is stubbed here
 const mutate = vi.fn();
+const job = vi.fn(() => ({ data: undefined, isError: false }) as unknown);
 vi.mock("./mutations", async (orig) => ({
   ...(await orig<typeof import("./mutations")>()),
   useUploadDocument: () => ({ mutate, isPending: false }),
-  useJob: () => ({ data: undefined }),
+  useJob: () => job(),
 }));
 
 beforeEach(() => {
   setToken(`mock.${mockIds.user("u1")}`);
   vi.stubEnv("NEXT_PUBLIC_API_MOCK", "1");
   mutate.mockReset();
+  job.mockReset().mockReturnValue({ data: undefined, isError: false });
 });
 
+const onOpenChange = vi.fn();
 async function open() {
+  onOpenChange.mockReset();
   const client = testQueryClient();
   const q = renderHookWithQuery(() => usePackage(mockIds.pkg("pkg_1042")), client);
   await waitFor(() => expect(q.result.current.data).toBeDefined());
   const pkg = q.result.current.data!;
   renderWithQuery(
-    <UploadDialog pkg={pkg} open onOpenChange={() => {}} initialType="invoice" />,
+    <UploadDialog pkg={pkg} open onOpenChange={onOpenChange} initialType="invoice" />,
     client,
   );
   return pkg;
@@ -78,4 +82,29 @@ test("a version conflict offers to reload", async () => {
   await userEvent.click(screen.getByRole("button", { name: /Yüklə və emal et/ }));
   expect(await screen.findByText(/Paket yenilənib/)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Yenilə" })).toBeInTheDocument();
+});
+
+test("after a conflict the retry is a new intent with a new key", async () => {
+  await open();
+  mutate.mockImplementationOnce((_input, { onError }) =>
+    onError(new ApiError("VERSION_CONFLICT", "stale", 409)),
+  );
+  await userEvent.click(screen.getByRole("radio", { name: /INV-1042_v2_PO-381\.pdf/ }));
+  const submit = screen.getByRole("button", { name: /Yüklə və emal et/ });
+  await userEvent.click(submit);
+  await userEvent.click(await screen.findByRole("button", { name: "Yenilə" }));
+  await userEvent.click(submit);
+  const [first, second] = mutate.mock.calls.map(([input]) => input.idempotencyKey);
+  expect(second).not.toBe(first);
+});
+
+test("a job that cannot be polled is reported and the dialog can still be closed", async () => {
+  mutate.mockImplementation((_input, { onSuccess }) => onSuccess({ job_id: "j1" }));
+  job.mockReturnValue({ data: undefined, isError: true });
+  await open();
+  await userEvent.click(screen.getByRole("radio", { name: /INV-1042_v2_PO-381\.pdf/ }));
+  await userEvent.click(screen.getByRole("button", { name: /Yüklə və emal et/ }));
+  expect(await screen.findByText("Emalın vəziyyətini almaq olmadı.")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Ləğv et" }));
+  expect(onOpenChange).toHaveBeenCalledWith(false);
 });

@@ -8,10 +8,13 @@ export function UploadStages({
   fileName,
   stage,
   job,
+  lost,
 }: {
   fileName: string;
   stage: number;
   job: Schemas["Job"] | undefined;
+  /** The job could not be polled: its result is unknown here, the package page will show it. */
+  lost: boolean;
 }) {
   return (
     <div role="status" className="flex flex-col gap-2">
@@ -32,6 +35,11 @@ export function UploadStages({
           </li>
         ))}
       </ol>
+      {lost && job?.status !== "FAILED" && (
+        <Banner tone="warning" role="alert" title="Emalın vəziyyətini almaq olmadı.">
+          Dialoqu bağlayın — nəticə paket səhifəsində yenilənəcək.
+        </Banner>
+      )}
       {job?.status === "FAILED" && (
         <Banner tone="danger" role="alert" title="Emal alınmadı — yeni versiya yaradılmadı.">
           {job.error?.message}
