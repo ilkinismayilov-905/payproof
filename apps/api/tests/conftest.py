@@ -1,13 +1,10 @@
 import os
 
 # CI provides these; locally fall back to non-secret test values.
-# DATABASE_URL has no default: it comes from CI or the repo .env (local Postgres port varies).
+# DATABASE_URL and S3_* have no default: they come from CI or the repo .env, so tests reach the
+# same Postgres and MinIO as `make up` (local ports and credentials vary).
 os.environ.setdefault("ENV", "test")
 os.environ.setdefault("JWT_SECRET", "test-only-not-a-secret-32-bytes-min")
-os.environ.setdefault("S3_ENDPOINT_URL", "http://localhost:9000")
-os.environ.setdefault("S3_ACCESS_KEY", "payproof")
-os.environ.setdefault("S3_SECRET_KEY", "payproof-secret")
-os.environ.setdefault("S3_BUCKET", "payproof-docs")
 os.environ.setdefault("AI_PROVIDER", "mock")
 
 import asyncio
