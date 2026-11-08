@@ -35,6 +35,29 @@ def test_unknown_env_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
         Settings(_env_file=None)
 
 
+def test_env_is_required_never_defaults_to_dev(monkeypatch: pytest.MonkeyPatch) -> None:
+    # a forgotten ENV must not mount dev login (fail closed)
+    monkeypatch.delenv("ENV")
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+
+@pytest.mark.parametrize("secret", ["short", "dev-only-change-me"])
+def test_prod_rejects_weak_or_sample_jwt_secret(
+    monkeypatch: pytest.MonkeyPatch, secret: str
+) -> None:
+    monkeypatch.setenv("ENV", "prod")
+    monkeypatch.setenv("JWT_SECRET", secret)
+    with pytest.raises(ValidationError, match="JWT_SECRET"):
+        Settings(_env_file=None)
+
+
+def test_prod_accepts_a_strong_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ENV", "prod")
+    monkeypatch.setenv("JWT_SECRET", "x" * 32)
+    assert Settings(_env_file=None).env == "prod"
+
+
 def test_env_files_resolve_independent_of_cwd() -> None:
     files = Settings.model_config["env_file"]
     assert isinstance(files, tuple)
