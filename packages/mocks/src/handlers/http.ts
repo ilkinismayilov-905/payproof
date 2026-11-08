@@ -43,6 +43,12 @@ export function requirePermission(user: User, perm: Permission) {
 
 export const notFound = () => new MockError("NOT_FOUND", "Obyekt tapılmadı.", 404);
 
+// shortcut: demo files have no bytes — the "signed" link points at a placeholder (`*/mock-files/*`); real storage in B-13.
+export const signedLink = (db: MockDb, request: Request, path: string) => ({
+  url: `${new URL(request.url).origin}/mock-files/${path}`,
+  expires_at: new Date(Date.parse(db.nowIso()) + 5 * 60_000).toISOString().replace(".000Z", "Z"),
+});
+
 export function packageOf(db: MockDb, uuid: string | readonly string[] | undefined): Pkg {
   const slug = typeof uuid === "string" ? slugOf.pkg(uuid) : null;
   const p = slug ? db.packages.find((x) => x.id === slug && !x.deleted) : undefined;

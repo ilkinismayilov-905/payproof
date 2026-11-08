@@ -1,6 +1,7 @@
 import type { RequestHandler } from "msw";
 import { createDemoDb } from "../domain/seed";
 import type { MockDb, MockDbOptions } from "../store";
+import { approvalHandlers } from "./approval";
 import { auditHandlers } from "./audit";
 import { authHandlers } from "./auth";
 import { documentHandlers } from "./documents";
@@ -29,6 +30,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...documentHandlers(ctx),
     ...jobHandlers(ctx),
     ...taskHandlers(ctx),
+    ...approvalHandlers(ctx),
   ];
   return {
     handlers,

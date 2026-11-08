@@ -2,7 +2,7 @@
 import { http, HttpResponse } from "msw";
 import { finishProcessing } from "../domain/packages";
 import { id } from "../ids";
-import { currentUser, json, notFound, route, type Ctx } from "./http";
+import { currentUser, json, notFound, route, signedLink, type Ctx } from "./http";
 
 export const jobHandlers = (ctx: Ctx) => [
   http.get(
@@ -17,16 +17,9 @@ export const jobHandlers = (ctx: Ctx) => [
           ),
       );
       if (!ok) throw notFound();
-      const expires = new Date(Date.parse(db.nowIso()) + 5 * 60_000)
-        .toISOString()
-        .replace(".000Z", "Z");
-      return json({
-        url: `${new URL(request.url).origin}/mock-files/${params.version_id}`,
-        expires_at: expires,
-      });
+      return json(signedLink(db, request, String(params.version_id)));
     }),
   ),
-  // shortcut: demo files have no bytes — the "signed link" serves a placeholder; real files come with B-13.
   http.get(
     "*/mock-files/:version_id",
     ({ params }) =>
