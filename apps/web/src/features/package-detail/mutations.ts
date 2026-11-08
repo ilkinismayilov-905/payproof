@@ -71,6 +71,29 @@ export const useCorrectField = (id: string) =>
       unwrap(api.PATCH("/v1/fields/{field_id}", { params: { path: { field_id: fieldId } }, body })),
   );
 
+/** Soft-deletes a never-approved package (kept for audit); the server decides what is deletable. */
+export function useDeletePackage(id: string) {
+  const client = useQueryClient();
+  return useMutation<unknown, ApiError, { expected_version: number }>({
+    mutationKey: packageMutationKey(id),
+    mutationFn: ({ expected_version }) =>
+      unwrap(
+        api.DELETE("/v1/packages/{package_id}", {
+          params: { path: { package_id: id }, query: { expected_version } },
+        }),
+      ),
+    onSuccess: () => {
+      client.removeQueries({ queryKey: packageKeys.detail(id) });
+      void client.invalidateQueries({ queryKey: packageKeys.all });
+      void client.invalidateQueries({ queryKey: dashboardKeys.all });
+      void client.invalidateQueries({ queryKey: taskKeys.all }); // its open tasks go with it
+    },
+    onError: (error) => {
+      if (error.status === 409) void client.invalidateQueries({ queryKey: packageKeys.detail(id) });
+    },
+  });
+}
+
 export interface UploadInput {
   type: Schemas["DocumentType"];
   file: File;

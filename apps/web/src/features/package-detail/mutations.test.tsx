@@ -1,10 +1,12 @@
+import { unwrap } from "@payproof/api-client";
 import { mockIds } from "@payproof/mocks";
 import { act, waitFor } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { packageKeys } from "@/features/packages";
+import { api } from "@/lib/api";
 import { setToken } from "@/lib/auth";
 import { renderHookWithQuery, testQueryClient } from "@/test/render";
-import { useConfirmMatch, useValidate } from "./mutations";
+import { useConfirmMatch, useDeletePackage, useValidate } from "./mutations";
 import { usePackage } from "./queries";
 
 beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
@@ -46,4 +48,19 @@ test("a stale version gets 409 and the detail is refetched", async () => {
   );
   expect(result.current.error).toMatchObject({ status: 409, code: "VERSION_CONFLICT" });
   expect(invalidate).toHaveBeenCalledWith({ queryKey: packageKeys.detail(PKG) });
+});
+
+test("delete: a never-approved package goes; an approved one is refused", async () => {
+  const { client, pkg } = await loaded();
+  const { result } = renderHookWithQuery(() => useDeletePackage(PKG), client);
+  await act(() => result.current.mutateAsync({ expected_version: pkg.version }));
+  expect(client.getQueryData(packageKeys.detail(PKG))).toBeUndefined(); // gone from the cache
+  const id = mockIds.pkg("pkg_1033"); // exported: kept for good
+  const { version } = await unwrap(
+    api.GET("/v1/packages/{package_id}", { params: { path: { package_id: id } } }),
+  );
+  const exported = renderHookWithQuery(() => useDeletePackage(id), client);
+  await expect(
+    act(() => exported.result.current.mutateAsync({ expected_version: version })),
+  ).rejects.toMatchObject({ code: "PACKAGE_NOT_DELETABLE" });
 });
