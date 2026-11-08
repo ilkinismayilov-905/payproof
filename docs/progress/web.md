@@ -13,7 +13,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | W-04 | Tətbiq çərçivəsi (shell) | ✅ | `feat/W-04-app-shell` | 2026-11-08 | `features/shell`: sidebar (aktiv route, açıq tapşırıq sayı, yığma localStorage-də, P1 toast), topbar (axtarış → `/packages?q=`, bildiriş yeri — W-16, istifadəçi menyusu: demo hesabı / çıxış), <768 drawer (Radix Dialog), skip link; route placeholder-ləri W-06+ üçün. Radix birbaşa (`radix-ui`), shadcn dropdown/sheet yox |
 | W-05 | Ümumi UI dəsti | ✅ | `feat/W-05-ui-kit` | 2026-11-08 | `components/ui`: `PageHeader`, `Panel`, `Banner` (5 ton), `EmptyState` (`headingLevel`), `Skeleton*` + `Loading` (bir status bölgəsi), `ConfirmDialog` (Radix AlertDialog, ilkin fokus "Ləğv et"), `DataTable` (manual sort, sütun üzrə opt-in `enableSorting`, `aria-sort`); `pointer-coarse:` ≥44px (Button + shell), e2e touch testi; `destructive` düymə doymuş qırmızı |
 | W-05b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
-| W-06 | İcmal (dashboard) | ⬜ | | | |
+| W-06 | İcmal (dashboard) | 🟡 | `feat/W-06-dashboard` | 2026-11-08 | |
 | W-07 | Paketlər siyahısı | ⬜ | | | |
 | W-08 | Paket detalı I — başlıq, banner-lər, sənədlər, tarixçə | ⬜ | | | |
 | W-09 | Paket detalı II — müqayisə və mənbə göstəricisi | ⬜ | | | |
