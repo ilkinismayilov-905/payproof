@@ -1,13 +1,33 @@
 import type { Schemas } from "@payproof/api-client";
 import { mockIds } from "@payproof/mocks";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import { setToken } from "@/lib/auth";
+import { renderWithQuery } from "@/test/render";
 import { EvidenceViewer } from "./evidence-viewer";
+import { PackageDetailScreen } from "./package-detail-screen";
 
 beforeEach(() => {
   setToken(`mock.${mockIds.user("u1")}`);
   vi.stubEnv("NEXT_PUBLIC_API_MOCK", "1");
+});
+
+test("INV-1044: the price cell's source opens on the cited line, focus returns afterwards", async () => {
+  renderWithQuery(<PackageDetailScreen id={mockIds.pkg("pkg_1044")} />);
+  const open = await screen.findByRole("button", {
+    name: "Mənbəyə bax: KY-10 Vahid qiymət (Faktura)",
+  });
+  await userEvent.click(open);
+  const dialog = await screen.findByRole("dialog", { name: /^Faktura · .+ · v1$/ });
+  expect(dialog).toHaveAccessibleDescription("Səhifə 1 · KY-10 Vahid qiymət");
+  const quote = "Kərə yağı 82%, 10 kq blok — 50 blok × 110,00";
+  expect(within(dialog).getByRole("blockquote")).toHaveTextContent(quote);
+  expect(within(dialog).getByRole("mark")).toHaveTextContent(quote); // highlighted on the paper
+  expect(dialog).toHaveTextContent("Vurğulama koordinatı yoxdur — səhifə və sitat göstərilir.");
+  await userEvent.keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(open).toHaveFocus();
 });
 
 const version = (id: string, n: number, source_kind: "pdf" | "scan" = "pdf") =>
