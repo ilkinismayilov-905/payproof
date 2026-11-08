@@ -27,3 +27,10 @@ def test_unknown_env_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENV", "staging-ish")
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_env_files_resolve_independent_of_cwd() -> None:
+    files = Settings.model_config["env_file"]
+    assert isinstance(files, tuple)
+    assert [p.name for p in files] == [".env", ".env"]
+    assert (files[0].parent / "apps/api/pyproject.toml").exists()
