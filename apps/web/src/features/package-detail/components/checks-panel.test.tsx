@@ -64,10 +64,29 @@ test("a ready package: no problem is invented, the passing list is open", async 
   expect(p.querySelector("details")).toHaveAttribute("open");
 });
 
-test("upload fixes are live for editors, inert and explained otherwise; tasks come later", async () => {
+const r007 = {
+  requirement_set: { version: 2 },
+  summary: { pass: 0, fail: 1, unknown: 0, not_applicable: 0, blocking: [] },
+  tasks: [],
+  checks: [
+    {
+      rule_id: "R-007",
+      title: "Məcburi təhvil sənədi",
+      outcome: "FAIL",
+      cascade: false,
+      message: "Təhvil sənədi yoxdur.",
+      evidence: [],
+      fix_hint: "upload_delivery",
+      data: {},
+    },
+  ],
+} as unknown as Schemas["PackageDetail"];
+
+test("upload fixes are live for editors, inert and explained otherwise", async () => {
   const pkg = {
     requirement_set: { version: 2 },
     summary: { pass: 0, fail: 1, unknown: 0, not_applicable: 0, blocking: [] },
+    tasks: [],
     checks: [
       {
         rule_id: "R-007",
@@ -87,13 +106,43 @@ test("upload fixes are live for editors, inert and explained otherwise; tasks co
   );
   await userEvent.click(screen.getByRole("button", { name: "Təhvil sənədi yüklə" }));
   expect(onFix).toHaveBeenCalledWith("upload_delivery", expect.anything());
-  expect(screen.getByRole("button", { name: "Tapşırıq yarat" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  );
   // a role without edit rights sees the fix, inert, with the reason
   rerender(<ChecksPanel pkg={pkg} canEdit={false} onFix={onFix} onEvidence={vi.fn()} />);
   expect(screen.getByRole("button", { name: "Təhvil sənədi yüklə" })).toHaveAccessibleDescription(
     /mümkün deyil/,
+  );
+});
+
+test("a check without a task offers one; with an open task it shows who has it", async () => {
+  const onTask = vi.fn();
+  const { rerender } = renderWithQuery(
+    <ChecksPanel pkg={r007} canEdit onFix={vi.fn()} onEvidence={vi.fn()} onTask={onTask} />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: "Tapşırıq yarat" }));
+  expect(onTask).toHaveBeenCalledWith(r007.checks[0]);
+  const withTask = {
+    ...r007,
+    tasks: [
+      {
+        number: "T-120",
+        rule_id: "R-007",
+        status: "IN_PROGRESS",
+        step: "Aktı yükləyin.",
+        assignee: { full_name: "Elvin Qasımov" },
+      },
+    ],
+  } as unknown as Schemas["PackageDetail"];
+  rerender(
+    <ChecksPanel pkg={withTask} canEdit onFix={vi.fn()} onEvidence={vi.fn()} onTask={onTask} />,
+  );
+  expect(screen.getByRole("link", { name: "T-120 · Elvin Qasımov · İcrada" })).toHaveAttribute(
+    "href",
+    "/tasks",
+  );
+  expect(screen.queryByRole("button", { name: "Tapşırıq yarat" })).toBeNull();
+  // without the right to manage tasks: visible, inert, explained
+  rerender(<ChecksPanel pkg={r007} canEdit onFix={vi.fn()} onEvidence={vi.fn()} />);
+  expect(screen.getByRole("button", { name: "Tapşırıq yarat" })).toHaveAccessibleDescription(
+    /tapşırıq yaratmaq mümkün deyil/,
   );
 });

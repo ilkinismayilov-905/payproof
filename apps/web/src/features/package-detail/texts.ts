@@ -21,6 +21,7 @@ export const detailText = {
   soon: "Tezliklə",
   // can_edit = role AND package state, so the reason names both
   noEdit: "Bu vəziyyətdə və ya rolunuzla sənəd yükləmək və çıxarışı düzəltmək mümkün deyil",
+  noTasks: "Bu vəziyyətdə və ya rolunuzla tapşırıq yaratmaq mümkün deyil",
   documents: "Sənədlər və versiyalar",
   comparison: "Müqayisə",
   comparisonCaption: "Müqayisə: faktura · sifariş · təhvil",

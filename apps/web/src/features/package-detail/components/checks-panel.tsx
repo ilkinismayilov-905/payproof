@@ -1,16 +1,18 @@
 import type { Schemas } from "@payproof/api-client";
-import { checkOutcomeLabel } from "@payproof/api-client/i18n";
+import { checkOutcomeLabel, taskStatusLabel } from "@payproof/api-client/i18n";
 import { checkOutcomeTone } from "@payproof/design-tokens";
 import {
   ChevronRight,
   CircleCheck,
   FileText,
   Link2,
+  ListChecks,
   PenLine,
   Pencil,
   Plus,
   Upload,
 } from "lucide-react";
+import Link from "next/link";
 import { CheckOutcomeBadge, StatusBadge, statusIcons } from "@/components/status/status-badges";
 import { Button } from "@/components/ui/button";
 import { Banner, Panel } from "@/components/ui/layout";
@@ -44,6 +46,8 @@ interface Props {
   onFix: (fix: Fixable, check: Check) => void;
   canEdit: boolean;
   onEvidence: (evidence: Schemas["Evidence"], label: string) => void;
+  /** Opens the task dialog; absent when the role may not manage tasks. */
+  onTask?: (check: Check) => void;
 }
 
 export type Fixable = NonNullable<Check["fix_hint"]>;
@@ -91,7 +95,38 @@ function Fix({ check, pkg, onFix, canEdit }: { check: Check } & Omit<Props, "onE
   }
 }
 
-function CheckCard({ check: c, pkg, onFix, onEvidence, canEdit }: { check: Check } & Props) {
+/** The open task for this rule (one at most), or a way to create one. */
+function TaskAction({ check, pkg, onTask }: { check: Check; pkg: Pkg; onTask: Props["onTask"] }) {
+  const task = pkg.tasks.find((x) => x.rule_id === check.rule_id && x.status !== "RESOLVED");
+  if (task)
+    return (
+      <Link
+        href="/tasks"
+        title={task.step}
+        className="border-border text-text-2 hover:bg-surface-2 focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-sm border px-2 text-xs font-semibold outline-none focus-visible:ring-2 pointer-coarse:min-h-11"
+      >
+        <ListChecks aria-hidden className="size-3.5" />
+        {`${task.number} · ${task.assignee.full_name} · ${taskStatusLabel[task.status]}`}
+      </Link>
+    );
+  return onTask ? (
+    <Button size="sm" variant="ghost" onClick={() => onTask(check)}>
+      <Plus aria-hidden />
+      Tapşırıq yarat
+    </Button>
+  ) : (
+    <Inert size="sm" icon={Plus} label="Tapşırıq yarat" reason={t.noTasks} />
+  );
+}
+
+function CheckCard({
+  check: c,
+  pkg,
+  onFix,
+  onEvidence,
+  canEdit,
+  onTask,
+}: { check: Check } & Props) {
   return (
     <article
       aria-label={`${c.rule_id} ${c.title}`}
@@ -120,8 +155,7 @@ function CheckCard({ check: c, pkg, onFix, onEvidence, canEdit }: { check: Check
       ))}
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Fix check={c} pkg={pkg} onFix={onFix} canEdit={canEdit} />
-        {/* tasks are W-12 */}
-        <Inert size="sm" icon={Plus} label="Tapşırıq yarat" reason={t.soon} />
+        <TaskAction check={c} pkg={pkg} onTask={onTask} />
       </div>
     </article>
   );
@@ -142,7 +176,7 @@ const Compact = ({ check: c }: { check: Check }) => {
 };
 
 /** Rule results of the current version (prototype `checksPanel`): problems first, never hidden. */
-export function ChecksPanel({ pkg, onFix, onEvidence, canEdit }: Props) {
+export function ChecksPanel({ pkg, onFix, onEvidence, canEdit, onTask }: Props) {
   const primary = pkg.checks.filter(
     (c) => (c.outcome === "FAIL" || c.outcome === "UNKNOWN") && !c.cascade,
   );
@@ -181,6 +215,7 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit }: Props) {
                   onFix={onFix}
                   onEvidence={onEvidence}
                   canEdit={canEdit}
+                  onTask={onTask}
                 />
               </li>
             ))}
