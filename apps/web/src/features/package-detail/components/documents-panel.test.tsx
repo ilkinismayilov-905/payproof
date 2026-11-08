@@ -1,20 +1,23 @@
 import type { Schemas } from "@payproof/api-client";
 import { mockIds } from "@payproof/mocks";
 import { render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { usePackageList } from "@/features/packages";
 import { setToken } from "@/lib/auth";
 import { renderHookWithQuery, renderWithQuery } from "@/test/render";
 import { usePackage } from "../queries";
 import { DocumentsPanel } from "./documents-panel";
 
-beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
+beforeEach(() => {
+  setToken(`mock.${mockIds.user("u1")}`);
+  vi.stubEnv("NEXT_PUBLIC_API_MOCK", "1");
+});
 
 function Of({ id }: { id: string }) {
   const pkg = usePackage(id).data;
   return pkg ? <DocumentsPanel pkg={pkg} /> : null;
 }
-const panel = () => screen.findByRole("region", { name: "Sənədlər" });
+const panel = () => screen.findByRole("region", { name: "Sənədlər və versiyalar" });
 
 test("INV-1042: one card per document type with version, file, status and provenance", async () => {
   renderWithQuery(<Of id={mockIds.pkg("pkg_1042")} />);

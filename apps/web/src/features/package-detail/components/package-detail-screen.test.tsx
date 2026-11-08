@@ -39,7 +39,7 @@ test("a missing package says so and leads back to the list", async () => {
 
 test("the three detail areas sit in one container-query grid (prototype .pd-grid)", async () => {
   renderWithQuery(<PackageDetailScreen id={PKG_1042} />);
-  const docs = await screen.findByRole("region", { name: "Sənədlər" });
+  const docs = await screen.findByRole("region", { name: "Sənədlər və versiyalar" });
   const grid = docs.parentElement!;
   expect(grid).toHaveClass("grid");
   expect(within(grid).getByRole("region", { name: "Müqayisə" })).toBeInTheDocument(); // W-09
@@ -51,5 +51,5 @@ test("PROCESSING: only the banner and history, no results yet", async () => {
   await waitFor(() => expect(list.result.current.data?.items.length).toBeGreaterThan(0));
   renderWithQuery(<PackageDetailScreen id={list.result.current.data!.items[0]!.id} />);
   await screen.findByRole("region", { name: "Fəaliyyət tarixçəsi" });
-  expect(screen.queryByRole("region", { name: "Sənədlər" })).toBeNull();
+  expect(screen.queryByRole("region", { name: "Sənədlər və versiyalar" })).toBeNull();
 });

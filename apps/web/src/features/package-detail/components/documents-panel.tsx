@@ -3,6 +3,7 @@ import { formatDateTime } from "@payproof/api-client/format";
 import { documentTypeLabel } from "@payproof/api-client/i18n";
 import {
   ChevronRight,
+  Info,
   Eye,
   FileText,
   Link2,
@@ -135,7 +136,7 @@ function DocumentCard({ doc, pkg }: { doc: Schemas["Document"]; pkg: Pkg }) {
 /** Documents and their versions (prototype `docsPanel`). */
 export function DocumentsPanel({ pkg }: { pkg: Pkg }) {
   return (
-    <Panel title="Sənədlər" className="flex flex-col gap-3 [grid-area:docs]">
+    <Panel title={t.documents} className="flex flex-col gap-3 [grid-area:docs]">
       {TYPES.map((type) => {
         const doc = pkg.documents.find((d) => d.type === type);
         return doc ? (
@@ -144,6 +145,13 @@ export function DocumentsPanel({ pkg }: { pkg: Pkg }) {
           <Missing key={type} type={type} pkg={pkg} />
         );
       })}
+      {/* AI does extraction only; a prepared mock result must never pass for live AI analysis */}
+      {process.env.NEXT_PUBLIC_API_MOCK === "1" && (
+        <p className="text-text-3 flex gap-1.5 text-xs">
+          <Info aria-hidden className="size-4 shrink-0" />
+          {t.mockExtraction}
+        </p>
+      )}
     </Panel>
   );
 }

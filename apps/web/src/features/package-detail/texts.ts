@@ -19,4 +19,7 @@ export const detailText = {
   blocked: "Bloklayan yoxlamalar var",
   stillProcessing: "Sənədlər emal olunur",
   soon: "Tezliklə",
+  documents: "Sənədlər və versiyalar",
+  mockExtraction:
+    "Çıxarış: əvvəlcədən hazırlanmış nəticə (mock adapter) — canlı AI analizi kimi təqdim olunmur.",
 } as const;

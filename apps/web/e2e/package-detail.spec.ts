@@ -35,9 +35,9 @@ test("all 14 demo packages open without errors", async ({ page }) => {
     ).toBeVisible();
     if (p.status === "PROCESSING") {
       await expect(page.getByRole("region", { name: "Sənədlər emal olunur" })).toBeVisible();
-      await expect(page.getByRole("region", { name: "Sənədlər", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("region", { name: "Sənədlər və versiyalar" })).toHaveCount(0);
     } else {
-      await expect(page.getByRole("region", { name: "Sənədlər", exact: true })).toBeVisible();
+      await expect(page.getByRole("region", { name: "Sənədlər və versiyalar" })).toBeVisible();
     }
   }
   expect(errors).toEqual([]);
