@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from payproof.api.deps import Member, Session, require
+from payproof.api.ratelimit import UPLOADS
 from payproof.core.errors import NotFound
 from payproof.domain.permissions import Permission
 from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
@@ -30,7 +31,12 @@ async def _read(file: UploadFile, expected_version: int) -> Upload:
     return Upload(file.filename or "", await file.read(MAX_BYTES + 1), expected_version)
 
 
-@router.post("/packages/{package_id}/documents", status_code=202, responses=ACCEPTED)
+@router.post(
+    "/packages/{package_id}/documents",
+    status_code=202,
+    responses=ACCEPTED,
+    dependencies=[Depends(UPLOADS)],
+)
 async def upload_document(
     package_id: uuid.UUID,
     session: Session,
@@ -54,7 +60,12 @@ async def upload_document(
     return JSONResponse(out.body, status_code=out.status_code)  # 202, or the replayed 409
 
 
-@router.post("/documents/{document_id}/versions", status_code=202, responses=ACCEPTED)
+@router.post(
+    "/documents/{document_id}/versions",
+    status_code=202,
+    responses=ACCEPTED,
+    dependencies=[Depends(UPLOADS)],
+)
 async def upload_document_version(
     document_id: uuid.UUID,
     session: Session,

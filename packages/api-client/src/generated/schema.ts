@@ -708,7 +708,7 @@ export interface components {
             invoice_number: string;
         };
         /** @enum {string} */
-        ErrorCode: "VALIDATION_ERROR" | "TASK_STATUS_NOT_ALLOWED" | "INVOICE_REQUIRED" | "IDEMPOTENCY_KEY_REUSED" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "PACKAGE_NOT_READY" | "PACKAGE_NOT_DELETABLE" | "TASK_ALREADY_OPEN" | "DUPLICATE_FILE" | "DUPLICATE_INVOICE" | "IDEMPOTENCY_IN_PROGRESS" | "FILE_TOO_LARGE" | "UNSUPPORTED_FILE_TYPE" | "INTERNAL_ERROR";
+        ErrorCode: "VALIDATION_ERROR" | "TASK_STATUS_NOT_ALLOWED" | "INVOICE_REQUIRED" | "IDEMPOTENCY_KEY_REUSED" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VERSION_CONFLICT" | "PACKAGE_NOT_READY" | "PACKAGE_NOT_DELETABLE" | "TASK_ALREADY_OPEN" | "DUPLICATE_FILE" | "DUPLICATE_INVOICE" | "IDEMPOTENCY_IN_PROGRESS" | "FILE_TOO_LARGE" | "UNSUPPORTED_FILE_TYPE" | "RATE_LIMITED" | "INTERNAL_ERROR";
         Error: {
             error: {
                 code: components["schemas"]["ErrorCode"];
@@ -1198,6 +1198,28 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description RATE_LIMITED — too many requests from this user (or address) in a short time */
+        TooManyRequests: {
+            headers: {
+                /** @description Seconds to wait before retrying */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "RATE_LIMITED",
+                 *         "message": "Çox sorğu göndərildi — bir az sonra yenidən cəhd edin.",
+                 *         "details": {
+                 *           "retry_after": 30
+                 *         }
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description UNSUPPORTED_FILE_TYPE (checked by file content, not extension) */
         UnsupportedFileType: {
             headers: {
@@ -1438,6 +1460,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     getMe: {
@@ -1758,6 +1781,7 @@ export interface operations {
             413: components["responses"]["FileTooLarge"];
             415: components["responses"]["UnsupportedFileType"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     getPackage: {
@@ -2175,6 +2199,7 @@ export interface operations {
             413: components["responses"]["FileTooLarge"];
             415: components["responses"]["UnsupportedFileType"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     uploadDocumentVersion: {
@@ -2228,6 +2253,7 @@ export interface operations {
             413: components["responses"]["FileTooLarge"];
             415: components["responses"]["UnsupportedFileType"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     listMatchCandidates: {

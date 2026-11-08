@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, File, Form, Header, Response, UploadFile
 from fastapi.responses import JSONResponse
 
 from payproof.api.deps import Member, Session, require
+from payproof.api.ratelimit import UPLOADS
 from payproof.domain.permissions import Permission
 from payproof.schemas.documents import JobAccepted
 from payproof.services.files import MAX_BYTES
@@ -26,7 +27,7 @@ async def _file(doc_type: str, f: UploadFile | None) -> NewFile | None:
     return NewFile(doc_type, f.filename or "", await f.read(MAX_BYTES + 1))
 
 
-@router.post("/packages", status_code=202, responses=ACCEPTED)
+@router.post("/packages", status_code=202, responses=ACCEPTED, dependencies=[Depends(UPLOADS)])
 async def create(
     session: Session,
     member: Editor,

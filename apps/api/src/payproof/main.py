@@ -10,6 +10,7 @@ from payproof.api import (
     audit,
     auth,
     customers,
+    demo,
     documents,
     events,
     export,
@@ -21,6 +22,7 @@ from payproof.api import (
     review,
     tasks,
 )
+from payproof.api.ratelimit import body_limit_middleware
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
@@ -40,6 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings.log_level)
     app = FastAPI(title="PayProof API", version="0.1.0", lifespan=_lifespan)
     app.state.hub = Hub(settings.database_url)
+    app.middleware("http")(body_limit_middleware)  # inner: still gets a correlation id
     app.middleware("http")(correlation_id_middleware)
     # added last = outermost: preflights are answered before auth and logging
     app.add_middleware(
@@ -53,6 +56,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router, prefix="/v1")
     if settings.env == "dev":  # demo login does not exist outside dev, not even as a 403
         app.include_router(auth.dev_router, prefix="/v1")
+        app.include_router(demo.dev_router, prefix="/v1")
     app.include_router(auth.router, prefix="/v1")
     app.include_router(packages.router, prefix="/v1")
     app.include_router(audit.router, prefix="/v1")
@@ -70,13 +74,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 def run() -> None:
-    dev = get_settings().env == "dev"
+    s = get_settings()
+    dev = s.env == "dev" and s.api_reload
     # log_config=None keeps our JSON root handler instead of uvicorn's defaults
     # access_log=False: uvicorn's line has the query string and no correlation id; ours has neither
     # problem (core/logging.py)
     uvicorn.run(
         "payproof.main:create_app",
         factory=True,
+        host=s.api_host,
         port=8000,
         reload=dev,
         log_config=None,

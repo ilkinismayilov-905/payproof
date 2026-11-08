@@ -27,6 +27,7 @@ class ErrorCode(StrEnum):
     IDEMPOTENCY_IN_PROGRESS = "IDEMPOTENCY_IN_PROGRESS"
     FILE_TOO_LARGE = "FILE_TOO_LARGE"
     UNSUPPORTED_FILE_TYPE = "UNSUPPORTED_FILE_TYPE"
+    RATE_LIMITED = "RATE_LIMITED"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
 
@@ -120,7 +121,8 @@ def error_response(
 
 async def _domain(_: Request, exc: Exception) -> JSONResponse:
     err = cast(DomainError, exc)
-    return error_response(err.status_code, err.code, err.message, err.details)
+    headers = getattr(err, "headers", None)  # e.g. Retry-After of a 429
+    return error_response(err.status_code, err.code, err.message, err.details, headers)
 
 
 async def _validation(_: Request, exc: Exception) -> JSONResponse:
