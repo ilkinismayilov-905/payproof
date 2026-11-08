@@ -13,7 +13,7 @@ export async function sha256(text: string): Promise<string> {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-const sourceKind = (f: string): DocVersion["source_kind"] =>
+export const sourceKind = (f: string): DocVersion["source_kind"] =>
   /\.(jpe?g|png)$/i.test(f) ? "scan" : /\.(xlsx|csv)$/i.test(f) ? "spreadsheet" : "pdf";
 
 // shortcut: a file that matches no fixtures/samples.json entry is stored as a version without changing
