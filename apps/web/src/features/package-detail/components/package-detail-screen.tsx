@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
+import { fieldForCheck } from "../correction";
 import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
@@ -49,14 +50,14 @@ export function PackageDetailScreen({ id }: { id: string }) {
     if (evidence) setViewing({ evidence, label: "İmza", signature: true });
   };
 
-  const fix = (p: Schemas["PackageDetail"], hint: Fixable) => {
+  const fix = (p: Schemas["PackageDetail"], hint: Fixable, check: Schemas["CheckResult"]) => {
     if (hint === "link_order") return setMatching(true);
     if (hint === "review_signature") return reviewSignature(p);
     if (hint === "upload_delivery") return setUploading("delivery");
     if (hint === "upload_invoice") return setUploading("invoice");
-    // edit_field: only R-001 asks for it — the invoice PO reference
-    const po = p.fields.find((f) => f.field_path === "invoice.po_ref");
-    if (po) setCorrecting(po.id);
+    // edit_field: the field the check's evidence points at (the panel hides the fix when none)
+    const field = fieldForCheck(p, check);
+    if (field) setCorrecting(field.id);
   };
 
   if (pkg.isPending)
@@ -146,7 +147,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}
             canEdit={canEdit}
-            onFix={(hint) => fix(pkg.data, hint)}
+            onFix={(hint, check) => fix(pkg.data, hint, check)}
           />
         </div>
       )}

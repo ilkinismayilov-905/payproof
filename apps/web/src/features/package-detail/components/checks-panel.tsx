@@ -15,6 +15,7 @@ import { CheckOutcomeBadge, StatusBadge, statusIcons } from "@/components/status
 import { Button } from "@/components/ui/button";
 import { Banner, Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
+import { fieldForCheck } from "../correction";
 import { detailText as t } from "../texts";
 import { Inert } from "./package-actions";
 
@@ -40,38 +41,41 @@ const COUNT = {
 interface Props {
   pkg: Pkg;
   /** Fixes handled on this page; edit and upload fixes are absent when the role may not edit. */
-  onFix: (fix: Fixable) => void;
+  onFix: (fix: Fixable, check: Check) => void;
   canEdit: boolean;
   onEvidence: (evidence: Schemas["Evidence"], label: string) => void;
 }
 
 export type Fixable = NonNullable<Check["fix_hint"]>;
 
-function Fix({
-  hint,
-  onFix,
-  canEdit,
-}: { hint: Check["fix_hint"] } & Pick<Props, "onFix" | "canEdit">) {
+function Fix({ check, pkg, onFix, canEdit }: { check: Check } & Omit<Props, "onEvidence">) {
   const editing = (fix: Fixable, label: string, Icon: typeof Upload, primary = false) =>
-    canEdit ? (
-      <Button size="sm" variant={primary ? "default" : "outline"} onClick={() => onFix(fix)}>
+    // edit_field needs a field to open; the server may still name one the UI cannot place
+    canEdit && (fix !== "edit_field" || fieldForCheck(pkg, check)) ? (
+      <Button size="sm" variant={primary ? "default" : "outline"} onClick={() => onFix(fix, check)}>
         <Icon aria-hidden />
         {label}
       </Button>
     ) : (
-      <Inert primary={primary} size="sm" icon={Icon} label={label} reason={t.noEdit} />
+      <Inert
+        primary={primary}
+        size="sm"
+        icon={Icon}
+        label={label}
+        reason={canEdit ? "Düzəldiləcək sahə tapılmadı — yeni versiya yükləyin" : t.noEdit}
+      />
     );
-  switch (hint) {
+  switch (check.fix_hint) {
     case "link_order":
       return (
-        <Button size="sm" onClick={() => onFix("link_order")}>
+        <Button size="sm" onClick={() => onFix("link_order", check)}>
           <Link2 aria-hidden />
           Sifarişi seç
         </Button>
       );
     case "review_signature":
       return (
-        <Button size="sm" onClick={() => onFix("review_signature")}>
+        <Button size="sm" onClick={() => onFix("review_signature", check)}>
           <PenLine aria-hidden />
           İmzaya bax və təsdiqlə
         </Button>
@@ -87,12 +91,7 @@ function Fix({
   }
 }
 
-function CheckCard({
-  check: c,
-  onFix,
-  onEvidence,
-  canEdit,
-}: { check: Check } & Omit<Props, "pkg">) {
+function CheckCard({ check: c, pkg, onFix, onEvidence, canEdit }: { check: Check } & Props) {
   return (
     <article
       aria-label={`${c.rule_id} ${c.title}`}
@@ -120,7 +119,7 @@ function CheckCard({
         </button>
       ))}
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Fix hint={c.fix_hint} onFix={onFix} canEdit={canEdit} />
+        <Fix check={c} pkg={pkg} onFix={onFix} canEdit={canEdit} />
         {/* tasks are W-12 */}
         <Inert size="sm" icon={Plus} label="Tapşırıq yarat" reason={t.soon} />
       </div>
@@ -176,7 +175,13 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit }: Props) {
           <ul aria-labelledby="blocking" className="flex flex-col gap-2">
             {primary.map((c) => (
               <li key={c.rule_id}>
-                <CheckCard check={c} onFix={onFix} onEvidence={onEvidence} canEdit={canEdit} />
+                <CheckCard
+                  check={c}
+                  pkg={pkg}
+                  onFix={onFix}
+                  onEvidence={onEvidence}
+                  canEdit={canEdit}
+                />
               </li>
             ))}
           </ul>

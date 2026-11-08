@@ -17,7 +17,7 @@ function Of({
   onEvidence = vi.fn(),
 }: {
   id: string;
-  onFix?: (f: string) => void;
+  onFix?: (f: string, c: unknown) => void;
   onEvidence?: () => void;
 }) {
   const pkg = usePackage(id).data;
@@ -38,7 +38,7 @@ test("INV-1042: counts, blocking cards with sources and the 'choose order' fix",
   expect(cards.length).toBeGreaterThan(0);
   expect(cards[0]).toHaveTextContent(/R-0\d{2}/);
   await userEvent.click(within(p).getAllByRole("button", { name: "Sifarişi seç" })[0]!);
-  expect(onFix).toHaveBeenCalledWith("link_order");
+  expect(onFix).toHaveBeenCalledWith("link_order", expect.anything());
   const source = within(blocking).queryAllByRole("button", { name: /^Mənbə:/ })[0];
   if (source) {
     await userEvent.click(source);
@@ -86,7 +86,7 @@ test("upload fixes are live for editors, inert and explained otherwise; tasks co
     <ChecksPanel pkg={pkg} canEdit onFix={onFix} onEvidence={vi.fn()} />,
   );
   await userEvent.click(screen.getByRole("button", { name: "Təhvil sənədi yüklə" }));
-  expect(onFix).toHaveBeenCalledWith("upload_delivery");
+  expect(onFix).toHaveBeenCalledWith("upload_delivery", expect.anything());
   expect(screen.getByRole("button", { name: "Tapşırıq yarat" })).toHaveAttribute(
     "aria-disabled",
     "true",
