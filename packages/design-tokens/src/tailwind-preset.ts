@@ -53,8 +53,8 @@ const preset = {
         ...scale("sp", ["1", "2", "3", "4", "5", "6", "8", "10", "12"] as const),
         topbar: v("topbar-h"),
       },
-      transitionDuration: { DEFAULT: v("dur") },
-      transitionTimingFunction: { DEFAULT: v("ease") },
+      transitionDuration: { base: v("dur") },
+      transitionTimingFunction: { base: v("ease") },
     },
   },
 } satisfies Config;
