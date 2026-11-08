@@ -4,6 +4,7 @@ import type { LiveEvent } from "../src/events";
 import { eventType } from "../src/events";
 import { id } from "../src/ids";
 import { as, mock, pkgId } from "./api";
+import { assertSchema } from "./contract";
 
 const KEY = (k: string) => `00000000-0000-4000-8000-${k.padStart(12, "0")}`;
 const approve = (api: Awaited<ReturnType<typeof as>>, key: string, v = 1) =>
@@ -26,6 +27,7 @@ describe("live events from audit rows (ADR-0010)", () => {
     record();
     await unwrap(approve(api, "1"));
     expect(seen.map((e) => e.type)).toEqual(["package.approved", "notification.created"]);
+    seen.forEach((e) => assertSchema("LiveEvent", e));
     expect(seen.slice(0, 1)).toEqual([
       {
         event_id: expect.stringMatching(/^0193a000-0000-7000-800a-/),

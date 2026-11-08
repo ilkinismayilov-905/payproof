@@ -80,6 +80,6 @@ Həqiqət mənbəyi: `packages/contracts/openapi.yaml` (S-04). Bu sənəd onun q
 ## Canlı hadisələr — `GET /v1/events` (ADR-0010)
 - `Authorization: Bearer` header-i ilə (fetch əsaslı klient; token query string-də qəbul edilmir). Tenant yalnız JWT-dən.
 - Cavab `text/event-stream`; hər hadisə `id: <event_id>`, `event: <type>`, `data: <LiveEvent JSON>`. Hər 15 s `: ping`.
-- `LiveEvent`: `{event_id, company_id, type, package_id, package_version, actor_id, at}` — biznes məlumatı yoxdur; `package_id`/`package_version` paketə aid olmayan hadisədə `null`. `type` siyahısı müqavilədədir (S-09).
+- `LiveEvent`: `{event_id, company_id, type, package_id, package_version, actor_id, at}` — biznes məlumatı yoxdur; `package_id`/`package_version` paketə aid olmayan hadisədə, `actor_id` sistem əməliyyatında `null`. `type` siyahısı müqavilədədir (S-09).
 - `Last-Event-ID` qəbul edilir, P0-da replay yoxdur — klient (yenidən) qoşulanda bütün keşi invalidate edir.
 - Hadisə yalnız tranzaksiya commit olunandan sonra çıxır. `401` → klient axını dayandırır və girişə yönləndirir.

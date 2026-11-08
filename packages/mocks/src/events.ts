@@ -1,26 +1,10 @@
 // Live events (ADR-0010): IDs only, derived from the audit rows and notifications a successful request added.
+import type { Schemas } from "@payproof/api-client";
 import { id } from "./ids";
 import type { MockDb } from "./store";
 
-export type LiveEventType =
-  | "package.created"
-  | "package.updated"
-  | "package.approved"
-  | "package.exported"
-  | "package.deleted"
-  | "task.changed"
-  | "notification.created"
-  | "requirements.changed";
-
-export interface LiveEvent {
-  event_id: string;
-  company_id: string;
-  type: LiveEventType;
-  package_id: string | null;
-  package_version: number | null;
-  actor_id: string | null;
-  at: string;
-}
+export type LiveEventType = Schemas["LiveEventType"];
+export type LiveEvent = Schemas["LiveEvent"];
 
 const EXACT: Record<string, LiveEventType> = {
   "package.created": "package.created",
