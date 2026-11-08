@@ -18,11 +18,11 @@ Həqiqət mənbəyi: `packages/contracts/openapi.yaml` (S-04). Bu sənəd onun q
 ```
 | HTTP | code nümunələri |
 |---|---|
-| 400/422 | `VALIDATION_ERROR`, `TASK_STATUS_NOT_ALLOWED`, `INVOICE_REQUIRED` |
+| 400/422 | `VALIDATION_ERROR` (400 — formatı yanlış body), `TASK_STATUS_NOT_ALLOWED`, `INVOICE_REQUIRED`, `IDEMPOTENCY_KEY_REUSED` (eyni açar, fərqli body) |
 | 401 | `UNAUTHENTICATED` |
 | 403 | `FORBIDDEN` (rol icazəsi yoxdur) |
 | 404 | `NOT_FOUND` (başqa tenant-ın obyekti də 404 qaytarır, 403 yox) |
-| 409 | `VERSION_CONFLICT`, `PACKAGE_NOT_READY`, `DUPLICATE_FILE`, `DUPLICATE_INVOICE` |
+| 409 | `VERSION_CONFLICT`, `PACKAGE_NOT_READY`, `PACKAGE_NOT_DELETABLE`, `DUPLICATE_FILE`, `DUPLICATE_INVOICE`, `IDEMPOTENCY_IN_PROGRESS` |
 | 413/415 | `FILE_TOO_LARGE`, `UNSUPPORTED_FILE_TYPE` |
 
 `message` Azərbaycan dilindədir və UI-də göstərilə bilər.
@@ -30,6 +30,7 @@ Həqiqət mənbəyi: `packages/contracts/openapi.yaml` (S-04). Bu sənəd onun q
 ## Endpoint-lər (P0)
 | Metod və yol | Məqsəd | Rol | Step |
 |---|---|---|---|
+| `GET /v1/auth/dev-users` | Dev-login seçimi üçün demo istifadəçilər (yalnız `ENV=dev`) | — | B-10 |
 | `POST /v1/auth/dev-login` | Demo istifadəçi üçün JWT (yalnız `ENV=dev`) | — | B-10 |
 | `GET /v1/me` | Cari istifadəçi, rol, səlahiyyətlər | hamı | B-10 |
 | `GET /v1/dashboard` | KPI-lər, valyuta üzrə məbləğ, problem növləri, yaş | hamı | B-11 |

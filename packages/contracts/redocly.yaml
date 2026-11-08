@@ -4,7 +4,7 @@ rules:
   no-invalid-media-type-examples:
     severity: error
     allowAdditionalProperties: false
-  no-unused-components: warn # → error once all paths exist (S-04 last commit)
+  no-unused-components: error
   operation-4xx-response: error
   operation-operationId: error
   operation-summary: error
