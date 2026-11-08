@@ -1,4 +1,5 @@
-// Placeholder until W-06 builds this screen.
+import { OverviewScreen } from "@/features/dashboard";
+
 export default function OverviewPage() {
-  return <h1 className="text-2xl font-semibold">İcmal</h1>;
+  return <OverviewScreen />;
 }
