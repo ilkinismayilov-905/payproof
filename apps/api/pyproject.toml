@@ -1,0 +1,52 @@
+[project]
+name = "payproof-api"
+version = "0.1.0"
+description = "PayProof backend API"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.162.2",
+    "pydantic-settings>=2.16.2",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+payproof-api = "payproof.main:run"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy",
+    "pytest",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/payproof"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "SIM", "RUF", "ASYNC", "DTZ", "T20"]
+# RUF001-003: Azerbaijani UI text uses "ı"; N818: errors are named NotFound, Forbidden (CLAUDE.md)
+ignore = ["RUF001", "RUF002", "RUF003", "N818"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+# shortcut: starlette nags about httpx in TestClient; drop once starlette's replacement is vetted
+filterwarnings = ["ignore:Using `httpx`"]
