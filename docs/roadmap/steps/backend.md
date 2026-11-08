@@ -71,6 +71,23 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 **Daxildir:** `services/audit.py` (`record(actor, action, object, package_version, detail)`, correlation id), `GET /v1/packages/{id}/audit`, `GET /v1/audit` (filtr, `?format=csv` — UTF-8 BOM).
 **Qəbul:** [ ] hər yazma servisi audit çağırır (sonrakı step-lərdə yoxlanır) [ ] CSV Excel-də düzgün açılır
 
+### B-12b · SSE canlı hadisələr
+**Branch:** `feat/B-12b-live-events` · **Asılılıq:** B-12 · **Skills:** `security-and-hardening`
+**Məqsəd:** ADR-0010 — dəyişiklik digər istifadəçilərə ≤ 2 s-də çatsın; müqavilə S-09-dadır (`/contract-change` artıq edilib — S-09 hələ bitməyibsə endpoint-i müqaviləyə uyğun yaz, uyğunsuzluq varsa lead-ə de).
+**Daxildir:**
+- `services/events.py`: `publish(session, event)` → `pg_notify('payproof_events', json)` — `audit.record` çağıran tranzaksiya daxilində; `event_id` = audit ID, `type` audit `action`-dan xəritə ilə (`LiveEventType`); payload yalnız ID-lər
+- `realtime/hub.py`: proses başına **bir** asyncpg `LISTEN` bağlantısı (FastAPI lifespan), `company_id`-yə görə abunəçi reyestri, abunəçi başına məhdud `asyncio.Queue` (dolarsa bağlantı bağlanır), bağlantı qırılanda yenidən `LISTEN`
+- `api/events.py`: `GET /v1/events` — `current_member` ilə auth, tenant yalnız JWT-dən, `StreamingResponse` (`text/event-stream`, `Cache-Control: no-cache`, `X-Accel-Buffering: no`), 15 s `: ping`, `Last-Event-ID` qəbul edilir (replay yox), klient ayrılanda abunəçi silinir, token vaxtı bitəndə axın bağlanır
+- access log-da axın sorğusu bir dəfə (açılış/bağlanış + müddət), hadisə məzmunu log-a yazılmır
+**Daxil deyil:** replay/hadisə cədvəli, WebSocket, push bildirişləri, frontend (W-05b, M-04b), hər yazma servisinin hadisəsi — onlar audit vasitəsilə öz step-lərində avtomatik gəlir (B-13…B-24).
+**Qəbul meyarları:**
+- [ ] Tokensiz → `401`; A şirkətinin hadisəsi B şirkətinin axınına düşmür (test)
+- [ ] Rollback olunan tranzaksiya hadisə buraxmır; hadisə commit-dən sonra ≤ 2 s-də axında (inteqrasiya testi, real postgres)
+- [ ] Heartbeat 15 s-də (testdə qısaldılmış interval ilə); klient ayrılandan sonra abunəçi reyestrdə qalmır
+- [ ] Payload-da biznes məlumatı yoxdur (sxem testi: yalnız `LiveEvent` sahələri)
+- [ ] Cavab openapi sxeminə uyğun
+**Commit planı:** 1) `events.publish` + audit inteqrasiyası (test-first: commit/rollback) 2) hub: LISTEN + fan-out + növbə limiti 3) `GET /v1/events` axını + heartbeat 4) auth/tenant testləri 5) lifespan, yenidən qoşulma, log
+
 ### B-13 · Storage və yükləmə
 **Branch:** `feat/B-13-upload` · **Asılılıq:** B-12 · **Skills:** `security-and-hardening`
 **Daxildir:** `storage/s3.py`, `POST /v1/packages/{id}/documents`, `POST /v1/documents/{id}/versions` (multipart, `Idempotency-Key`, `expected_version`), magic-bytes MIME yoxlaması, ölçü/səhifə limiti, sha256 dublikat (`409 DUPLICATE_FILE` + mövcud versiya məlumatı, audit "Təkrar fayl aşkarlandı"), versiya artımı + təsdiqin etibarsızlaşması, job yaratmaq (B-14 hazır deyilsə sinxron stub), `GET /v1/documents/versions/{id}/file` (5 dəq imzalı link).
