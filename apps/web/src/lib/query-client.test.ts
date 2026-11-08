@@ -51,6 +51,19 @@ test("mutation errors toast; non-API errors get the generic Azerbaijani message"
   ]);
 });
 
+test("codes a mutation explains inline (meta.inlineErrors) do not toast; others still do", async () => {
+  const qc = makeQueryClient({ onUnauthenticated });
+  const run = (error: unknown) =>
+    qc
+      .getMutationCache()
+      .build(qc, { mutationFn: failWith(error), meta: { inlineErrors: ["DUPLICATE_FILE"] } })
+      .execute(undefined)
+      .catch(() => {});
+  await run(new ApiError("DUPLICATE_FILE", "dup", 409));
+  await run(forbidden);
+  expect(toastError.mock.calls).toEqual([["Səlahiyyət yoxdur.", { id: "FORBIDDEN" }]]);
+});
+
 test("retries only network and server errors, at most twice", () => {
   expect(shouldRetry(0, forbidden)).toBe(false);
   expect(shouldRetry(0, new ApiError("NETWORK_ERROR", "x", 0))).toBe(true);

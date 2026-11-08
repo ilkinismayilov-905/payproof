@@ -10,12 +10,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
+import { fieldForCheck } from "../correction";
 import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { ActivityPanel } from "./activity-panel";
-import { ChecksPanel } from "./checks-panel";
+import { ChecksPanel, type Fixable } from "./checks-panel";
 import { ComparisonPanel } from "./comparison-panel";
+import { CorrectFieldDialog } from "./correct-field-dialog";
 import { DocumentsPanel } from "./documents-panel";
 import { EvidenceViewer } from "./evidence-viewer";
 import { MatchBanner } from "./match-banner";
@@ -23,6 +25,7 @@ import { MatchDialog } from "./match-dialog";
 import { PackageActions } from "./package-actions";
 import { PackageHeader } from "./package-header";
 import { ReadinessBanner } from "./readiness-banner";
+import { UploadDialog } from "./upload-dialog";
 
 export function PackageDetailScreen({ id }: { id: string }) {
   const pkg = usePackage(id);
@@ -32,6 +35,8 @@ export function PackageDetailScreen({ id }: { id: string }) {
     signature?: boolean;
   } | null>(null);
   const [matching, setMatching] = useState(false);
+  const [uploading, setUploading] = useState<"invoice" | "delivery" | null>(null);
+  const [correcting, setCorrecting] = useState<string | null>(null); // field id
   const sign = useReviewSignature(id);
   const validate = useValidate(id);
   const busy = useIsMutating({ mutationKey: packageMutationKey(id) });
@@ -43,6 +48,16 @@ export function PackageDetailScreen({ id }: { id: string }) {
       check?.evidence[0] ??
       (delivery && { document_version_id: delivery.id, page: 1, quote: "", bbox: null });
     if (evidence) setViewing({ evidence, label: "İmza", signature: true });
+  };
+
+  const fix = (p: Schemas["PackageDetail"], hint: Fixable, check: Schemas["CheckResult"]) => {
+    if (hint === "link_order") return setMatching(true);
+    if (hint === "review_signature") return reviewSignature(p);
+    if (hint === "upload_delivery") return setUploading("delivery");
+    if (hint === "upload_invoice") return setUploading("invoice");
+    // edit_field: the field the check's evidence points at (the panel hides the fix when none)
+    const field = fieldForCheck(p, check);
+    if (field) setCorrecting(field.id);
   };
 
   if (pkg.isPending)
@@ -81,6 +96,8 @@ export function PackageDetailScreen({ id }: { id: string }) {
       </Banner>
     );
 
+  const canEdit = pkg.data.permissions.can_edit;
+  const field = pkg.data.fields.find((f) => f.id === correcting);
   return (
     <div className="@container flex flex-col gap-4">
       <PackageHeader
@@ -88,6 +105,16 @@ export function PackageDetailScreen({ id }: { id: string }) {
         actions={
           <PackageActions
             status={pkg.data.status}
+            onUpload={
+              canEdit
+                ? () =>
+                    setUploading(
+                      pkg.data.documents.some((d) => d.type === "delivery")
+                        ? "invoice"
+                        : "delivery",
+                    )
+                : undefined
+            }
             recheck={{
               pending: busy > 0,
               onClick: () =>
@@ -110,16 +137,17 @@ export function PackageDetailScreen({ id }: { id: string }) {
       {pkg.data.status !== "PROCESSING" && (
         // prototype .pd-grid: 1 column → compare|checks over docs|checks (880 px) → docs|compare|checks (1240 px)
         <div className="grid items-start gap-4 [grid-template-areas:'checks'_'compare'_'docs'] @min-[880px]:grid-cols-[minmax(0,1fr)_360px] @min-[880px]:[grid-template-areas:'compare_checks'_'docs_checks'] @min-[1240px]:grid-cols-[250px_minmax(0,1fr)_360px] @min-[1240px]:[grid-template-areas:'docs_compare_checks']">
-          <DocumentsPanel pkg={pkg.data} />
-          {/* placeholder until W-10 fills the checks area */}
+          <DocumentsPanel pkg={pkg.data} onUpload={canEdit ? setUploading : undefined} />
           <ComparisonPanel
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}
+            onCorrect={canEdit ? setCorrecting : undefined}
           />
           <ChecksPanel
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}
-            onFix={(fix) => (fix === "link_order" ? setMatching(true) : reviewSignature(pkg.data))}
+            canEdit={canEdit}
+            onFix={(hint, check) => fix(pkg.data, hint, check)}
           />
         </div>
       )}
@@ -149,6 +177,26 @@ export function PackageDetailScreen({ id }: { id: string }) {
         }
       />
       {matching && <MatchDialog pkg={pkg.data} open onOpenChange={setMatching} />}
+      {uploading && (
+        <UploadDialog
+          pkg={pkg.data}
+          open
+          initialType={uploading}
+          onOpenChange={(o) => o || setUploading(null)}
+        />
+      )}
+      {field && (
+        <CorrectFieldDialog
+          pkg={pkg.data}
+          field={field}
+          open
+          onOpenChange={(o) => o || setCorrecting(null)}
+          onUploadInstead={() => {
+            setCorrecting(null);
+            setUploading("invoice");
+          }}
+        />
+      )}
       <ActivityPanel
         packageId={id}
         // prototype: only a package that was never approved or exported can be deleted

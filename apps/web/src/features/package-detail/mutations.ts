@@ -1,5 +1,5 @@
-import { unwrap, type ApiError, type Schemas } from "@payproof/api-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toFormData, unwrap, type ApiError, type Schemas } from "@payproof/api-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { dashboardKeys } from "@/features/dashboard";
 import { packageKeys } from "@/features/packages";
 import { taskKeys } from "@/features/tasks";
@@ -54,3 +54,78 @@ export const useValidate = (id: string) =>
   usePackageMutation(id, (body: { expected_version: number }) =>
     unwrap(api.POST("/v1/packages/{package_id}/validate", { ...path(id), body })),
   );
+
+/** Fix an extracted value from its source; the document itself does not change (reason is audited). */
+export const useCorrectField = (id: string) =>
+  usePackageMutation(
+    id,
+    ({
+      fieldId,
+      ...body
+    }: {
+      fieldId: string;
+      value: string;
+      reason: string;
+      expected_version: number;
+    }) =>
+      unwrap(api.PATCH("/v1/fields/{field_id}", { params: { path: { field_id: fieldId } }, body })),
+  );
+
+export interface UploadInput {
+  type: Schemas["DocumentType"];
+  file: File;
+  expectedVersion: number;
+  /** One key per user intent: a retried request must not create a second version. */
+  idempotencyKey: string;
+  /** Set when the package already has this document: the file becomes its next version. */
+  documentId?: string;
+}
+
+/** Starts extraction; answers with a job to poll. 409: version conflict or DUPLICATE_FILE (no new version). */
+export function useUploadDocument(id: string) {
+  const client = useQueryClient();
+  return useMutation<Schemas["JobAccepted"], ApiError, UploadInput>({
+    mutationKey: packageMutationKey(id),
+    mutationFn: (input) => uploadRequest(id, input),
+    meta: { inlineErrors: ["DUPLICATE_FILE", "VERSION_CONFLICT"] }, // the dialog explains them
+    onError: (error) => {
+      if (error.code === "VERSION_CONFLICT")
+        void client.invalidateQueries({ queryKey: packageKeys.detail(id) });
+    },
+  });
+}
+
+/** The multipart request behind useUploadDocument (exported for request-level tests). */
+export function uploadRequest(
+  id: string,
+  { type, file, expectedVersion, idempotencyKey, documentId }: UploadInput,
+) {
+  const header = { "Idempotency-Key": idempotencyKey };
+  return documentId
+    ? unwrap(
+        api.POST("/v1/documents/{document_id}/versions", {
+          params: { path: { document_id: documentId }, header },
+          body: { file, expected_version: expectedVersion },
+          bodySerializer: toFormData,
+        }),
+      )
+    : unwrap(
+        api.POST("/v1/packages/{package_id}/documents", {
+          params: { path: { package_id: id }, header },
+          body: { type, file, expected_version: expectedVersion },
+          bodySerializer: toFormData,
+        }),
+      );
+}
+
+const DONE = new Set(["SUCCEEDED", "FAILED"]);
+
+/** Polls an extraction job until it succeeds or fails. */
+export const useJob = (jobId: string | undefined, intervalMs = 800) =>
+  useQuery({
+    queryKey: ["jobs", jobId],
+    enabled: Boolean(jobId),
+    queryFn: ({ signal }) =>
+      unwrap(api.GET("/v1/jobs/{job_id}", { params: { path: { job_id: jobId! } }, signal })),
+    refetchInterval: (query) => (DONE.has(query.state.data?.status ?? "") ? false : intervalMs),
+  });

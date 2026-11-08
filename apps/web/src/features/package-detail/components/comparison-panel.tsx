@@ -1,6 +1,6 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatMoney, formatQuantity } from "@payproof/api-client/format";
-import { CircleHelp, CircleX, Eye, Info, Sparkles } from "lucide-react";
+import { CircleHelp, CircleX, Eye, Info, Pencil, Sparkles } from "lucide-react";
 import { Fragment } from "react";
 import { Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
@@ -38,11 +38,17 @@ interface Props {
   pkg: Pkg;
   /** Opens the evidence viewer for a cell's source. */
   onEvidence: (evidence: Schemas["Evidence"], label: string) => void;
+  /** Opens the correction dialog for an extracted field; absent when the role may not edit. */
+  onCorrect?: (fieldId: string) => void;
 }
 
 /** Invoice · order · delivery side by side (prototype `comparePanel`). */
-export function ComparisonPanel({ pkg, onEvidence }: Props) {
+export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
   const caption = t.comparisonCaption;
+  // only extracted fields are correctable (order values come from the order system)
+  const extracted = new Set(pkg.fields.map((f) => f.id));
+  const iconBtn =
+    "text-text-3 hover:text-text hover:bg-surface-2 focus-visible:ring-ring inline-grid size-7 place-items-center rounded-sm outline-none focus-visible:ring-2 pointer-coarse:size-11";
   return (
     <Panel
       title={t.comparison}
@@ -108,9 +114,20 @@ export function ComparisonPanel({ pkg, onEvidence }: Props) {
                               aria-label={`Mənbəyə bax: ${name} (${label})`}
                               title="Mənbəyə bax"
                               onClick={() => onEvidence(cell.evidence!, name)}
-                              className="text-text-3 hover:text-text hover:bg-surface-2 focus-visible:ring-ring inline-grid size-7 place-items-center rounded-sm outline-none focus-visible:ring-2 pointer-coarse:size-11"
+                              className={iconBtn}
                             >
                               <Eye aria-hidden className="size-4" />
+                            </button>
+                          )}
+                          {onCorrect && cell.field_id && extracted.has(cell.field_id) && (
+                            <button
+                              type="button"
+                              aria-label={`Çıxarışı düzəlt: ${name} (${label})`}
+                              title="Çıxarışı düzəlt"
+                              onClick={() => onCorrect(cell.field_id!)}
+                              className={iconBtn}
+                            >
+                              <Pencil aria-hidden className="size-4" />
                             </button>
                           )}
                         </span>

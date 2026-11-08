@@ -19,6 +19,8 @@ export const detailText = {
   blocked: "Bloklayan yoxlamalar var",
   stillProcessing: "Sənədlər emal olunur",
   soon: "Tezliklə",
+  // can_edit = role AND package state, so the reason names both
+  noEdit: "Bu vəziyyətdə və ya rolunuzla sənəd yükləmək və çıxarışı düzəltmək mümkün deyil",
   documents: "Sənədlər və versiyalar",
   comparison: "Müqayisə",
   comparisonCaption: "Müqayisə: faktura · sifariş · təhvil",

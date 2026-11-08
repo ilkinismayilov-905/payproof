@@ -17,11 +17,11 @@ function Of({
   onEvidence = vi.fn(),
 }: {
   id: string;
-  onFix?: (f: string) => void;
+  onFix?: (f: string, c: unknown) => void;
   onEvidence?: () => void;
 }) {
   const pkg = usePackage(id).data;
-  return pkg ? <ChecksPanel pkg={pkg} onFix={onFix} onEvidence={onEvidence} /> : null;
+  return pkg ? <ChecksPanel pkg={pkg} canEdit onFix={onFix} onEvidence={onEvidence} /> : null;
 }
 const panel = () => screen.findByRole("region", { name: "Yoxlamalar" });
 
@@ -38,7 +38,7 @@ test("INV-1042: counts, blocking cards with sources and the 'choose order' fix",
   expect(cards.length).toBeGreaterThan(0);
   expect(cards[0]).toHaveTextContent(/R-0\d{2}/);
   await userEvent.click(within(p).getAllByRole("button", { name: "Sifarişi seç" })[0]!);
-  expect(onFix).toHaveBeenCalledWith("link_order");
+  expect(onFix).toHaveBeenCalledWith("link_order", expect.anything());
   const source = within(blocking).queryAllByRole("button", { name: /^Mənbə:/ })[0];
   if (source) {
     await userEvent.click(source);
@@ -64,7 +64,7 @@ test("a ready package: no problem is invented, the passing list is open", async 
   expect(p.querySelector("details")).toHaveAttribute("open");
 });
 
-test("fixes that arrive later (edit, upload, task) are inert and explained", async () => {
+test("upload fixes are live for editors, inert and explained otherwise; tasks come later", async () => {
   const pkg = {
     requirement_set: { version: 2 },
     summary: { pass: 0, fail: 1, unknown: 0, not_applicable: 0, blocking: [] },
@@ -81,13 +81,19 @@ test("fixes that arrive later (edit, upload, task) are inert and explained", asy
       },
     ],
   } as unknown as Schemas["PackageDetail"];
-  renderWithQuery(<ChecksPanel pkg={pkg} onFix={vi.fn()} onEvidence={vi.fn()} />);
-  expect(screen.getByRole("button", { name: "Təhvil sənədi yüklə" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
+  const onFix = vi.fn();
+  const { rerender } = renderWithQuery(
+    <ChecksPanel pkg={pkg} canEdit onFix={onFix} onEvidence={vi.fn()} />,
   );
+  await userEvent.click(screen.getByRole("button", { name: "Təhvil sənədi yüklə" }));
+  expect(onFix).toHaveBeenCalledWith("upload_delivery", expect.anything());
   expect(screen.getByRole("button", { name: "Tapşırıq yarat" })).toHaveAttribute(
     "aria-disabled",
     "true",
+  );
+  // a role without edit rights sees the fix, inert, with the reason
+  rerender(<ChecksPanel pkg={pkg} canEdit={false} onFix={onFix} onEvidence={vi.fn()} />);
+  expect(screen.getByRole("button", { name: "Təhvil sənədi yüklə" })).toHaveAccessibleDescription(
+    /mümkün deyil/,
   );
 });

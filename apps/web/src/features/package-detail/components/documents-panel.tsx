@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { DocumentStatusBadge, StatusBadge } from "@/components/status/status-badges";
+import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
 import { detailText as t } from "../texts";
@@ -21,6 +22,18 @@ import { Inert } from "./package-actions";
 
 type Pkg = Schemas["PackageDetail"];
 type DocType = Schemas["DocumentType"];
+/** Absent: the role may not upload (the server checks it again). */
+type OnUpload = ((type: "invoice" | "delivery") => void) | undefined;
+
+const UploadButton = ({ label, onClick }: { label: string; onClick?: () => void }) =>
+  onClick ? (
+    <Button variant="outline" size="sm" onClick={onClick}>
+      <Upload aria-hidden />
+      {label}
+    </Button>
+  ) : (
+    <Inert size="sm" icon={Upload} label={label} reason={t.noEdit} />
+  );
 
 const TYPES: DocType[] = ["invoice", "order", "delivery"];
 const ICON: Record<DocType, LucideIcon> = {
@@ -42,7 +55,7 @@ const Tag = ({ children }: { children: ReactNode }) => (
   </span>
 );
 
-function Missing({ type, pkg }: { type: DocType; pkg: Pkg }) {
+function Missing({ type, pkg, onUpload }: { type: DocType; pkg: Pkg; onUpload: OnUpload }) {
   // R-007 is the only document rule; "no document" must never read as "document unreadable"
   const required = type === "delivery" && pkg.requirement_set.require_delivery;
   const Icon = ICON[type];
@@ -68,14 +81,22 @@ function Missing({ type, pkg }: { type: DocType; pkg: Pkg }) {
       </div>
       {required && (
         <div className="mt-2">
-          <Inert size="sm" icon={Upload} label="Yüklə" reason={t.soon} />
+          <UploadButton label="Yüklə" onClick={onUpload && (() => onUpload("delivery"))} />
         </div>
       )}
     </article>
   );
 }
 
-function DocumentCard({ doc, pkg }: { doc: Schemas["Document"]; pkg: Pkg }) {
+function DocumentCard({
+  doc,
+  pkg,
+  onUpload,
+}: {
+  doc: Schemas["Document"];
+  pkg: Pkg;
+  onUpload: OnUpload;
+}) {
   const v = doc.current;
   const Icon = ICON[doc.type];
   const label = documentTypeLabel[doc.type];
@@ -104,7 +125,10 @@ function DocumentCard({ doc, pkg }: { doc: Schemas["Document"]; pkg: Pkg }) {
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Inert size="sm" icon={Eye} label="Bax" reason={t.soon} />
         {doc.type !== "order" && (
-          <Inert size="sm" icon={Upload} label="Yeni versiya" reason={t.soon} />
+          <UploadButton
+            label="Yeni versiya"
+            onClick={onUpload && (() => onUpload(doc.type as "invoice" | "delivery"))}
+          />
         )}
       </div>
       {doc.history.length > 0 && (
@@ -134,15 +158,15 @@ function DocumentCard({ doc, pkg }: { doc: Schemas["Document"]; pkg: Pkg }) {
 }
 
 /** Documents and their versions (prototype `docsPanel`). */
-export function DocumentsPanel({ pkg }: { pkg: Pkg }) {
+export function DocumentsPanel({ pkg, onUpload }: { pkg: Pkg; onUpload?: OnUpload }) {
   return (
     <Panel title={t.documents} className="flex flex-col gap-3 [grid-area:docs]">
       {TYPES.map((type) => {
         const doc = pkg.documents.find((d) => d.type === type);
         return doc ? (
-          <DocumentCard key={type} doc={doc} pkg={pkg} />
+          <DocumentCard key={type} doc={doc} pkg={pkg} onUpload={onUpload} />
         ) : (
-          <Missing key={type} type={type} pkg={pkg} />
+          <Missing key={type} type={type} pkg={pkg} onUpload={onUpload} />
         );
       })}
       {/* AI does extraction only; a prepared mock result must never pass for live AI analysis */}

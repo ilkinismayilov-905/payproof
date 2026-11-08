@@ -25,6 +25,9 @@ export const shouldRetry = (failureCount: number, error: unknown) =>
  * background refetches → toast with the server's Azerbaijani message. A first-load query error is
  * left to the screen, which renders its own error state.
  */
+const inline = (meta: Record<string, unknown> | undefined): unknown[] =>
+  Array.isArray(meta?.inlineErrors) ? meta.inlineErrors : [];
+
 export function makeQueryClient({ onUnauthenticated }: { onUnauthenticated: () => void }) {
   const handle = (error: unknown, notify: boolean) => {
     if (error instanceof ApiError && error.status === 401) onUnauthenticated();
@@ -34,7 +37,11 @@ export function makeQueryClient({ onUnauthenticated }: { onUnauthenticated: () =
     queryCache: new QueryCache({
       onError: (error, query) => handle(error, query.state.data !== undefined),
     }),
-    mutationCache: new MutationCache({ onError: (error) => handle(error, true) }),
+    mutationCache: new MutationCache({
+      // a mutation may list error codes its own UI explains inline (meta.inlineErrors)
+      onError: (error, _v, _c, mutation) =>
+        handle(error, !(error instanceof ApiError && inline(mutation.meta).includes(error.code))),
+    }),
     defaultOptions: { queries: { staleTime: 30_000, retry: shouldRetry } },
   });
 }
