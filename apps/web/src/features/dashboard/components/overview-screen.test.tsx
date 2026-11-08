@@ -38,6 +38,18 @@ test("KPI cards open the package list filtered by status", async () => {
   expect(within(kpis).getByText("Göndərilməyə hazır: 1 · ixrac edilib: 2")).toBeInTheDocument();
 });
 
+test("the intro card can be dismissed and stays closed", async () => {
+  const first = renderWithQuery(<OverviewScreen />);
+  const intro = await screen.findByRole("region", { name: "Məhsul haqqında" });
+  expect(within(intro).getByRole("list", { name: "İş axını" }).children).toHaveLength(5);
+  await userEvent.click(screen.getByRole("button", { name: "Təqdimatı bağla" }));
+  expect(screen.queryByRole("region", { name: "Məhsul haqqında" })).toBeNull();
+  first.unmount();
+  renderWithQuery(<OverviewScreen />);
+  await screen.findByRole("list", { name: "Əsas göstəricilər" });
+  expect(screen.queryByRole("region", { name: "Məhsul haqqında" })).toBeNull();
+});
+
 test("a failed load offers a retry", async () => {
   server.use(
     http.get(

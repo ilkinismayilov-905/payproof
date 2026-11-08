@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Banner, PageHeader } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { useDashboard } from "../queries";
+import { IntroCard } from "./intro-card";
 import { KpiCards } from "./kpi-cards";
 
 export function OverviewScreen() {
@@ -56,6 +57,7 @@ export function OverviewScreen() {
       )}
       {d && (
         <>
+          <IntroCard />
           <KpiCards dashboard={d} />
         </>
       )}
