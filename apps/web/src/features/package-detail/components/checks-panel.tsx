@@ -39,12 +39,28 @@ const COUNT = {
 
 interface Props {
   pkg: Pkg;
-  /** Fixes handled on this page (order choice, signature review). */
-  onFix: (fix: "link_order" | "review_signature") => void;
+  /** Fixes handled on this page; edit and upload fixes are absent when the role may not edit. */
+  onFix: (fix: Fixable) => void;
+  canEdit: boolean;
   onEvidence: (evidence: Schemas["Evidence"], label: string) => void;
 }
 
-function Fix({ hint, onFix }: { hint: Check["fix_hint"]; onFix: Props["onFix"] }) {
+export type Fixable = NonNullable<Check["fix_hint"]>;
+
+function Fix({
+  hint,
+  onFix,
+  canEdit,
+}: { hint: Check["fix_hint"] } & Pick<Props, "onFix" | "canEdit">) {
+  const editing = (fix: Fixable, label: string, Icon: typeof Upload, primary = false) =>
+    canEdit ? (
+      <Button size="sm" variant={primary ? "default" : "outline"} onClick={() => onFix(fix)}>
+        <Icon aria-hidden />
+        {label}
+      </Button>
+    ) : (
+      <Inert primary={primary} size="sm" icon={Icon} label={label} reason={t.noEdit} />
+    );
   switch (hint) {
     case "link_order":
       return (
@@ -60,21 +76,23 @@ function Fix({ hint, onFix }: { hint: Check["fix_hint"]; onFix: Props["onFix"] }
           İmzaya bax və təsdiqlə
         </Button>
       );
-    // field edit and uploads are W-11
     case "edit_field":
-      return (
-        <Inert primary size="sm" icon={Pencil} label="Mənbəyə bax, sahəni düzəlt" reason={t.soon} />
-      );
+      return editing("edit_field", "Mənbəyə bax, sahəni düzəlt", Pencil, true);
     case "upload_delivery":
-      return <Inert size="sm" icon={Upload} label="Təhvil sənədi yüklə" reason={t.soon} />;
+      return editing("upload_delivery", "Təhvil sənədi yüklə", Upload);
     case "upload_invoice":
-      return <Inert size="sm" icon={Upload} label="Yeni faktura versiyası" reason={t.soon} />;
+      return editing("upload_invoice", "Yeni faktura versiyası", Upload);
     default:
       return null;
   }
 }
 
-function CheckCard({ check: c, onFix, onEvidence }: { check: Check } & Omit<Props, "pkg">) {
+function CheckCard({
+  check: c,
+  onFix,
+  onEvidence,
+  canEdit,
+}: { check: Check } & Omit<Props, "pkg">) {
   return (
     <article
       aria-label={`${c.rule_id} ${c.title}`}
@@ -102,7 +120,7 @@ function CheckCard({ check: c, onFix, onEvidence }: { check: Check } & Omit<Prop
         </button>
       ))}
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Fix hint={c.fix_hint} onFix={onFix} />
+        <Fix hint={c.fix_hint} onFix={onFix} canEdit={canEdit} />
         {/* tasks are W-12 */}
         <Inert size="sm" icon={Plus} label="Tapşırıq yarat" reason={t.soon} />
       </div>
@@ -125,7 +143,7 @@ const Compact = ({ check: c }: { check: Check }) => {
 };
 
 /** Rule results of the current version (prototype `checksPanel`): problems first, never hidden. */
-export function ChecksPanel({ pkg, onFix, onEvidence }: Props) {
+export function ChecksPanel({ pkg, onFix, onEvidence, canEdit }: Props) {
   const primary = pkg.checks.filter(
     (c) => (c.outcome === "FAIL" || c.outcome === "UNKNOWN") && !c.cascade,
   );
@@ -158,7 +176,7 @@ export function ChecksPanel({ pkg, onFix, onEvidence }: Props) {
           <ul aria-labelledby="blocking" className="flex flex-col gap-2">
             {primary.map((c) => (
               <li key={c.rule_id}>
-                <CheckCard check={c} onFix={onFix} onEvidence={onEvidence} />
+                <CheckCard check={c} onFix={onFix} onEvidence={onEvidence} canEdit={canEdit} />
               </li>
             ))}
           </ul>

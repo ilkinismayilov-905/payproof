@@ -32,16 +32,19 @@ export const Inert = ({
 );
 
 /**
- * Header actions by status (prototype `pgPackage`). Upload (W-11) and
- * approve/export (W-13) arrive in later steps; until then they are inert and say so.
+ * Header actions by status (prototype `pgPackage`). Approve/export (W-13) arrive in a later
+ * step; until then they are inert and say so.
  */
 export function PackageActions({
   status,
   recheck,
+  onUpload,
 }: {
   status: Schemas["PackageStatus"];
   /** Re-run the rules on the current version (live since W-10). */
   recheck: { onClick: () => void; pending: boolean };
+  /** Absent: the role may not upload (the server checks it again). */
+  onUpload?: () => void;
 }) {
   const primary =
     status === "READY_FOR_APPROVAL" ? (
@@ -72,7 +75,14 @@ export function PackageActions({
         />
         {recheck.pending ? "Yoxlanılır…" : t.recheck}
       </Button>
-      <Inert icon={Upload} label={t.upload} reason={t.soon} />
+      {onUpload ? (
+        <Button variant="outline" size="lg" onClick={onUpload}>
+          <Upload aria-hidden />
+          {t.upload}
+        </Button>
+      ) : (
+        <Inert icon={Upload} label={t.upload} reason={t.noEdit} />
+      )}
       {primary}
     </>
   );

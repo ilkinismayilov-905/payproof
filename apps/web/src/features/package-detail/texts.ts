@@ -19,6 +19,7 @@ export const detailText = {
   blocked: "Bloklayan yoxlamalar var",
   stillProcessing: "Sənədlər emal olunur",
   soon: "Tezliklə",
+  noEdit: "Rolunuz sənəd yükləməyə və çıxarışı düzəltməyə icazə vermir",
   documents: "Sənədlər və versiyalar",
   comparison: "Müqayisə",
   comparisonCaption: "Müqayisə: faktura · sifariş · təhvil",

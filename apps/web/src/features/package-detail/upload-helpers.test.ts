@@ -10,7 +10,9 @@ describe("samplesFor (mock demo files)", () => {
   });
 
   test("delivery samples are separate; other packages have none", () => {
-    expect(samplesFor("INV-1042", "delivery", []).map((s) => s.file_name)).toEqual(["TS-5531_imzali.pdf"]);
+    expect(samplesFor("INV-1042", "delivery", []).map((s) => s.file_name)).toEqual([
+      "TS-5531_imzali.pdf",
+    ]);
     expect(samplesFor("INV-1031", "invoice", [])).toEqual([]);
   });
 });
