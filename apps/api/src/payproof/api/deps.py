@@ -18,7 +18,7 @@ from payproof.domain.permissions import Permission, can
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.identity import MembershipRepository
 
-_bearer = HTTPBearer(auto_error=False)  # our own 401 body instead of FastAPI's 403
+bearer = HTTPBearer(auto_error=False)  # our own 401 body instead of FastAPI's 403
 
 Session = Annotated[AsyncSession, Depends(get_session)]
 
@@ -40,7 +40,7 @@ def get_verifier(settings: Annotated[Settings, Depends(get_settings)]) -> TokenV
 
 async def current_member(
     session: Session,
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     verifier: Annotated[TokenVerifier, Depends(get_verifier)],
 ) -> Member:
     """Token -> user -> active membership; binds the request session to that company.
