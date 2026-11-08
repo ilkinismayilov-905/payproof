@@ -58,6 +58,8 @@ export function DataTable<T>({
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
     enableSorting: Boolean(onSortChange),
+    // opt-in per column: the API sorts by a fixed list of keys (openapi `sort`), others would 422
+    defaultColumn: { enableSorting: false },
     state: { sorting: sort ? [sort] : [] },
   });
 
@@ -125,7 +127,7 @@ export function DataTable<T>({
           ))}
           {data.length === 0 && (
             <tr>
-              <td colSpan={columns.length}>{empty}</td>
+              <td colSpan={table.getVisibleLeafColumns().length}>{empty}</td>
             </tr>
           )}
         </tbody>

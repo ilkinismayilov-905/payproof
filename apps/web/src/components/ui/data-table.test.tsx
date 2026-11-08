@@ -10,12 +10,12 @@ const rows: Row[] = [
   { id: "2", invoice: "INV-1043", amount: "500,00 USD" },
 ];
 const columns: ColumnDef<Row>[] = [
-  { id: "invoice", header: "Faktura", accessorKey: "invoice" },
+  // sorting is opt-in: only columns the API can sort by
+  { id: "invoice", header: "Faktura", accessorKey: "invoice", enableSorting: true },
   {
     id: "amount",
     header: "Məbləğ",
     accessorKey: "amount",
-    enableSorting: false,
     meta: { align: "right" },
   },
 ];
