@@ -9,7 +9,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 |---|---|---|---|---|---|
 | B-01 | FastAPI skeleti | ✅ | `feat/B-01-api-skeleton` | 2026-11-08 | uv + ruff/mypy strict/pytest; settings, JSON log + `X-Correlation-ID`, standart xəta formatı, `/v1/health` (sxemdən gizli — kontraktda yoxdur) |
 | B-02 | DB təməli | ✅ | `feat/B-02-db-foundation` | 2026-11-08 | async engine/session, `Base` + uuid7/timestamp/tenant mixin-ləri, async Alembic (boş baseline), `make migrate`; tenant qoruyucusu session səviyyəsində (`bind_tenant`) — kontekstsiz ORM sorğusu, başqa tenant-a yazma və rebind xəta verir; test DB `<db>_test` + rollback |
-| B-03 | Kimlik və müştəri modelləri | ⬜ | | | |
+| B-03 | Kimlik və müştəri modelləri | 🟡 | `feat/B-03-identity-models` | 2026-11-08 | |
 | B-04 | Paket və sənəd modelləri | ⬜ | | | |
 | B-05 | Tapşırıq, təsdiq, ixrac, audit, bildiriş, job modelləri | ⬜ | | | |
 | B-06 | Domen primitivləri | ⬜ | | | |
