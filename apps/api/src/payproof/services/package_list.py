@@ -24,7 +24,6 @@ _STATUS_ORDER = [
     PackageStatus.APPROVED_READY,
     PackageStatus.EXPORTED,
 ]
-_FAR_FUTURE = dt.datetime.max.replace(tzinfo=dt.UTC)
 
 SORT_KEYS: dict[str, Callable[[PackageState], Any]] = {
     "invoice_number": lambda x: x.package.invoice_number or "",
@@ -35,8 +34,11 @@ SORT_KEYS: dict[str, Callable[[PackageState], Any]] = {
     "blocking": lambda x: len(x.blockers),
     "owner": lambda x: x.owner.full_name,
     "updated_at": lambda x: x.package.updated_at,
-    # oldest problem first when ascending; packages without a problem come last
-    "problem_age": lambda x: x.package.problem_since or _FAR_FUTURE,
+    # sorts by age like the mock (-problem_since, no problem = -inf): `-problem_age` puts the
+    # longest-waiting problem first and packages without a problem last
+    "problem_age": lambda x: (
+        (1, -x.package.problem_since.timestamp()) if x.package.problem_since else (0, 0.0)
+    ),
 }
 
 

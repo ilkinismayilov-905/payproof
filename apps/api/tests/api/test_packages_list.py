@@ -61,6 +61,19 @@ async def test_sort_and_cursor_pages(
     assert everything == sorted(everything, reverse=True)
 
 
+async def test_longest_waiting_problem_first(
+    client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
+) -> None:
+    # web Overview asks `sort=-problem_age` for "open problems that have waited longest"
+    page = await _list(client, auth, "?sort=-problem_age")
+    statuses = [i["status"] for i in page["items"]]
+    assert page["items"][0]["invoice_number"] == "INV-1042"  # problem since 2026-11-03
+    open_count = sum(s in ("NEEDS_FIX", "NEEDS_REVIEW") for s in statuses)
+    assert all(s in ("NEEDS_FIX", "NEEDS_REVIEW") for s in statuses[:open_count])
+    since = [i["problem_since"] for i in page["items"][:open_count]]
+    assert since == sorted(since)  # oldest first
+
+
 @pytest.mark.parametrize(
     "query",
     ["?status=PAID", "?sort=price", "?limit=0", "?limit=201", "?q=" + "x" * 101, "?cursor=%%%"],
