@@ -1,6 +1,6 @@
 "use client";
 
-import { roleLabel } from "@payproof/api-client/i18n";
+import { loginText, roleLabel, shellText } from "@payproof/api-client/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,7 @@ export function UserMenu() {
   const switchTo = (id: string) => {
     if (id === me.id) return;
     login.mutate(id, {
-      onSuccess: ({ user }) => toast.success(`${user.full_name} kimi daxil oldunuz.`),
+      onSuccess: ({ user }) => toast.success(loginText.signedInAs(user.full_name)),
     });
   };
   const signOut = () => {
@@ -64,7 +64,7 @@ export function UserMenu() {
           className="bg-surface border-border shadow-3 z-50 w-80 rounded-lg border p-1.5"
         >
           <DropdownMenu.Label className="text-text-3 px-3 py-2 text-xs font-bold uppercase">
-            Demo hesabına keç
+            {shellText.switchAccount}
           </DropdownMenu.Label>
           <DropdownMenu.RadioGroup value={me.id} onValueChange={switchTo}>
             {users.data?.map((u) => (
@@ -84,7 +84,7 @@ export function UserMenu() {
           <DropdownMenu.Separator className="bg-border my-1 h-px" />
           <DropdownMenu.Item onSelect={signOut} className={menuItem}>
             <LogOut aria-hidden className="size-4" />
-            Çıxış
+            {shellText.signOut}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

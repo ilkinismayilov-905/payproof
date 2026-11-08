@@ -1,5 +1,6 @@
 "use client";
 
+import { actionLabel } from "@payproof/api-client/i18n";
 import { AlertDialog } from "radix-ui";
 import { useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Button } from "./button";
@@ -80,7 +81,7 @@ export function ConfirmDialog({
                 aria-disabled={pending}
                 className="aria-disabled:cursor-wait aria-disabled:opacity-50"
               >
-                Ləğv et
+                {actionLabel.cancel}
               </Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild>

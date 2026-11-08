@@ -1,6 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
+import { bakuDaysBetween } from "@payproof/api-client/format";
 import { ui } from "@payproof/api-client/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowRight, CircleCheck, Download, TriangleAlert } from "lucide-react";
@@ -13,7 +14,6 @@ import { DataTable } from "@/components/ui/data-table";
 import { EmptyState, Panel } from "@/components/ui/layout";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { useAttentionPackages } from "@/features/packages";
-import { daysBetween } from "../queries";
 
 type Item = Schemas["PackageListItem"];
 type Approval = Schemas["Dashboard"]["recent_approvals"][number];
@@ -63,7 +63,7 @@ const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
     id: "days",
     header: "Gün",
     meta: { align: "right" },
-    cell: ({ row: { original: p } }) => p.problem_since && daysBetween(p.problem_since, asOf),
+    cell: ({ row: { original: p } }) => p.problem_since && bakuDaysBetween(p.problem_since, asOf),
   },
 ];
 
