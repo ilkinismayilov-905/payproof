@@ -18,6 +18,7 @@ export function PackageListScreen() {
   const router = useRouter();
   const params = listParams(new URLSearchParams(useSearchParams().toString()));
   const list = usePackageList(params);
+  const filtered = Object.keys(params).some((k) => k !== "sort" && k !== "cursor");
   // filters push (Back restores them); typing in search replaces, so history isn't one entry per key
   const go = (next: ListParams, mode: "push" | "replace" = "push") =>
     router[mode](`/packages${listSearch(next)}`, { scroll: false });
@@ -31,6 +32,7 @@ export function PackageListScreen() {
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
         <PackageFilters params={params} onChange={go} />
         {list.isPending && <SkeletonTable rows={6} columns={8} />}
+        {/* "İlk səhifə": a stale or broken cursor (shared link) would fail again on retry */}
         {list.isError && (
           <Banner
             tone="danger"
@@ -38,9 +40,16 @@ export function PackageListScreen() {
             title={ui.errorTitle}
             className="m-4"
             actions={
-              <Button variant="outline" onClick={() => list.refetch()}>
-                {ui.retry}
-              </Button>
+              <>
+                {params.cursor && (
+                  <Button variant="outline" onClick={() => go({ ...params, cursor: undefined })}>
+                    İlk səhifə
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => list.refetch()}>
+                  {ui.retry}
+                </Button>
+              </>
             }
           >
             {list.error.message}
@@ -65,9 +74,11 @@ export function PackageListScreen() {
                   title="Heç bir paket tapılmadı"
                   description="Axtarış sözünü dəyişin və ya filtrləri təmizləyin."
                   action={
-                    <Button variant="outline" onClick={() => go({ sort: params.sort })}>
-                      {ui.clearFilters}
-                    </Button>
+                    filtered && (
+                      <Button variant="outline" onClick={() => go({ sort: params.sort })}>
+                        {ui.clearFilters}
+                      </Button>
+                    )
                   }
                 />
               }
