@@ -14,7 +14,7 @@ import { useRestoreFocus } from "@/components/ui/restore-focus";
 import { useMe } from "@/features/auth";
 import { useCustomers } from "@/features/customers";
 import { useAssignableUsers } from "@/features/users";
-import { DEMO_FILES } from "@/lib/api";
+import { demoFiles } from "@/lib/api";
 import { createPackageRequest, follow, waitForJob, type NewPackageInput } from "../new-package";
 import { DemoSetPicker } from "./demo-set-picker";
 
@@ -34,7 +34,7 @@ export function NewPackageDialog({
   const customers = useCustomers();
   const users = useAssignableUsers();
   const me = useMe().data;
-  const mock = DEMO_FILES;
+  const mock = demoFiles();
   // a demo set names its customer; the id is resolved once the customer list has loaded
   const [choice, setCustomer] = useState<{ id?: string; name?: string }>({});
   const customer = choice.id ?? customers.data?.find((c) => c.name === choice.name)?.id ?? "";
