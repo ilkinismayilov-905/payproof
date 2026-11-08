@@ -7,5 +7,14 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   prettier, // formatting is Prettier's job (root config)
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "public/mockServiceWorker.js"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "test-results/**",
+    "playwright-report/**",
+    "next-env.d.ts",
+    "public/mockServiceWorker.js",
+  ]),
 ]);
