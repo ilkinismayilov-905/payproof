@@ -101,12 +101,12 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-15 · Çıxarış pipeline-ı
 **Branch:** `feat/B-15-extraction` · **Asılılıq:** B-14 · **Skills:** ADR-0007
 **Daxildir:** `extraction/base.py` (protokol, `ExtractionResult`), `MockExtractionAdapter` (fayl adına görə `fixtures/samples.json`-dan əvvəlcədən hazırlanmış nəticə; nəticədə `source="mock"`), `PdfTextAdapter` (PyMuPDF mətn qatı + sadə sahə parser-i, CSV/XLSX), nəticənin sxem + mənbə validasiyası (mövcud olmayan səhifə → rədd), `extracted_*` və `evidence_refs` persist, sonra validation-u tetikləmək.
-**Qəbul:** [ ] `INV-1042_v2_PO-381.pdf` yüklənəndə R-001 PASS olur [ ] skan (`INV-1047`) → `REVIEW_REQUIRED`, PO `UNKNOWN` [ ] çıxarış faktura/sifariş sətrinin ölçü vahidini yazır (oxunmayan vahid R-004-də `UNKNOWN` verir)
+**Qəbul:** [ ] `INV-1042_v2_PO-381.pdf` yüklənəndə R-001 PASS olur [ ] skan (`INV-1047`) → `REVIEW_REQUIRED`, PO `UNKNOWN` [ ] çıxarış faktura/sifariş sətrinin ölçü vahidini yazır (oxunmayan vahid R-004-də `UNKNOWN` verir) [ ] `evidence_refs` yazılır və detalda `fields[].evidence`, `checks[].evidence`, müqayisə xanalarının `evidence`-i dolur (B-11-də hələ `[]`/`null`)
 
 ### B-16 · Sifariş uyğunlaşdırması
 **Branch:** `feat/B-16-matching` · **Asılılıq:** B-15
 **Daxildir:** `services/matching.py` — namizəd seçimi (prioritet: dəqiq PO ID → müştəri + məhsul kodları + miqdar; semantik oxşarlıq yalnız səbəb mətni üçün), `GET /v1/packages/{id}/match-candidates`, `POST /v1/packages/{id}/matches` (`expected_version`, versiya artımı, audit, revalidation); dəqiq ID varsa avtomatik `link_method=exact_id`.
-**Qəbul:** [ ] INV-1048 → 2 namizəd, avtomatik seçim yoxdur [ ] INV-1042 link → `NEEDS_FIX`, v2
+**Qəbul:** [ ] INV-1048 → 2 namizəd, avtomatik seçim yoxdur [ ] INV-1042 link → `NEEDS_FIX`, v2 [ ] detaldakı `link.candidates` və snapshot-dakı `candidates` matching-dən dolur (B-11-də `[]`/`()` — `services/package_detail.py`, `services/snapshot_builder.py`)
 
 ### B-17 · Validation run, imza yoxlaması
 **Branch:** `feat/B-17-validation` · **Asılılıq:** B-16
