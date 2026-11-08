@@ -7,7 +7,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 
 | Step | Ad | Status | Branch | Tarix | Qeyd |
 |---|---|---|---|---|---|
-| W-01 | Next.js skeleti | ⬜ | | | |
+| W-01 | Next.js skeleti | 🟡 | `feat/W-01-web-skeleton` | 2026-11-08 | |
 | W-02 | Data qatı və dev auth | ⬜ | | | |
 | W-03 | i18n və status komponentləri | ⬜ | | | |
 | W-04 | Tətbiq çərçivəsi (shell) | ⬜ | | | |
