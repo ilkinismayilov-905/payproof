@@ -5,20 +5,22 @@ import { Button } from "@/components/ui/button";
 import { detailText as t } from "../texts";
 
 // Inert, not `disabled`: it stays focusable, so the reason (title → description) can be read.
-const Inert = ({
+export const Inert = ({
   icon: Icon,
   label,
   reason,
   primary = false,
+  size = "lg",
 }: {
   icon: LucideIcon;
   label: string;
   reason: string;
   primary?: boolean;
+  size?: "lg" | "sm";
 }) => (
   <Button
     variant={primary ? "default" : "outline"}
-    size="lg"
+    size={size}
     aria-disabled="true"
     title={reason}
     onClick={(e) => e.preventDefault()}
