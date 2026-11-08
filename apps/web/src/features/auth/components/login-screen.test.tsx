@@ -15,10 +15,12 @@ test("signs in as the picked demo user and goes to the app", async () => {
   const submit = screen.getByRole("button", { name: "Daxil ol" });
   expect(submit).toBeDisabled();
 
-  const rashad = await screen.findByRole("button", { name: /Rəşad Əliyev/ });
+  const group = await screen.findByRole("radiogroup", { name: "Demo hesabını seçin" });
+  const rashad = await screen.findByRole("radio", { name: /Rəşad Əliyev/ });
+  expect(group).toContainElement(rashad);
   expect(rashad).toHaveAccessibleName(/Maliyyə direktoru · Təsdiqçi/);
   await userEvent.click(rashad);
-  expect(rashad).toHaveAttribute("aria-pressed", "true");
+  expect(rashad).toBeChecked();
   await userEvent.click(submit);
 
   await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));

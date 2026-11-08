@@ -4,7 +4,8 @@ test("dev login: pick a demo user, /v1/me drives the app", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/login$/);
 
-  await page.getByRole("button", { name: /Rəşad Əliyev/ }).click();
+  await page.getByText("Rəşad Əliyev").click(); // the label: the radio itself is visually hidden
+  await expect(page.getByRole("radio", { name: /Rəşad Əliyev/ })).toBeChecked();
   await page.getByRole("button", { name: "Daxil ol" }).click();
 
   await expect(page).toHaveURL(/\/$/);

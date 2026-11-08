@@ -38,11 +38,15 @@ export function LoginScreen() {
             Sintetik məlumatlarla demo
           </span>
         </header>
-        <section className="flex flex-col gap-3 p-6" aria-labelledby="login-pick">
+        <section className="flex flex-col gap-3 p-6">
           <h2 id="login-pick" className="text-lg font-semibold">
             Demo hesabını seçin
           </h2>
-          {users.isPending && <p className="text-text-3">{ui.loading}</p>}
+          {users.isPending && (
+            <p role="status" className="text-text-3">
+              {ui.loading}
+            </p>
+          )}
           {users.isError && (
             <div role="alert" className="flex items-center justify-between gap-3">
               <span className="text-danger">{ui.errorTitle}</span>
@@ -51,26 +55,36 @@ export function LoginScreen() {
               </Button>
             </div>
           )}
-          {users.data?.map((u) => (
-            <button
-              key={u.id}
-              type="button"
-              aria-pressed={picked === u.id}
-              onClick={() => setPicked(u.id)}
-              className={cn(
-                "border-border bg-surface flex min-h-16 w-full items-center gap-3 rounded-lg border-[1.5px] px-4 py-3 text-left transition duration-base ease-base",
-                "aria-pressed:border-brand aria-pressed:bg-brand-50",
-              )}
-            >
-              <span className="grow">
-                <b className="block">{u.full_name}</b>
-                <span className="text-text-3 text-sm">
-                  {u.title} · {roleLabel[u.role]}
-                </span>
-              </span>
-              {picked === u.id && <CheckCircle2 aria-hidden className="text-brand size-5" />}
-            </button>
-          ))}
+          {users.data && (
+            // Native radios: one tab stop, arrow keys, "1 of 3" for screen readers.
+            <div role="radiogroup" aria-labelledby="login-pick" className="flex flex-col gap-3">
+              {users.data.map((u) => (
+                <label
+                  key={u.id}
+                  className={cn(
+                    "border-border bg-surface flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-lg border-[1.5px] px-4 py-3 transition duration-base ease-base",
+                    "has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring has-focus-visible:ring-2",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="demo-user"
+                    value={u.id}
+                    checked={picked === u.id}
+                    onChange={() => setPicked(u.id)}
+                    className="sr-only"
+                  />
+                  <span className="grow">
+                    <b className="block">{u.full_name}</b>
+                    <span className="text-text-3 text-sm">
+                      {u.title} · {roleLabel[u.role]}
+                    </span>
+                  </span>
+                  {picked === u.id && <CheckCircle2 aria-hidden className="text-brand size-5" />}
+                </label>
+              ))}
+            </div>
+          )}
           <Button
             size="lg"
             className="mt-2 h-11"
