@@ -89,3 +89,28 @@ test("row click (mouse convenience) ignores clicks on links and buttons inside t
   expect(onRowClick).toHaveBeenCalledTimes(1);
   expect(screen.getAllByRole("row")[1]).toHaveClass("cursor-pointer");
 });
+
+test("row click leaves modified clicks and text selection alone", async () => {
+  const onRowClick = vi.fn();
+  render(
+    <DataTable
+      caption="c"
+      empty=""
+      columns={columns}
+      data={rows}
+      getRowId={(r) => r.id}
+      onRowClick={onRowClick}
+    />,
+  );
+  const cell = screen.getByRole("cell", { name: "500,00 USD" });
+  const user = userEvent.setup(); // one instance, so Control stays held during the click
+  await user.keyboard("{Control>}");
+  await user.click(cell);
+  await user.keyboard("{/Control}");
+  const selection = vi
+    .spyOn(window, "getSelection")
+    .mockReturnValue({ toString: () => "500,00" } as Selection);
+  await userEvent.click(cell);
+  selection.mockRestore();
+  expect(onRowClick).not.toHaveBeenCalled();
+});

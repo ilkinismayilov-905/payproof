@@ -122,8 +122,11 @@ export function DataTable<T>({
               onClick={
                 onRowClick &&
                 ((event) => {
-                  if (!(event.target as Element).closest("a, button, input, select, label"))
-                    onRowClick(row.original);
+                  const own = (event.target as Element).closest("a, button, input, select, label");
+                  const modified =
+                    event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0;
+                  const selecting = Boolean(window.getSelection()?.toString()); // copying text
+                  if (!own && !modified && !selecting) onRowClick(row.original);
                 })
               }
               className={cn(
