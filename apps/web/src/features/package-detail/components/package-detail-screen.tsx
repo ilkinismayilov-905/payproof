@@ -8,6 +8,7 @@ import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
+import { DocumentsPanel } from "./documents-panel";
 import { MatchBanner } from "./match-banner";
 import { PackageActions } from "./package-actions";
 import { PackageHeader } from "./package-header";
@@ -57,6 +58,8 @@ export function PackageDetailScreen({ id }: { id: string }) {
       <PackageHeader pkg={pkg.data} actions={<PackageActions status={pkg.data.status} />} />
       <ReadinessBanner pkg={pkg.data} onRefresh={() => pkg.refetch()} />
       <MatchBanner pkg={pkg.data} />
+      {/* while processing nothing is shown yet (prototype) */}
+      {pkg.data.status !== "PROCESSING" && <DocumentsPanel pkg={pkg.data} />}
     </div>
   );
 }
