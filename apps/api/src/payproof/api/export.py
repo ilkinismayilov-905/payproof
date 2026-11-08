@@ -7,16 +7,19 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 
 from payproof.api.deps import Member, Session, require
+from payproof.core.errors import NotFound
 from payproof.domain.permissions import Permission
 from payproof.repositories import package_reads as reads
+from payproof.repositories.models import ExportRecord, InvoicePackage
 from payproof.schemas import detail as d
 from payproof.schemas.auth import UserRef
 from payproof.schemas.documents import SignedUrl
 from payproof.schemas.packages import PackageRef
 from payproof.services import idempotency
-from payproof.services.export import export
+from payproof.services.export import export, zip_key
 from payproof.services.package_detail import package_detail
 from payproof.storage.s3 import Storage, get_storage
 
@@ -91,6 +94,30 @@ async def export_package(
     name = f"{done.export.package_version}-paket.zip"
     url, expires_at = storage.signed_url(done.zip_key, name)
     return ExportResult(export=record, download=SignedUrl(url=url, expires_at=expires_at))
+
+
+@router.get("/exports/{export_id}/download")
+async def export_download(
+    export_id: uuid.UUID,
+    session: Session,
+    _: Viewer,
+    storage: Annotated[Storage, Depends(get_storage)],
+) -> SignedUrl:
+    """A fresh link to an existing export's zip — no new export event."""
+    row = (
+        await session.execute(
+            select(ExportRecord, InvoicePackage.invoice_number)
+            .join(InvoicePackage, InvoicePackage.id == ExportRecord.package_id)
+            .where(ExportRecord.id == export_id, InvoicePackage.deleted_at.is_(None))
+        )
+    ).first()
+    if row is None:
+        raise NotFound  # also another company's export
+    e, number = row
+    url, expires_at = storage.signed_url(
+        zip_key(e.manifest_key), f"{number}_v{e.package_version}.zip"
+    )
+    return SignedUrl(url=url, expires_at=expires_at)
 
 
 @router.get("/packages/{package_id}/internal-report")

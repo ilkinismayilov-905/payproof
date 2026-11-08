@@ -3,12 +3,17 @@ signed download opens something; their real size goes into `document_versions.si
 The fixture sha256 stays synthetic (hash of the file name, fixtures/README.md)."""
 
 import io
+import json
 import zipfile
 from collections.abc import Sequence
 from functools import cache
 from pathlib import PurePath
 
-from payproof.repositories.models import DocumentVersion
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from payproof.repositories.models import DocumentVersion, ExportRecord
+from payproof.services.export import zip_key
 from payproof.storage.s3 import Storage
 
 
@@ -50,3 +55,15 @@ def placeholder(file_name: str) -> bytes:
 async def store_placeholders(storage: Storage, versions: Sequence[DocumentVersion]) -> None:
     for v in versions:
         await storage.put(v.storage_key, placeholder(v.file_name), v.mime)
+
+
+async def store_demo_files(session: AsyncSession, storage: Storage) -> None:
+    """Every seeded document version, plus a zip for every seeded export (its download opens)."""
+    await store_placeholders(storage, (await session.scalars(select(DocumentVersion))).all())
+    for e in await session.scalars(select(ExportRecord)):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("manifest.json", json.dumps({"files": e.files}, ensure_ascii=False))
+            for f in e.files:
+                z.writestr(f"{f['type']}/{f['file_name']}", placeholder(f["file_name"]))
+        await storage.put(zip_key(e.manifest_key), buf.getvalue(), "application/zip")

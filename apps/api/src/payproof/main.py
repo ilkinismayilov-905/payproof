@@ -10,6 +10,7 @@ from payproof.api import (
     audit,
     auth,
     customers,
+    demo,
     documents,
     events,
     export,
@@ -53,6 +54,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router, prefix="/v1")
     if settings.env == "dev":  # demo login does not exist outside dev, not even as a 403
         app.include_router(auth.dev_router, prefix="/v1")
+        app.include_router(demo.dev_router, prefix="/v1")
     app.include_router(auth.router, prefix="/v1")
     app.include_router(packages.router, prefix="/v1")
     app.include_router(audit.router, prefix="/v1")
