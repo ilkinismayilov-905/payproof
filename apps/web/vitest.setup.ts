@@ -1,5 +1,13 @@
 import "@testing-library/jest-dom/vitest";
+import { resetMockDb, server } from "@payproof/mocks/node";
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { setToken } from "@/lib/auth";
 
-afterEach(cleanup);
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
+afterEach(() => {
+  cleanup();
+  resetMockDb();
+  setToken(null);
+});
+afterAll(() => server.close());
