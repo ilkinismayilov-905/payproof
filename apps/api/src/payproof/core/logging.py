@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 import traceback
 import uuid
 from collections.abc import Awaitable, Callable
@@ -15,6 +16,7 @@ CORRELATION_HEADER = "X-Correlation-ID"
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 correlation_id: ContextVar[str | None] = ContextVar("correlation_id", default=None)
 log = logging.getLogger(__name__)
+access = logging.getLogger("payproof.access")
 
 
 class JsonFormatter(logging.Formatter):
@@ -65,6 +67,8 @@ async def correlation_id_middleware(
     incoming = request.headers.get(CORRELATION_HEADER, "")
     cid = incoming if _SAFE_ID.match(incoming) else uuid.uuid4().hex
     token = correlation_id.set(cid)
+    started = time.perf_counter()
+    response: Response | None = None
     try:
         response = await call_next(request)
     except Exception:
@@ -72,6 +76,11 @@ async def correlation_id_middleware(
         log.exception("unhandled error")
         response = error_response(500, ErrorCode.INTERNAL_ERROR, "Gözlənilməz xəta baş verdi.")
     finally:
+        # our access log replaces uvicorn's: path only, the query string may hold search
+        # terms or document text; logged while the correlation id is still set
+        ms = (time.perf_counter() - started) * 1000
+        status = response.status_code if response is not None else 500  # cancelled request
+        access.info("%s %s %d %.0fms", request.method, request.url.path, status, ms)
         correlation_id.reset(token)
     response.headers[CORRELATION_HEADER] = cid
     return response

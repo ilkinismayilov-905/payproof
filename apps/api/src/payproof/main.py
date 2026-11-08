@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from payproof.api import auth, health
+from payproof.api import auth, health, packages
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
@@ -17,10 +17,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if settings.env == "dev":  # demo login does not exist outside dev, not even as a 403
         app.include_router(auth.dev_router, prefix="/v1")
     app.include_router(auth.router, prefix="/v1")
+    app.include_router(packages.router, prefix="/v1")
     return app
 
 
 def run() -> None:
     dev = get_settings().env == "dev"
     # log_config=None keeps our JSON root handler instead of uvicorn's defaults
-    uvicorn.run("payproof.main:create_app", factory=True, port=8000, reload=dev, log_config=None)
+    # access_log=False: uvicorn's line has the query string and no correlation id; ours has neither
+    # problem (core/logging.py)
+    uvicorn.run(
+        "payproof.main:create_app",
+        factory=True,
+        port=8000,
+        reload=dev,
+        log_config=None,
+        access_log=False,
+    )

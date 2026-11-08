@@ -17,7 +17,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | B-08 | Qayda mühərriki II — R-005…R-009, status törədilməsi, golden test | ✅ | `feat/B-08-rules-engine-2` | 2026-11-08 | R-005…R-009, `evaluate()`, `derive_status()`; golden 14/14 + yeni dəstlər + INV-1042 axını; mesajlar TS mühərriki ilə bayt-bayt eyni (review yoxladı); oxunmamış dəyər/sətir və nəticəsiz run heç vaxt PASS/READY deyil |
 | B-09 | Seed əmri | ✅ | `feat/B-09-seed` | 2026-11-08 | `payproof-seed [--reset]` / `make seed [RESET=1]`: bir tranzaksiya, slug→uuid5 (deterministik), seed varsa no-op, reset TRUNCATE; cari run + nəticələr hər bitmiş paket üçün; storage faylları (B-13) və audit tarixçəsi (B-12) hələ yoxdur; tenant guard artıq model import-u ilə qeydiyyatdan keçir |
 | B-10 | Auth, tenant, səlahiyyət | ✅ | `feat/B-10-auth` | 2026-11-08 | HS256 dev token (sub/exp/iat/aud/iss, alg pinned), `current_member` (üzvlük DB-dən, `bind_tenant`), `require()`, `/me`, `/users`, dev-users/dev-login yalnız `ENV=dev`; fail-closed: `ENV` məcburi, prod-da dev token yoxdur (JWKS gələnə qədər 500) və zəif `JWT_SECRET` ilə qalxmır; dev-users = assignee olmayan bütün üzvlər |
-| B-11 | Oxuma API-ləri | ⬜ | | | |
+| B-11 | Oxuma API-ləri | ✅ | `feat/B-11-read-api` | 2026-11-08 | `GET /v1/dashboard`, `/v1/packages` (filtr/sort/cursor, yaddaşda), `/v1/packages/{id}`; status cari versiyanın son run-ından, sabit sorğu sayı; openapi jsonschema testi (14 detal); öz access log-u; `check_results.fix_hint` (0015); DB → snapshot builder (B-17 üçün); candidates (B-16) və evidence (B-15) hələ boş |
 | B-12 | Audit servisi | ⬜ | | | |
 | B-12b | SSE canlı hadisələr | ⬜ | | | ADR-0010 |
 | B-13 | Storage və yükləmə | ⬜ | | | |

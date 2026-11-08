@@ -80,10 +80,16 @@ async def test_extraction_rows_for_finished_packages(db: AsyncSession) -> None:
     assert await _count(db, ExtractedInvoice) == len(done) == 13
     assert await _count(db, ExtractedInvoiceLine) == sum(len(p["invoice"]["lines"]) for p in done)
     assert await _count(db, DeliveryNote) == sum(1 for p in done if p["delivery"])
+    # PO + qty and unit price per invoice line, for every extracted invoice
+    assert await _count(db, ExtractedField) == sum(1 + 2 * len(p["invoice"]["lines"]) for p in done)
     review = (
-        await db.execute(select(ExtractedField.field_path, ExtractedField.review_status))
+        await db.execute(
+            select(ExtractedField.field_path, ExtractedField.raw_value).where(
+                ExtractedField.review_status == "REVIEW_REQUIRED"
+            )
+        )
     ).all()
-    assert review == [("invoice.po_ref", "REVIEW_REQUIRED")]  # INV-1047 scan
+    assert review == [("invoice.po_ref", "PO-3?7")]  # INV-1047 scan
 
 
 async def test_workflow_rows(db: AsyncSession) -> None:
