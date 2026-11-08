@@ -3,7 +3,17 @@ import expected from "../../../fixtures/expected.json";
 import { evaluate } from "../src/engine";
 import { createMockDb } from "../src/store";
 
-const IMPLEMENTED = ["R-001", "R-002", "R-003", "R-004", "R-005", "R-006"];
+const IMPLEMENTED = [
+  "R-001",
+  "R-002",
+  "R-003",
+  "R-004",
+  "R-005",
+  "R-006",
+  "R-007",
+  "R-008",
+  "R-009",
+];
 const cases = Object.entries(expected.packages).filter(([, e]) => e.status !== "PROCESSING");
 
 describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
@@ -73,6 +83,29 @@ describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
     const r006 = evaluate(db, db.pkg("pkg_1045")).find((c) => c.rule_id === "R-006")!;
     expect(r006.outcome).toBe("FAIL");
     expect(r006.message).toContain("MS-05: fakturada 120, təhvil aktında 100 qutu");
+  });
+
+  it("evaluates all nine rules, every result exactly once", () => {
+    const db = createMockDb();
+    expect(evaluate(db, db.pkg("pkg_1038")).map((c) => c.rule_id)).toEqual(IMPLEMENTED);
+  });
+
+  it("INV-1046 R-007: delivery note for another order is UNKNOWN, not PASS", () => {
+    const db = createMockDb();
+    const r007 = evaluate(db, db.pkg("pkg_1046")).find((c) => c.rule_id === "R-007")!;
+    expect(r007.outcome).toBe("UNKNOWN");
+    expect(r007.message).toBe(
+      "TS-5529 sənədində sifariş: PO-391; təsdiqlənmiş sifariş: PO-386. Uyğunluq təsdiqlənməyib.",
+    );
+  });
+
+  it("R-009 fails when the stated total differs beyond the tolerance", () => {
+    const db = createMockDb();
+    const p = db.pkg("pkg_1038");
+    p.invoice.total = "4860.02";
+    expect(evaluate(db, p).find((c) => c.rule_id === "R-009")).toMatchObject({ outcome: "FAIL" });
+    p.invoice.total = "4860.01";
+    expect(evaluate(db, p).find((c) => c.rule_id === "R-009")).toMatchObject({ outcome: "PASS" });
   });
 
   it("INV-1049 R-004: currency mismatch is UNKNOWN, no automatic conversion", () => {
