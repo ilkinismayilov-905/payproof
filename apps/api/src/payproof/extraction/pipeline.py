@@ -6,6 +6,7 @@ from payproof.core.settings import get_settings
 from payproof.domain.enums import DocumentStatus
 from payproof.extraction.base import ExtractionAdapter, validate
 from payproof.extraction.mock import MockExtractionAdapter
+from payproof.extraction.pdf import PdfTextAdapter
 from payproof.extraction.persist import store
 from payproof.extraction.previous import extraction_input
 from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
@@ -17,7 +18,9 @@ def get_adapter(provider: str | None = None) -> ExtractionAdapter:
     provider = provider or get_settings().ai_provider
     if provider == "mock":
         return MockExtractionAdapter()
-    raise NotImplementedError(f"AI_PROVIDER={provider}")  # pdf: B-15 next commit; llm: B-25
+    if provider == "pdf":
+        return PdfTextAdapter()
+    raise NotImplementedError(f"AI_PROVIDER={provider}")  # llm: B-25 (stretch)
 
 
 def adapter_extractor(adapter: ExtractionAdapter, storage: Storage) -> Extractor:
