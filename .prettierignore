@@ -3,3 +3,5 @@ graft/
 docs/product/prototype/
 **/generated/
 .data/
+*.md
+.claude/

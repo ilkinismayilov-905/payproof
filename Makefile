@@ -31,6 +31,7 @@ ifneq ($(has_api),)
 endif
 
 lint: ## Lint everything
+	pnpm format:check
 	pnpm turbo run lint
 ifneq ($(has_api),)
 	cd $(API) && uv run ruff check .
