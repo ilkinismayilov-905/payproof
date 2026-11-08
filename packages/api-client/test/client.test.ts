@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, createApiClient } from "../src";
+import { expectTypeOf } from "vitest";
+import { ApiError, createApiClient, unwrap, type Schemas } from "../src";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -90,6 +91,20 @@ describe("createApiClient", () => {
     const err = await pending;
     expect(err).not.toBeInstanceOf(ApiError);
     expect((err as Error).name).toBe("AbortError");
+  });
+
+  it("unwrap resolves to non-optional data (TanStack Query queryFn)", async () => {
+    const { client } = setup(() => json(200, { items: [] }));
+    const data = await unwrap(client.GET("/v1/customers"));
+    expectTypeOf(data).toEqualTypeOf<{ items: Schemas["Customer"][] }>();
+    expect(data).toEqual({ items: [] });
+  });
+
+  it("unwrap propagates ApiError", async () => {
+    const { client } = setup(() =>
+      json(403, { error: { code: "FORBIDDEN", message: "Səlahiyyət yoxdur.", details: {} } }),
+    );
+    await expect(unwrap(client.GET("/v1/me"))).rejects.toBeInstanceOf(ApiError);
   });
 
   it("uses globalThis.fetch at request time (MSW in node patches it after the client exists)", async () => {

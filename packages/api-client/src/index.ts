@@ -1,4 +1,4 @@
-export { ApiError, createApiClient } from "./client";
+export { ApiError, createApiClient, unwrap } from "./client";
 export type { ApiClient, ApiClientOptions, ErrorCode } from "./client";
 export type { components, operations, paths } from "./generated/schema";
 

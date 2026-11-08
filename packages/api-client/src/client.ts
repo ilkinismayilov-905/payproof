@@ -72,3 +72,13 @@ export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) 
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
+
+/**
+ * `await unwrap(client.GET(...))` → the response body. Errors are already thrown as ApiError by the
+ * middleware, so a resolved call always has data (`undefined` only for 204 endpoints).
+ */
+export async function unwrap<R extends { data?: unknown }>(
+  request: Promise<R>,
+): Promise<Exclude<R["data"], undefined>> {
+  return (await request).data as Exclude<R["data"], undefined>;
+}
