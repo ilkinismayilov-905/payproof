@@ -2,6 +2,7 @@
 
 import datetime as dt
 import uuid
+from collections.abc import Sequence
 from decimal import Decimal
 
 from payproof.repositories.models import Company, Customer, Membership, RequirementSet, User
@@ -11,7 +12,7 @@ from payproof.seed.fixtures import CUSTOMERS, Fixture, load, uid
 COMPANY_ID = uid("company_a")
 
 
-def identity_rows() -> list[list[Base]]:
+def identity_rows() -> list[Sequence[Base]]:
     """Rows in insert order: each inner list only references rows of earlier lists."""
     company = load("company.json")
     users = load("users.json")
