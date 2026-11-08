@@ -3,15 +3,11 @@ import uuid
 from sqlalchemy import Boolean, CheckConstraint, ForeignKey, String, Text, UniqueConstraint, true
 from sqlalchemy.orm import Mapped, mapped_column
 
-from payproof.repositories.orm import Base, IdMixin, TimestampMixin
+from payproof.repositories.orm import Base, IdMixin, TimestampMixin, one_of
 
 # shortcut: mirrors `Role` in openapi.yaml; switch to domain.enums.Role once B-06 adds it
 ROLES = ("operator", "approver", "readonly", "admin", "assignee")
 VOEN_CHECK = "voen ~ '^[0-9]{10}$'"
-
-
-def _in(column: str, values: tuple[str, ...]) -> str:
-    return f"{column} IN ({', '.join(repr(v) for v in values)})"
 
 
 class Company(IdMixin, TimestampMixin, Base):
@@ -42,7 +38,7 @@ class Membership(IdMixin, TimestampMixin, Base):
     __tablename__ = "memberships"
     __table_args__ = (
         UniqueConstraint("user_id", "company_id"),
-        CheckConstraint(_in("role", ROLES), name="role_known"),
+        one_of("role", ROLES, "role_known"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))

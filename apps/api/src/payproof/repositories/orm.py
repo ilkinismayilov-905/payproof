@@ -1,7 +1,18 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, MetaData, Uuid, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    MetaData,
+    Numeric,
+    UniqueConstraint,
+    Uuid,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 from payproof.core.ids import uuid7
@@ -46,3 +57,34 @@ class TenantMixin:
 
 class TenantEntity(IdMixin, TimestampMixin, TenantMixin):
     """Default columns of a business table: `class Customer(TenantEntity, Base)`."""
+
+
+# data-model.md: money NUMERIC(18,2) + currency, quantity NUMERIC(18,3); never float
+MONEY = Numeric(18, 2)
+QTY = Numeric(18, 3)
+# shortcut: mirrors `Currency` in openapi.yaml; switch to domain enums once B-06 adds them
+CURRENCIES = ("AZN", "USD")
+
+
+def one_of(column: str, values: tuple[str, ...], name: str) -> CheckConstraint:
+    """Enum as TEXT + CHECK (data-model.md); NULL passes, so pair with NOT NULL if required."""
+    return CheckConstraint(f"{column} IN ({', '.join(repr(v) for v in values)})", name=name)
+
+
+def tenant_key() -> UniqueConstraint:
+    """`(id, company_id)` unique: lets children reference this row with `same_tenant_fk`."""
+    return UniqueConstraint("id", "company_id")
+
+
+def same_tenant_fk(
+    column: str, target: str, target_column: str = "id", **kw: Any
+) -> ForeignKeyConstraint:
+    """`column` must point at a row of the *same* company (target needs `tenant_key()`)."""
+    return ForeignKeyConstraint(
+        [column, "company_id"], [f"{target}.{target_column}", f"{target}.company_id"], **kw
+    )
+
+
+def member_fk(column: str) -> ForeignKeyConstraint:
+    """A user reference: users are global, so the user must be a member of this company."""
+    return same_tenant_fk(column, "memberships", "user_id")
