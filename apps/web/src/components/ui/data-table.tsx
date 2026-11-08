@@ -62,12 +62,12 @@ export function DataTable<T>({
     columns,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
-    manualSorting: true,
-    enableSorting: Boolean(onSortChange),
-    // opt-in per column: the API sorts by a fixed list of keys (openapi `sort`), others would 422
-    defaultColumn: { enableSorting: false },
-    state: { sorting: sort ? [sort] : [] },
   });
+  // The server sorts, so TanStack's sorting (which needs accessors) is not used. Opt-in per column:
+  // the API sorts by a fixed list of keys (openapi `sort`), any other key would 422.
+  const canSort = (enabled?: boolean) => Boolean(onSortChange) && enabled === true;
+  const sortedOf = (columnId: string) =>
+    sort?.id === columnId ? (sort.desc ? "desc" : "asc") : false;
 
   return (
     <div className="overflow-x-auto">
@@ -78,20 +78,21 @@ export function DataTable<T>({
             <tr key={group.id}>
               {group.headers.map((header) => {
                 const column = header.column;
-                const sorted = column.getIsSorted();
+                const sortable = canSort(column.columnDef.enableSorting);
+                const sorted = sortedOf(column.id);
                 const label = flexRender(column.columnDef.header, header.getContext());
                 const { aria, Icon } = SORTED[sorted || "none"];
                 return (
                   <th
                     key={header.id}
                     scope="col"
-                    aria-sort={column.getCanSort() ? aria : undefined}
+                    aria-sort={sortable ? aria : undefined}
                     className={cn(
                       "border-border bg-surface-2 text-text-3 border-b px-4 py-2.5 text-left text-xs font-bold tracking-wide whitespace-nowrap uppercase",
                       column.columnDef.meta?.align === "right" && "text-right",
                     )}
                   >
-                    {column.getCanSort() ? (
+                    {sortable ? (
                       <button
                         type="button"
                         onClick={() => onSortChange?.({ id: column.id, desc: sorted === "asc" })}
