@@ -40,15 +40,26 @@ test("keyboard only: skip link, sidebar, search and user menu", async ({ page })
   await expect(account).toBeFocused();
 });
 
-// /packages: a wide table must scroll inside its own box, never the page
-for (const [path, width] of ["/overview", "/packages"].flatMap((p) =>
+// every main page: wide tables and grids scroll inside their own box, never the page
+const PAGES = {
+  "/overview": "İcmal",
+  "/packages": "Faktura paketləri",
+  "/packages/0193a000-0000-7000-8002-000000001042": "INV-1042",
+  "/tasks": "Tapşırıqlar",
+  "/rules": "Müştəri qaydaları",
+  "/audit": "Audit tarixçəsi",
+};
+for (const [path, width] of Object.keys(PAGES).flatMap((p) =>
   [768, 1024, 1440].map((w) => [p, w] as const),
 )) {
   test(`no horizontal scroll on ${path} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await signIn(page, path);
     // not "networkidle": the live event stream (ADR-0010) keeps a request open for good
-    await expect(page.getByRole("table").first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: PAGES[path as keyof typeof PAGES] }),
+    ).toBeVisible();
+    await expect(page.locator('[aria-busy="true"], [data-slot="skeleton"]')).toHaveCount(0);
     // the page itself and the scrolling content area (<main> scrolls on its own)
     const overflow = await page.evaluate(() =>
       [document.documentElement, document.getElementById("content")!].map(
