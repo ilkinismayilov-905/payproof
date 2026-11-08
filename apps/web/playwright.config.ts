@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3000;
+// CI: a production build on its own port; locally the dev server (reused when already running)
+const ci = !!process.env.CI;
+const port = ci ? 3100 : 3000;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -15,9 +17,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm dev`,
+    // mock mode is baked in at build time; prebuild generates the MSW worker
+    command: ci ? `pnpm build && pnpm exec next start -p ${port}` : "pnpm dev",
     port,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !ci,
+    timeout: 240_000,
     env: { NEXT_PUBLIC_API_MOCK: "1" },
   },
 });
