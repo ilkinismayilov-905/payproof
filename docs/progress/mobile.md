@@ -11,6 +11,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | M-02 | Data qatı | ⬜ | | | |
 | M-03 | Mobil UI dəsti | ⬜ | | | |
 | M-04 | Giriş, sessiya, profil | ⬜ | | | |
+| M-04b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
 | M-05 | Əsas ekran | ⬜ | | | |
 | M-06 | Paketlər siyahısı | ⬜ | | | |
 | M-07 | Paket detalı | ⬜ | | | |

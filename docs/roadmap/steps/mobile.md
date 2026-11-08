@@ -31,6 +31,22 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`. Rea
 **Daxildir:** Giriş ekranı (brand hero, "Sintetik məlumatlarla demo", demo hesab seçimi: Rəşad — təsdiqçi default, Aygün, Kamran; `POST /auth/dev-login`), sessiya saxlanması, route guard (girişdən sonra istənilən səhifəyə qayıtmaq), Profil (ad, vəzifə, rol, şirkət, səlahiyyətlər `GET /v1/me`-dən Bəli/Xeyr, Dil — "Tezliklə", Push — "P2", Görünüş — sistem, Veb tətbiqə keç, Hesabdan çıx).
 **Qəbul:** [ ] çıxışdan sonra keş təmizlənir
 
+### M-04b · Canlı yeniləmələr
+**Branch:** `feat/M-04b-live-updates` · **Asılılıq:** M-04, S-09 · **Skills:** `superpowers:test-driven-development`
+**Məqsəd:** ADR-0010 — vebdə edilən dəyişiklik (məs. operatorun düzəlişi, ixrac) mobildə refresh-siz, ≤ 2 s-də görünsün.
+**Daxildir:**
+- `lib/live.ts`: `useLiveUpdates()` — girişdən sonra app layout-unda bir dəfə qoşulur (`subscribeEvents`), çıxışda/401-də dayanır
+- invalidate xəritəsi (`LiveEventType` → mobil query key-ləri: Əsas ekran, paketlər, `detail(package_id)`, bildirişlər + tab bar sayğacı); bilinməyən tip və (yenidən) qoşulma → bütün keş; testlə örtülmüş təmiz funksiya
+- mobil davranış: `visibilitychange` gizli → axın bağlanır, görünən → yenidən qoşulma + tam refetch; offline-da qoşulmur (M-11 offline rejimi ilə uyğun)
+- "kim dəyişdi" toast-u (M-03 `Toast`; öz hadisəsi üçün yox) və `usePackageChangedSince(packageId, version)` + `Banner` — açıq vərəqədə (M-08/M-09 təsdiq vərəqəsi istifadə edir) "Başqa istifadəçi paketi yenilədi (vN)…" + təsdiq bağlanır
+- ehtiyat polling: axın qırıq ikən 30 s, bərpada dayanır
+**Daxil deyil:** Web Push (P2, M-13), bağlantı statusu indikatoru, təsdiq vərəqəsinin özü (M-09).
+**Qəbul meyarları:**
+- [ ] İki tab (mock, eyni origin `:3001`): bir tab-da dəyişiklik → digərində ≤ 2 s-də refresh-siz + toast
+- [ ] Fona keçib qayıdanda axın yenidən qoşulur və məlumat yenilənir (Vitest, `visibilitychange`)
+- [ ] Axın kəsiləndə 30 s polling işləyir, bərpada dayanır
+**Commit planı:** 1) invalidate xəritəsi + testlər 2) `useLiveUpdates` + layout 3) visibility/offline davranışı 4) toast + `usePackageChangedSince` 5) ehtiyat polling
+
 ### M-05 · Əsas ekran
 **Branch:** `feat/M-05-home` · **Asılılıq:** M-04
 **Daxildir:** salamlama + tarix, "Təsdiqinizi gözləyir" hero kartı (say + valyuta üzrə məbləğ; operator üçün "Təsdiqçini gözləyir"), 4 status kartı (klik → paketlər filtrli), açıq problemli məbləğ (AZN/USD ayrıca + "itki deyil"), təsdiq gözləyənlər siyahısı, son fəaliyyət; skeleton, boş vəziyyət.
@@ -54,7 +70,7 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`. Rea
 ### M-09 · Təsdiq axını
 **Branch:** `feat/M-09-approval` · **Asılılıq:** M-08 · **Skills:** `security-and-hardening` (idempotentlik, 409)
 **Daxildir:** təsdiq vərəqəsi (versiya, qayda dəsti, yoxlama xülasəsi; 1) hər sənədə bax — hamısı baxılmayınca qeyd bağlıdır; 2) "Cari vN versiyasının sənədlərinə və yoxlama nəticələrinə baxdım"; "bank ödənişinə səlahiyyət vermir" qeydi), `POST /approve` (`expected_version`, `Idempotency-Key`), 409 → "Paket yenilənib, yenidən baxın" + məlumatı yenilə, 403 → izah, uğur ekranı ("Paket göndərilməyə hazırdır", "…-lik faktura paketi…", "ödəniş zəmanəti deyil", təsdiq detalları, "Veb tətbiqdə ixrac et", "Ana səhifəyə qayıt").
-**Qəbul:** [ ] sənədlərə baxmadan təsdiq mümkün deyil [ ] iki dəfə basmaq bir təsdiq yaradır [ ] mobil təsdiq vebdə dərhal görünür (eyni mock DB / API)
+**Qəbul:** [ ] sənədlərə baxmadan təsdiq mümkün deyil [ ] iki dəfə basmaq bir təsdiq yaradır [ ] təsdiqdən sonra mobilin öz Əsas ekranı, siyahısı və detalı dərhal yenilənir. Qeyd: mock rejimində veb (`:3000`) və mobil (`:3001`) **ayrı mock bazalarıdır** (ayrı origin — ADR-0010); mobil təsdiqin vebdə görünməsi M-12 və I-01-də real API ilə yoxlanır
 
 ### M-10 · Bildirişlər
 **Branch:** `feat/M-10-notifications` · **Asılılıq:** M-07
@@ -66,9 +82,9 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`. Rea
 **Qəbul:** [ ] e2e CI-da yaşıl [ ] offline-da təsdiq düyməsi aydın şəkildə bağlıdır
 
 ### M-12 · Real API-yə keçid
-**Branch:** `feat/M-12-real-api` · **Asılılıq:** M-11, B-20, B-23
+**Branch:** `feat/M-12-real-api` · **Asılılıq:** M-11, B-12b, B-20, B-23
 **Daxildir:** `NEXT_PUBLIC_API_MOCK=0`, real dev-login, real fayl linkləri (imzalı URL), fərqlərin düzəldilməsi (müqavilə pozuntusu → `/contract-change` — lead ilə), e2e real stack-də.
-**Qəbul:** [ ] mobil təsdiq → veb-də `APPROVED_READY` (real API)
+**Qəbul:** [ ] mobil təsdiq → veb-də `APPROVED_READY` (real API) refresh-siz, ≤ 2 s-də (SSE) [ ] vebdəki dəyişiklik mobildə ≤ 2 s-də görünür
 
 ---
 **Gələcək (P2, indi etmə):** M-13 Web Push bildirişləri · anbar üçün kamera ilə təhvil aktı yükləmə (brifdə yoxdur — əvvəl validasiya).
