@@ -56,7 +56,14 @@ export class EventBus {
     this.listeners.add(fn);
     return () => void this.listeners.delete(fn);
   }
+  /** A failing listener (closed stream, channel) must not turn an applied write into a 500. */
   emit(e: LiveEvent) {
-    for (const fn of this.listeners) fn(e);
+    for (const fn of this.listeners) {
+      try {
+        fn(e);
+      } catch (error) {
+        console.error("[mocks] live event listener failed", error);
+      }
+    }
   }
 }

@@ -29,6 +29,7 @@ export const eventHandlers = (ctx: Ctx, heartbeatMs: number) => [
             clearInterval(timer);
           };
           request.signal.addEventListener("abort", () => {
+            if (!open) return; // already cancelled — the controller is closed
             stop();
             controller.close();
           });

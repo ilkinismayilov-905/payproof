@@ -39,7 +39,7 @@ Ayrı instans lazımdırsa: `createMockServer({ latencyMs, jobDelayMs })` / `cre
 - Yeni paket yalnız demo dəstlərindən (`INV-1051.pdf`, `INV-1052.pdf`) yaranır; job sorğulananda emal bitir.
 - Fayl növü uzantıya görə yoxlanır (real API məzmuna görə — B-13). `sha256` fayl adından hesablanır (fixtures konvensiyası).
 - "İmzalı" linklər `*/mock-files/*` placeholder-ə aparır (mətn faylı).
-- Tab sinxronu: eyni anda iki tab-da yazılarsa son snapshot qalib gəlir. `POST /v1/demo/reset` digər tab-lara ötürülmür (hadisəsi yoxdur) — onları yeniləyin. Veb (`:3000`) və mobil (`:3001`) ayrı origin-dir — bir-birini görmür; `Last-Event-ID` qəbul edilir, replay yoxdur.
+- Tab sinxronu: eyni anda iki tab-da yazılarsa son snapshot qalib gəlir. `POST /v1/demo/reset` digər tab-lara ötürülmür (hadisəsi yoxdur) — onları yeniləyin, yoxsa köhnə tab-ın növbəti yazması köhnə DB-ni yayıb reset-i hamıda geri qaytarır. Veb (`:3000`) və mobil (`:3001`) ayrı origin-dir — bir-birini görmür; `Last-Event-ID` qəbul edilir, replay yoxdur.
 
 ## Testlər
 `pnpm --filter @payproof/mocks test` — mühərrik (golden), domen əməliyyatları, serializer-lər (sxem), hər handler qrupu `@payproof/api-client` ilə, müqavilə əhatəsi (hər əməliyyatın handler-i var) və INV-1042 tam axını.
