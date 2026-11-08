@@ -28,7 +28,7 @@ describe("delete and requirement changes", () => {
       );
   });
 
-  it("a new rule set invalidates approvals of not-exported packages and re-validates", () => {
+  it("a new rule set bumps every not-exported package of the customer (ADR-0009)", () => {
     const db = createMockDb();
     const c2 = db.customer("c2");
     const set = saveRequirements(
@@ -42,8 +42,16 @@ describe("delete and requirement changes", () => {
       "u2",
     );
     expect(set).toMatchObject({ version: 2, approved_by: "u2" });
+    expect(db.pkg("pkg_1035")).toMatchObject({ version: 2 });
     expect(db.pkg("pkg_1035").approvals[0]).toMatchObject({ valid: false });
     expect(info(db, db.pkg("pkg_1035")).status).toBe("READY_FOR_APPROVAL");
+    expect(db.notifications.at(-1)).toMatchObject({ user_id: "u2", package_id: "pkg_1035" });
+    // other c2 packages move to a new version too; c1 packages and processing ones do not
+    expect(db.pkg("pkg_1045").version).toBe(2);
+    expect(db.pkg("pkg_1044").version).toBe(1);
+    expect(db.pkg("pkg_1050").version).toBe(1);
+    // an exported version keeps the rules it was exported under
+    expect(db.pkg("pkg_1031")).toMatchObject({ version: 1 });
     expect(info(db, db.pkg("pkg_1031")).status).toBe("EXPORTED");
     expect(db.pkg("pkg_1031").approvals[0]!.valid).toBe(true);
   });

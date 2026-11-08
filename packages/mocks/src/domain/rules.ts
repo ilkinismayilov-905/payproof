@@ -1,9 +1,9 @@
-// New customer requirement set version (approver only — checked by the HTTP layer). Sets are immutable:
-// approvals under an older version stop counting and affected packages are re-validated.
+// New customer requirement set version (approver only — checked by the HTTP layer). Sets are immutable;
+// every not-exported package of the customer gets a new version and is re-validated (ADR-0009).
 import type { MockDb } from "../store";
 import type { Customer, RequirementSet } from "../types";
 import { log } from "./audit";
-import { validate } from "./validate";
+import { bump, validate } from "./validate";
 
 export type RuleInput = Omit<RequirementSet, "version" | "approved_by">;
 
@@ -25,19 +25,8 @@ export function saveRequirements(
   for (const p of db.packages) {
     if (p.deleted || p.processing || p.customer_id !== c.id) continue;
     if (p.exports.some((e) => e.package_version === p.version)) continue; // exported under its own rules
-    for (const a of p.approvals)
-      if (a.valid && a.requirement_set_version < version) {
-        a.valid = false;
-        a.invalidated_reason = `qayda dəsti v${version} qüvvəyə mindi`;
-        a.invalidated_at = db.nowIso();
-        log(db, {
-          actor: "system",
-          action: "approval.invalidated",
-          message: `v${a.package_version} təsdiqi qayda dəsti v${version} qüvvəyə mindiyi üçün qüvvədən düşdü`,
-          pkg: p.id,
-          objectType: "approval",
-        });
-      }
+    // ADR-0009: a rule change is a new package version — approval invalidated (audited), approver notified
+    bump(db, p, `qayda dəsti v${version} qüvvəyə mindi`);
     validate(db, p);
   }
   return set;
