@@ -273,6 +273,11 @@ components:
       description: Tenant comes from the membership in the token; `company_id` is never accepted in a body.
 
   parameters:
+    PackageId:
+      name: package_id
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Uuid" }
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -926,3 +931,80 @@ components:
         created_at: { type: string, format: date-time }
         created_by: { $ref: "#/components/schemas/UserRef" }
         resolved_at: { type: ["string", "null"], format: date-time }
+    PackagePermissions:
+      type: object
+      additionalProperties: false
+      required: [can_edit, can_manage_tasks, can_approve, can_export, can_delete]
+      description: UI hint = role permission AND current state allows it. The server re-checks every request.
+      properties:
+        can_edit: { type: boolean }
+        can_manage_tasks: { type: boolean }
+        can_approve: { type: boolean }
+        can_export: { type: boolean }
+        can_delete: { type: boolean }
+    PackageDetail:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          invoice_number,
+          version,
+          status,
+          processing,
+          customer,
+          invoice_date,
+          owner,
+          created_at,
+          updated_at,
+          total,
+          requirement_set,
+          link,
+          documents,
+          fields,
+          comparison,
+          checks,
+          summary,
+          current_approval,
+          approvals,
+          exports,
+          tasks,
+          permissions,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        invoice_number: { type: string }
+        version:
+          { type: integer, minimum: 1, description: Send as `expected_version` in every change }
+        status: { $ref: "#/components/schemas/PackageStatus" }
+        processing: { type: boolean }
+        customer: { $ref: "#/components/schemas/CustomerRef" }
+        invoice_date: { type: string, format: date }
+        owner: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        total: { $ref: "#/components/schemas/Money" }
+        requirement_set: { $ref: "#/components/schemas/RequirementSet" }
+        link: { $ref: "#/components/schemas/OrderLink" }
+        documents: { type: array, items: { $ref: "#/components/schemas/Document" } }
+        fields: { type: array, items: { $ref: "#/components/schemas/ExtractedField" } }
+        comparison:
+          type: object
+          additionalProperties: false
+          required: [rows]
+          properties:
+            rows: { type: array, items: { $ref: "#/components/schemas/ComparisonRow" } }
+        checks: { type: array, items: { $ref: "#/components/schemas/CheckResult" } }
+        summary: { $ref: "#/components/schemas/CheckSummary" }
+        current_approval:
+          description: Valid approval for the current version and rule set, if any.
+          oneOf: [{ type: "null" }, { $ref: "#/components/schemas/ApprovalRecord" }]
+        approvals:
+          {
+            type: array,
+            description: All approvals incl. invalidated ones,
+            items: { $ref: "#/components/schemas/ApprovalRecord" },
+          }
+        exports: { type: array, items: { $ref: "#/components/schemas/ExportRecord" } }
+        tasks: { type: array, items: { $ref: "#/components/schemas/Task" } }
+        permissions: { $ref: "#/components/schemas/PackagePermissions" }
