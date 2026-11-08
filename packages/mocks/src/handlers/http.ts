@@ -67,6 +67,18 @@ export function expectVersion(p: Pkg, expected: unknown) {
     );
 }
 
+/** JSON body as an object; malformed JSON → 400 (contract BadRequest). */
+export async function body(request: Request): Promise<Record<string, unknown>> {
+  try {
+    const value: unknown = await request.json();
+    if (value && typeof value === "object" && !Array.isArray(value))
+      return value as Record<string, unknown>;
+  } catch {
+    // fall through
+  }
+  throw new MockError("VALIDATION_ERROR", "Sorğunun formatı yanlışdır.", 400);
+}
+
 export const required = (value: unknown, field: string): string => {
   if (typeof value !== "string" || !value.trim())
     throw new MockError("VALIDATION_ERROR", "Sorğuda xəta var.", 422, {

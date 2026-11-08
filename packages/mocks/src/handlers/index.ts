@@ -6,6 +6,7 @@ import { authHandlers } from "./auth";
 import type { Ctx } from "./http";
 import { listHandlers } from "./lists";
 import { readHandlers } from "./read";
+import { reviewHandlers } from "./review";
 
 export interface MockApiOptions extends MockDbOptions {
   /** Artificial latency per request (ms). Browser ~400, tests 0. */
@@ -21,6 +22,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...readHandlers(ctx),
     ...listHandlers(ctx),
     ...auditHandlers(ctx),
+    ...reviewHandlers(ctx),
   ];
   return {
     handlers,
