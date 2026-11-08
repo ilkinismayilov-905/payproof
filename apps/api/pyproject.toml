@@ -57,6 +57,10 @@ python_version = "3.12"
 files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = ["asyncpg", "asyncpg.*"]  # ships no type hints; LISTEN connection only (realtime/)
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"

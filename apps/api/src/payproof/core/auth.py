@@ -42,6 +42,13 @@ class DevTokenVerifier:
             raise Unauthenticated from None
 
 
+def token_expiry(token: str) -> dt.datetime:
+    """`exp` of a token a verifier has already accepted (only then: the signature is not
+    checked here). Open streams close at this time."""
+    exp = jwt.decode(token, options={"verify_signature": False})["exp"]
+    return dt.datetime.fromtimestamp(exp, dt.UTC)
+
+
 def issue_dev_token(
     user_id: uuid.UUID, secret: str, now: dt.datetime | None = None
 ) -> tuple[str, int]:

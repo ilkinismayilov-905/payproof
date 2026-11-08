@@ -80,7 +80,10 @@ async def correlation_id_middleware(
         # terms or document text; logged while the correlation id is still set
         ms = (time.perf_counter() - started) * 1000
         status = response.status_code if response is not None else 500  # cancelled request
-        access.info("%s %s %d %.0fms", request.method, request.url.path, status, ms)
+        kind = response.headers.get("content-type", "") if response is not None else ""
+        stream = kind.startswith("text/event-stream")
+        if not stream:  # an SSE stream logs its own line when it closes (api/events.py)
+            access.info("%s %s %d %.0fms", request.method, request.url.path, status, ms)
         correlation_id.reset(token)
     response.headers[CORRELATION_HEADER] = cid
     return response
