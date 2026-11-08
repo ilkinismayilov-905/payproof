@@ -2,15 +2,13 @@
 shortcut: filtering and sorting run in memory over the tenant's live packages; move them into
 SQL once a tenant has thousands of packages."""
 
-import base64
-import binascii
 import datetime as dt
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from payproof.core.errors import DomainError
+from payproof.core.paging import decode_cursor, encode_cursor
 from payproof.domain.enums import PackageStatus
 from payproof.schemas import packages as s
 from payproof.schemas.auth import UserRef
@@ -77,19 +75,6 @@ def _matches(x: PackageState, f: ListQuery) -> bool:
     return True
 
 
-def _offset(cursor: str | None) -> int:
-    """Opaque page cursor (an offset): a malformed one is a 400 like any bad query value."""
-    if not cursor:
-        return 0
-    try:
-        offset = int(base64.urlsafe_b64decode(cursor.encode()).decode())
-    except (binascii.Error, UnicodeDecodeError, ValueError):
-        offset = -1
-    if offset < 0:
-        raise DomainError("Sorğu yanlışdır.", details={"fields": [{"loc": ["query", "cursor"]}]})
-    return offset
-
-
 def list_item(x: PackageState) -> s.PackageListItem:
     p = x.package
     return s.PackageListItem(
@@ -116,9 +101,9 @@ def page(states: list[PackageState], f: ListQuery) -> s.PackagePage:
     key = SORT_KEYS[f.sort.removeprefix("-")]
     rows.sort(key=lambda x: str(x.package.id))  # stable tie-break across pages
     rows.sort(key=key, reverse=f.sort.startswith("-"))
-    start = _offset(f.cursor)
+    start = decode_cursor(f.cursor)
     end = start + f.limit
-    next_cursor = base64.urlsafe_b64encode(str(end).encode()).decode() if end < len(rows) else None
+    next_cursor = encode_cursor(end) if end < len(rows) else None
     return s.PackagePage(
         items=[list_item(x) for x in rows[start:end]],
         next_cursor=next_cursor,
