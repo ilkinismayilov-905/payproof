@@ -11,9 +11,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, NotFound, PackageNotReady
 from payproof.core.ids import uuid7
-from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
+from payproof.repositories.models import Document, DocumentVersion, InvoicePackage, Job
 from payproof.services import files
+from payproof.services.audit import record
+from payproof.services.versioning import bump
 from payproof.storage.s3 import Storage
+
+LABEL = {"invoice": "Faktura", "order": "Sifariş", "delivery": "Təhvil sənədi"}
+REASON = {  # why the package version went up (approval invalidation text)
+    "invoice": "fakturanın yeni versiyası yükləndi",
+    "order": "sifarişin yeni versiyası yükləndi",
+    "delivery": "təhvil sənədinin yeni versiyası yükləndi",
+}
 
 
 @dataclass(frozen=True)
@@ -95,6 +104,7 @@ async def _store(
     # shortcut: the object is written before COMMIT; a failed commit leaves an orphan object,
     # never a version without its file — sweep orphans when storage cleanup is needed
     await storage.put(storage_key, data, info.mime)
+    await bump(session, pkg, REASON[doc_type])
     version = DocumentVersion(
         id=version_id,
         company_id=pkg.company_id,
@@ -110,9 +120,24 @@ async def _store(
         uploaded_by=actor_id,
         package_version_at_upload=pkg.version,
     )
-    session.add(version)
+    job = Job(
+        company_id=pkg.company_id,
+        kind="extract_document",
+        payload={"document_version_id": str(version_id), "package_id": str(pkg.id)},
+    )
+    session.add_all([version, job])
     await session.flush()
+    await record(
+        session,
+        actor_id=actor_id,
+        action="document.uploaded",
+        message=f"{LABEL[doc_type]}: {name} (sənəd v{version.version_no}) · paket v{pkg.version}",
+        object_type="document_version",
+        object_id=version.id,
+        package=pkg,
+    )
     body = {
+        "job_id": str(job.id),
         "package_id": str(pkg.id),
         "document_id": str(doc.id),
         "document_version_id": str(version.id),

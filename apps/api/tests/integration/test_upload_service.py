@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, NotFound, PackageNotReady
 from payproof.repositories.base import bind_tenant
-from payproof.repositories.models import DocumentVersion, InvoicePackage
+from payproof.repositories.models import (
+    ApprovalRecord,
+    AuditEvent,
+    DocumentVersion,
+    InvoicePackage,
+    Job,
+)
 from payproof.seed.cli import seed
 from payproof.seed.fixtures import uid
 from payproof.seed.identity import COMPANY_ID
@@ -76,3 +82,27 @@ def test_clean_name_keeps_only_the_base_name() -> None:
     assert clean_name("../../etc/passwd") == "passwd"
     assert clean_name("C:\\tmp\\Təhvil.pdf") == "Təhvil.pdf"
     assert clean_name("   ") == "fayl"
+
+
+async def test_new_version_bumps_package_invalidates_approval_and_queues_job(
+    seeded: AsyncSession,
+) -> None:
+    db = seeded
+    pkg = await db.get_one(InvoicePackage, uid("pkg_1035"))
+    before = pkg.version
+    _, body = await _upload(db, "pkg_1035", PDF + b"bump", before)
+
+    v = await db.get_one(DocumentVersion, uuid.UUID(str(body["document_version_id"])))
+    assert pkg.version == v.package_version_at_upload == before + 1
+    job = await db.get_one(Job, uuid.UUID(str(body["job_id"])))
+    assert (job.kind, job.status, job.company_id) == ("extract_document", "QUEUED", COMPANY_ID)
+    assert job.payload["document_version_id"] == str(v.id)
+    approval = await db.scalar(select(ApprovalRecord).where(ApprovalRecord.package_id == pkg.id))
+    assert approval is not None and not approval.valid
+    assert approval.invalidated_reason == "fakturanın yeni versiyası yükləndi"
+    uploaded = await db.scalar(select(AuditEvent).where(AuditEvent.object_id == v.id))
+    assert uploaded is not None and (uploaded.action, uploaded.actor_id) == (
+        "document.uploaded",
+        uid("u1"),
+    )
+    assert uploaded.message == f"Faktura: INV-1035_v2.pdf (sənəd v2) · paket v{before + 1}"
