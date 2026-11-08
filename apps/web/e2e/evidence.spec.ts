@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
 const INV_1044 = "0193a000-0000-7000-8002-000000001044";
