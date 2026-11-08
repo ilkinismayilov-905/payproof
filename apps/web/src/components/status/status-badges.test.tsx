@@ -2,6 +2,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { render } from "@testing-library/react";
 import type { ComponentType } from "react";
+import {
+  checkOutcomeLabel,
+  documentStatusLabel,
+  packageStatusLabel,
+  taskStatusLabel,
+} from "@payproof/api-client/i18n";
 import { describe, expect, test } from "vitest";
 import {
   CheckOutcomeBadge,
@@ -21,24 +27,24 @@ const pairs = (title: string): [string, string][] => {
 };
 
 const cases = [
-  ["**Paket**", PackageStatusBadge],
-  ["**Yoxlama**", CheckOutcomeBadge],
-  ["**Tapşırıq**", TaskStatusBadge],
-  ["**Sənəd versiyası**", DocumentStatusBadge],
+  ["**Paket**", PackageStatusBadge, packageStatusLabel],
+  ["**Yoxlama**", CheckOutcomeBadge, checkOutcomeLabel],
+  ["**Tapşırıq**", TaskStatusBadge, taskStatusLabel],
+  ["**Sənəd versiyası**", DocumentStatusBadge, documentStatusLabel],
 ] as const;
 
-describe.each(cases)("%s", (title, StatusBadge) => {
+describe.each(cases)("%s", (title, StatusBadge, labels) => {
   const Badge = StatusBadge as ComponentType<{ status: string }>;
   const statuses = pairs(title);
 
-  test("covers every glossary status", () => {
-    expect(statuses.length).toBeGreaterThanOrEqual(4);
+  test("glossary and contract enum list the same statuses", () => {
+    expect(statuses.map(([code]) => code).sort()).toEqual(Object.keys(labels).sort());
   });
 
   test.each(statuses)("%s → %s", (status, label) => {
     const { container } = render(<Badge status={status} />);
     const badge = container.firstElementChild!;
-    expect(badge).toHaveTextContent(label);
+    expect(badge.textContent).toBe(label);
     // never colour alone: an icon goes with the text
     expect(badge.querySelector("svg[aria-hidden='true']")).not.toBeNull();
   });
@@ -54,7 +60,7 @@ test("badge markup", () => {
     </>,
   );
   const badges = [...container.children].map((el) => ({
-    tone: el.className.match(/bg-[\w-]+ text-[\w-]+$/)?.[0],
+    tone: [...el.classList].filter((c) => /^(bg|text)-(?!xs$)/.test(c)).join(" "),
     icon: el.querySelector("svg")?.classList[1],
     text: el.textContent,
   }));
