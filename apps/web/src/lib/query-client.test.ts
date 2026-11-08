@@ -32,7 +32,7 @@ test("a failed background refetch shows the server message as a toast", async ()
   await qc
     .fetchQuery({ queryKey: ["x"], queryFn: failWith(forbidden), staleTime: 0 })
     .catch(() => {});
-  expect(toastError).toHaveBeenCalledWith("Səlahiyyət yoxdur.");
+  expect(toastError).toHaveBeenCalledWith("Səlahiyyət yoxdur.", { id: "FORBIDDEN" });
 });
 
 test("mutation errors toast; non-API errors get the generic Azerbaijani message", async () => {
@@ -45,7 +45,10 @@ test("mutation errors toast; non-API errors get the generic Azerbaijani message"
       .catch(() => {});
   await run(forbidden);
   await run(new TypeError("boom"));
-  expect(toastError.mock.calls).toEqual([["Səlahiyyət yoxdur."], [errorFallback.INTERNAL_ERROR]]);
+  expect(toastError.mock.calls).toEqual([
+    ["Səlahiyyət yoxdur.", { id: "FORBIDDEN" }],
+    [errorFallback.INTERNAL_ERROR, { id: "INTERNAL_ERROR" }],
+  ]);
 });
 
 test("retries only network and server errors, at most twice", () => {

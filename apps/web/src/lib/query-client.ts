@@ -10,8 +10,11 @@ declare module "@tanstack/react-query" {
   }
 }
 
-const messageOf = (error: unknown) =>
-  error instanceof ApiError ? error.message : errorFallback.INTERNAL_ERROR;
+// Toast id = error code: N queries failing together (e.g. offline on refocus) show one toast.
+const showError = (error: unknown) =>
+  error instanceof ApiError
+    ? toast.error(error.message, { id: error.code })
+    : toast.error(errorFallback.INTERNAL_ERROR, { id: "INTERNAL_ERROR" });
 
 /** Client errors (4xx) won't change on retry; network and 5xx get two more tries. */
 export const shouldRetry = (failureCount: number, error: unknown) =>
@@ -25,7 +28,7 @@ export const shouldRetry = (failureCount: number, error: unknown) =>
 export function makeQueryClient({ onUnauthenticated }: { onUnauthenticated: () => void }) {
   const handle = (error: unknown, notify: boolean) => {
     if (error instanceof ApiError && error.status === 401) onUnauthenticated();
-    else if (notify) toast.error(messageOf(error));
+    else if (notify) showError(error);
   };
   return new QueryClient({
     queryCache: new QueryCache({
