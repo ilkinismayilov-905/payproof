@@ -1,6 +1,7 @@
 [
   {
     "id": "u1",
+    "email": "aygun.mammadova@a-distribusiya.test",
     "full_name": "Aygün Məmmədova",
     "title": "Maliyyə əməkdaşı",
     "role": "operator",
@@ -9,6 +10,7 @@
   },
   {
     "id": "u2",
+    "email": "rashad.aliyev@a-distribusiya.test",
     "full_name": "Rəşad Əliyev",
     "title": "Maliyyə direktoru",
     "role": "approver",
@@ -17,6 +19,7 @@
   },
   {
     "id": "u3",
+    "email": "elvin.qasimov@a-distribusiya.test",
     "full_name": "Elvin Qasımov",
     "title": "Anbar və logistika",
     "role": "warehouse",
@@ -25,6 +28,7 @@
   },
   {
     "id": "u4",
+    "email": "nigar.huseynova@a-distribusiya.test",
     "full_name": "Nigar Hüseynova",
     "title": "Satış meneceri",
     "role": "sales",
@@ -33,6 +37,7 @@
   },
   {
     "id": "u5",
+    "email": "kamran.babayev@a-distribusiya.test",
     "full_name": "Kamran Babayev",
     "title": "Daxili auditor",
     "role": "readonly",
@@ -41,6 +46,7 @@
   },
   {
     "id": "u6",
+    "email": "leyla.rzayeva@a-distribusiya.test",
     "full_name": "Leyla Rzayeva",
     "title": "Mühasib",
     "role": "accounting",
@@ -49,6 +55,7 @@
   },
   {
     "id": "u7",
+    "email": "sabina.quliyeva@a-distribusiya.test",
     "full_name": "Səbinə Quliyeva",
     "title": "Maliyyə əməkdaşı",
     "role": "operator",

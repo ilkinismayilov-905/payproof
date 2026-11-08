@@ -5,14 +5,33 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["id", "full_name", "title", "role", "avatar_tone", "demo_login"],
+    "required": ["id", "email", "full_name", "title", "role", "avatar_tone", "demo_login"],
     "properties": {
-      "id": { "$ref": "defs.json#/$defs/user_id" },
-      "full_name": { "type": "string" },
-      "title": { "type": "string" },
-      "role": { "$ref": "defs.json#/$defs/role" },
-      "avatar_tone": { "type": "integer", "minimum": 1, "maximum": 5 },
-      "demo_login": { "type": "boolean", "description": "Shown in the dev-login picker" }
+      "id": {
+        "$ref": "defs.json#/$defs/user_id"
+      },
+      "email": {
+        "type": "string",
+        "format": "email"
+      },
+      "full_name": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "role": {
+        "$ref": "defs.json#/$defs/role"
+      },
+      "avatar_tone": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "demo_login": {
+        "type": "boolean",
+        "description": "Shown in the dev-login picker"
+      }
     }
   }
 }

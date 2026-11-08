@@ -25,15 +25,34 @@
       "exports"
     ],
     "properties": {
-      "id": { "$ref": "defs.json#/$defs/package_id" },
-      "invoice_number": { "$ref": "defs.json#/$defs/invoice_number" },
-      "customer_id": { "$ref": "defs.json#/$defs/customer_id" },
-      "currency": { "$ref": "defs.json#/$defs/currency" },
-      "invoice_date": { "$ref": "defs.json#/$defs/date" },
-      "created_at": { "$ref": "defs.json#/$defs/datetime" },
-      "owner_id": { "$ref": "defs.json#/$defs/user_id" },
-      "version": { "type": "integer", "minimum": 1 },
-      "processing": { "type": "boolean" },
+      "id": {
+        "$ref": "defs.json#/$defs/package_id"
+      },
+      "invoice_number": {
+        "$ref": "defs.json#/$defs/invoice_number"
+      },
+      "customer_id": {
+        "$ref": "defs.json#/$defs/customer_id"
+      },
+      "currency": {
+        "$ref": "defs.json#/$defs/currency"
+      },
+      "invoice_date": {
+        "$ref": "defs.json#/$defs/date"
+      },
+      "created_at": {
+        "$ref": "defs.json#/$defs/datetime"
+      },
+      "owner_id": {
+        "$ref": "defs.json#/$defs/user_id"
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "processing": {
+        "type": "boolean"
+      },
       "invoice": {
         "type": "object",
         "additionalProperties": false,
@@ -47,12 +66,21 @@
             "type": ["string", "null"],
             "description": "Raw OCR text when the field was unreadable"
           },
-          "unreadable_fields": { "type": "array", "items": { "enum": ["po_ref"] } },
-          "total": { "$ref": "defs.json#/$defs/money" },
+          "unreadable_fields": {
+            "type": "array",
+            "items": {
+              "enum": ["po_ref"]
+            }
+          },
+          "total": {
+            "$ref": "defs.json#/$defs/money"
+          },
           "lines": {
             "type": "array",
             "minItems": 1,
-            "items": { "$ref": "defs.json#/$defs/priced_line" }
+            "items": {
+              "$ref": "defs.json#/$defs/priced_line"
+            }
           }
         }
       },
@@ -61,12 +89,32 @@
         "additionalProperties": false,
         "required": ["po_number", "confirmed", "confirmed_by", "method"],
         "properties": {
-          "po_number": { "anyOf": [{ "$ref": "defs.json#/$defs/po_number" }, { "type": "null" }] },
-          "confirmed": { "type": "boolean" },
-          "confirmed_by": {
-            "anyOf": [{ "$ref": "defs.json#/$defs/actor_id" }, { "type": "null" }]
+          "po_number": {
+            "anyOf": [
+              {
+                "$ref": "defs.json#/$defs/po_number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
-          "method": { "enum": ["exact_id", "human", null] }
+          "confirmed": {
+            "type": "boolean"
+          },
+          "confirmed_by": {
+            "anyOf": [
+              {
+                "$ref": "defs.json#/$defs/actor_id"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "method": {
+            "enum": ["exact_id", "human", null]
+          }
         }
       },
       "candidates": {
@@ -77,14 +125,20 @@
           "additionalProperties": false,
           "required": ["po_number", "reason"],
           "properties": {
-            "po_number": { "$ref": "defs.json#/$defs/po_number" },
-            "reason": { "type": "string" }
+            "po_number": {
+              "$ref": "defs.json#/$defs/po_number"
+            },
+            "reason": {
+              "type": "string"
+            }
           }
         }
       },
       "delivery": {
         "oneOf": [
-          { "type": "null" },
+          {
+            "type": "null"
+          },
           {
             "type": "object",
             "additionalProperties": false,
@@ -97,21 +151,36 @@
               "lines"
             ],
             "properties": {
-              "note_number": { "type": "string", "pattern": "^TS-[0-9]+$" },
-              "po_ref": { "$ref": "defs.json#/$defs/po_number" },
-              "customer_id": { "$ref": "defs.json#/$defs/customer_id" },
-              "delivery_date": { "$ref": "defs.json#/$defs/date" },
-              "signed": { "type": "boolean" },
+              "note_number": {
+                "type": "string",
+                "pattern": "^TS-[0-9]+$"
+              },
+              "po_ref": {
+                "$ref": "defs.json#/$defs/po_number"
+              },
+              "customer_id": {
+                "$ref": "defs.json#/$defs/customer_id"
+              },
+              "delivery_date": {
+                "$ref": "defs.json#/$defs/date"
+              },
+              "signed": {
+                "type": "boolean"
+              },
               "lines": {
                 "type": "array",
                 "minItems": 1,
-                "items": { "$ref": "defs.json#/$defs/qty_line" }
+                "items": {
+                  "$ref": "defs.json#/$defs/qty_line"
+                }
               }
             }
           }
         ]
       },
-      "signature_reviewed": { "type": "boolean" },
+      "signature_reviewed": {
+        "type": "boolean"
+      },
       "documents": {
         "type": "array",
         "items": {
@@ -119,7 +188,9 @@
           "additionalProperties": false,
           "required": ["type", "versions"],
           "properties": {
-            "type": { "$ref": "defs.json#/$defs/document_type" },
+            "type": {
+              "$ref": "defs.json#/$defs/document_type"
+            },
             "versions": {
               "type": "array",
               "minItems": 1,
@@ -129,19 +200,39 @@
                 "required": [
                   "version_no",
                   "file_name",
+                  "sha256",
                   "source_kind",
                   "uploaded_by",
                   "uploaded_at",
                   "status"
                 ],
                 "properties": {
-                  "version_no": { "type": "integer", "minimum": 1 },
-                  "file_name": { "type": "string" },
-                  "source_kind": { "enum": ["pdf", "scan", "spreadsheet"] },
-                  "uploaded_by": { "$ref": "defs.json#/$defs/user_id" },
-                  "uploaded_at": { "$ref": "defs.json#/$defs/datetime" },
-                  "status": { "enum": ["PROCESSING", "EXTRACTED", "REVIEW_REQUIRED", "FAILED"] },
-                  "signed": { "type": "boolean", "description": "Delivery versions only" }
+                  "version_no": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "file_name": {
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "$ref": "defs.json#/$defs/sha256"
+                  },
+                  "source_kind": {
+                    "enum": ["pdf", "scan", "spreadsheet"]
+                  },
+                  "uploaded_by": {
+                    "$ref": "defs.json#/$defs/user_id"
+                  },
+                  "uploaded_at": {
+                    "$ref": "defs.json#/$defs/datetime"
+                  },
+                  "status": {
+                    "enum": ["PROCESSING", "EXTRACTED", "REVIEW_REQUIRED", "FAILED"]
+                  },
+                  "signed": {
+                    "type": "boolean",
+                    "description": "Delivery versions only"
+                  }
                 }
               }
             }
@@ -163,14 +254,35 @@
             "invalidated_at"
           ],
           "properties": {
-            "package_version": { "type": "integer", "minimum": 1 },
-            "requirement_set_version": { "type": "integer", "minimum": 1 },
-            "approver_id": { "$ref": "defs.json#/$defs/user_id" },
-            "created_at": { "$ref": "defs.json#/$defs/datetime" },
-            "valid": { "type": "boolean" },
-            "invalidated_reason": { "type": ["string", "null"] },
+            "package_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "requirement_set_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "approver_id": {
+              "$ref": "defs.json#/$defs/user_id"
+            },
+            "created_at": {
+              "$ref": "defs.json#/$defs/datetime"
+            },
+            "valid": {
+              "type": "boolean"
+            },
+            "invalidated_reason": {
+              "type": ["string", "null"]
+            },
             "invalidated_at": {
-              "anyOf": [{ "$ref": "defs.json#/$defs/datetime" }, { "type": "null" }]
+              "anyOf": [
+                {
+                  "$ref": "defs.json#/$defs/datetime"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         }
@@ -188,11 +300,27 @@
             "files"
           ],
           "properties": {
-            "package_version": { "type": "integer", "minimum": 1 },
-            "requirement_set_version": { "type": "integer", "minimum": 1 },
-            "created_by": { "$ref": "defs.json#/$defs/user_id" },
-            "created_at": { "$ref": "defs.json#/$defs/datetime" },
-            "files": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+            "package_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "requirement_set_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "created_by": {
+              "$ref": "defs.json#/$defs/user_id"
+            },
+            "created_at": {
+              "$ref": "defs.json#/$defs/datetime"
+            },
+            "files": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       }
