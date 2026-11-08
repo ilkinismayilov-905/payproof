@@ -10,21 +10,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.domain.enums import CheckOutcome
 from payproof.domain.rules.engine import ENGINE_VERSION, evaluate
 from payproof.domain.snapshot import EvidenceRef as DomainEvidence
-from payproof.repositories.models import CheckResult, EvidenceRef, InvoicePackage, ValidationRun
+from payproof.repositories.models import (
+    CheckResult,
+    EvidenceRef,
+    InvoicePackage,
+    RequirementSet,
+    ValidationRun,
+)
+from payproof.services import validation_effects as effects
 from payproof.services.audit import record
 from payproof.services.package_query import load_states
 from payproof.services.snapshot_builder import build_snapshot
-
-# shortcut: B-17 adds the status cache, problem_since, task resolution and approver notices
-# here; this is the run itself, which B-16 already needs after a link change
 
 
 def _key(e: DomainEvidence) -> tuple[uuid.UUID, int, str]:
     return e.document_version_id, e.page, e.quote
 
 
-async def revalidate(session: AsyncSession, pkg: InvoicePackage) -> ValidationRun | None:
-    """None while nothing can be evaluated yet (processing, no invoice extraction)."""
+async def revalidate(
+    session: AsyncSession, pkg: InvoicePackage, actor_id: uuid.UUID | None = None
+) -> ValidationRun | None:
+    """None while nothing can be evaluated yet (processing, no invoice extraction).
+    `actor_id`: who asked for it (POST /validate); None = the system after a change."""
     await session.flush()
     [state] = await load_states(session, [pkg.id])
     snapshot = await build_snapshot(session, state)
@@ -68,13 +75,18 @@ async def revalidate(session: AsyncSession, pkg: InvoicePackage) -> ValidationRu
         f"{n[CheckOutcome.PASS]} keçdi, {n[CheckOutcome.FAIL]} uyğunsuz, "
         f"{n[CheckOutcome.UNKNOWN]} naməlum, {n[CheckOutcome.NOT_APPLICABLE]} tətbiq olunmur"
     )
+    rs = await session.get_one(RequirementSet, state.rule_set_id)
     await record(
         session,
-        actor_id=None,
+        actor_id=actor_id,
         action="validation.run",
-        message=f"Yoxlama · paket v{pkg.version}: {summary}",
+        message=f"v{pkg.version} · qayda dəsti v{rs.version} · {summary}",
         object_type="validation_run",
         object_id=run.id,
         package=pkg,
     )
+    await effects.settle_tasks(session, pkg, checks)
+    await session.flush()
+    [after] = await load_states(session, [pkg.id])
+    await effects.status_changed(session, pkg, state.status, after.status, after.total)
     return run
