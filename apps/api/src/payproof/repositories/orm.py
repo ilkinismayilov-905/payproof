@@ -37,3 +37,7 @@ class TenantMixin:
     @declared_attr
     def company_id(cls) -> Mapped[uuid.UUID]:
         return mapped_column(Uuid, ForeignKey("companies.id"), index=True)
+
+
+class TenantEntity(IdMixin, TimestampMixin, TenantMixin):
+    """Default columns of a business table: `class Customer(TenantEntity, Base)`."""
