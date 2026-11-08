@@ -9,6 +9,8 @@ from payproof.core.errors import NotFound
 from payproof.domain.enums import CheckOutcome, PackageStatus, Role
 from payproof.domain.permissions import Permission, can
 from payproof.domain.rules.catalog import TITLES
+from payproof.domain.rules.engine import evaluate
+from payproof.domain.snapshot import EvidenceRef
 from payproof.repositories import detail_reads as dr
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import RequirementSet, User
@@ -56,6 +58,15 @@ async def package_detail(
 
     fields, field_ids = await parts.fields(session, st)
     snapshot = await build_snapshot(session, st)
+    found = snapshot.evidence if snapshot else {}
+
+    def evidence(path: str) -> d.Evidence | None:
+        return _evidence(found[path]) if path in found else None
+
+    fields = [f.model_copy(update={"evidence": evidence(f.field_path)}) for f in fields]
+    # shortcut: a check's evidence comes from the engine on the current snapshot (same data
+    # as the stored run); read check_results.evidence_ids once B-17 writes them
+    by_rule = {c.rule_id: c.evidence for c in evaluate(snapshot)} if snapshot else {}
     descriptions = await dr.descriptions(session, p.order_id) if p.order_id else {}
     approval_by_id = {a.id: a for a in approvals}
     current = next(
@@ -99,7 +110,9 @@ async def package_detail(
         documents=[parts.document(doc, versions, ref) for doc, versions in docs if versions],
         fields=fields,
         comparison=d.Comparison(
-            rows=comparison_rows(snapshot, descriptions=descriptions, field_ids=field_ids)
+            rows=comparison_rows(
+                snapshot, descriptions=descriptions, field_ids=field_ids, evidence=evidence
+            )
             if snapshot and not p.processing
             else []
         ),
@@ -110,7 +123,7 @@ async def package_detail(
                 outcome=c.outcome,
                 cascade=c.cascade,
                 message=c.message,
-                evidence=[],  # shortcut: evidence_refs arrive with real extraction (B-15)
+                evidence=[_evidence(e) for e in by_rule.get(c.rule_id, ())],
                 fix_hint=c.fix_hint.value if c.fix_hint else None,
                 data=dict(c.data),
             )
@@ -150,6 +163,13 @@ async def package_detail(
             and not approvals
             and st.status in _DELETABLE,
         ),
+    )
+
+
+def _evidence(e: EvidenceRef) -> d.Evidence:
+    bbox = list(e.bbox) if e.bbox else None
+    return d.Evidence(
+        document_version_id=e.document_version_id, page=e.page, quote=e.quote, bbox=bbox
     )
 
 

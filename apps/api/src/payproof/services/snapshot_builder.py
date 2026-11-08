@@ -12,6 +12,7 @@ from payproof.domain.money import Money
 from payproof.domain.snapshot import (
     Delivery,
     DeliveryLine,
+    EvidenceRef,
     Invoice,
     InvoiceLine,
     Order,
@@ -30,6 +31,7 @@ from payproof.repositories.models import (
     ExtractedInvoiceLine,
     RequirementSet,
 )
+from payproof.repositories.models import EvidenceRef as EvidenceRow
 from payproof.repositories.models import Order as OrderRow
 from payproof.repositories.models import (
     OrderLine as OrderLineRow,
@@ -78,7 +80,25 @@ async def build_snapshot(session: AsyncSession, state: PackageState) -> PackageS
         signature_reviewed=p.signature_reviewed_by is not None,
         rules=Rules(rs.require_po, rs.require_delivery, rs.require_signature, rs.tolerance),
         parties={cid: Party(name, voen) for cid, name, voen in parties.all()},
+        evidence=await _evidence(session, inv.document_version_id, p.id),
     )
+
+
+async def _evidence(
+    session: AsyncSession, invoice_version: uuid.UUID, package_id: uuid.UUID
+) -> dict[str, EvidenceRef]:
+    """Where each value of the current invoice and delivery versions was read."""
+    note = await latest_delivery(session, package_id)
+    versions = [invoice_version, *([note.document_version_id] if note else [])]
+    rows = await session.scalars(
+        select(EvidenceRow).where(EvidenceRow.document_version_id.in_(versions))
+    )
+    return {
+        r.field_path: EvidenceRef(
+            r.document_version_id, r.page, r.quote, tuple(r.bbox) if r.bbox else None
+        )
+        for r in rows
+    }
 
 
 def _money(value: Decimal | None, currency: Currency) -> Money | None:
@@ -102,19 +122,22 @@ async def _order(session: AsyncSession, order_id: uuid.UUID) -> Order | None:
     )
 
 
-async def _delivery(session: AsyncSession, package_id: uuid.UUID) -> Delivery | None:
-    q = (
-        select(DocumentVersion.version_no, DeliveryNote)
+async def latest_delivery(session: AsyncSession, package_id: uuid.UUID) -> DeliveryNote | None:
+    """Delivery note of the package's newest extracted delivery version."""
+    return await session.scalar(
+        select(DeliveryNote)
         .join(DocumentVersion, DocumentVersion.id == DeliveryNote.document_version_id)
         .join(Document, Document.id == DocumentVersion.document_id)
         .where(Document.package_id == package_id)
         .order_by(DocumentVersion.version_no.desc())
         .limit(1)
     )
-    row = (await session.execute(q)).first()
-    if row is None:
+
+
+async def _delivery(session: AsyncSession, package_id: uuid.UUID) -> Delivery | None:
+    note = await latest_delivery(session, package_id)
+    if note is None:
         return None
-    note = row[1]
     lines = (
         await session.scalars(
             select(DeliveryNoteLine).where(DeliveryNoteLine.delivery_note_id == note.id)
