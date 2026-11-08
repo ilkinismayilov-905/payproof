@@ -17,6 +17,8 @@ tags:
     description: Session and current user
   - name: dashboard
     description: Overview KPIs
+  - name: packages
+    description: Invoice packages (invoice + order + delivery documents)
 paths:
   /v1/auth/dev-users:
     get:
@@ -171,6 +173,96 @@ paths:
                     approved_at: "2026-11-06T11:10:00Z"
                     total: { amount: "3100.00", currency: AZN }
         "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/packages:
+    get:
+      tags: [packages]
+      operationId: listPackages
+      summary: List packages with filters and sorting
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/PackageStatus" } }
+        - { name: customer_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: owner_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - name: issue
+          in: query
+          description: Only packages whose primary (non-cascade) blockers include this rule.
+          schema: { $ref: "#/components/schemas/RuleId" }
+        - {
+            name: from,
+            in: query,
+            description: Invoice date from (inclusive),
+            schema: { type: string, format: date },
+          }
+        - {
+            name: to,
+            in: query,
+            description: Invoice date to (inclusive),
+            schema: { type: string, format: date },
+          }
+        - name: q
+          in: query
+          description: Search in invoice number, customer name, PO and delivery note numbers.
+          schema: { type: string, maxLength: 100 }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: -updated_at
+            enum:
+              [
+                invoice_number,
+                -invoice_number,
+                customer,
+                -customer,
+                invoice_date,
+                -invoice_date,
+                total,
+                -total,
+                status,
+                -status,
+                blocking,
+                -blocking,
+                owner,
+                -owner,
+                updated_at,
+                -updated_at,
+              ]
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of packages
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PackagePage" }
+              example:
+                items:
+                  - id: 0193a000-0000-7000-8002-000000001042
+                    invoice_number: INV-1042
+                    version: 1
+                    status: NEEDS_REVIEW
+                    customer:
+                      { id: 0193a000-0000-7000-8001-000000000001, name: B Mağazalar Şəbəkəsi }
+                    invoice_date: "2026-11-03"
+                    total: { amount: "12000.00", currency: AZN }
+                    po_ref: null
+                    po_unreadable: false
+                    blocking:
+                      [
+                        { rule_id: R-001, outcome: FAIL },
+                        { rule_id: R-002, outcome: UNKNOWN },
+                        { rule_id: R-007, outcome: FAIL },
+                      ]
+                    owner:
+                      {
+                        id: 0193a000-0000-7000-8000-000000000001,
+                        full_name: Aygün Məmmədova,
+                        role: operator,
+                      }
+                    updated_at: "2026-11-03T05:18:00Z"
+                next_cursor: eyJ1IjoiMjAyNi0xMS0wM1QwNToxODowMFoifQ
+                total_count: 14
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
   securitySchemes:
@@ -509,3 +601,61 @@ components:
               approver: { $ref: "#/components/schemas/UserRef" }
               approved_at: { type: string, format: date-time }
               total: { $ref: "#/components/schemas/Money" }
+    CustomerRef:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+    Blocker:
+      type: object
+      additionalProperties: false
+      required: [rule_id, outcome]
+      description: A primary (non-cascade) FAIL or UNKNOWN result.
+      properties:
+        rule_id: { $ref: "#/components/schemas/RuleId" }
+        outcome: { type: string, enum: [FAIL, UNKNOWN] }
+    PackageListItem:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          invoice_number,
+          version,
+          status,
+          customer,
+          invoice_date,
+          total,
+          po_ref,
+          po_unreadable,
+          blocking,
+          owner,
+          updated_at,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        invoice_number: { type: string }
+        version: { type: integer, minimum: 1 }
+        status: { $ref: "#/components/schemas/PackageStatus" }
+        customer: { $ref: "#/components/schemas/CustomerRef" }
+        invoice_date: { type: string, format: date }
+        total: { $ref: "#/components/schemas/Money" }
+        po_ref:
+          {
+            type: ["string", "null"],
+            description: PO as extracted from the invoice (may not exist in the system),
+          }
+        po_unreadable: { type: boolean }
+        blocking: { type: array, items: { $ref: "#/components/schemas/Blocker" } }
+        owner: { $ref: "#/components/schemas/UserRef" }
+        updated_at: { type: string, format: date-time }
+    PackagePage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor, total_count]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/PackageListItem" } }
+        next_cursor: { type: ["string", "null"] }
+        total_count: { type: integer, description: Packages matching the filters (all pages) }
