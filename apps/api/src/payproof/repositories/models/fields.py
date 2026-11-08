@@ -60,4 +60,5 @@ class EvidenceRef(TenantEntity, Base):
     field_path: Mapped[str] = mapped_column(Text)
     page: Mapped[int] = mapped_column(Integer)
     quote: Mapped[str] = mapped_column(Text)
-    bbox: Mapped[list[Any] | None] = mapped_column(JSONB)
+    # none_as_null: Python None is SQL NULL here, not the JSON value `null`
+    bbox: Mapped[list[Any] | None] = mapped_column(JSONB(none_as_null=True))
