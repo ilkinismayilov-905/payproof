@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.core.auth import DevTokenVerifier, TokenVerifier
 from payproof.core.db import get_session
 from payproof.core.errors import Forbidden, Unauthenticated
-from payproof.core.settings import get_settings
+from payproof.core.settings import Settings, get_settings
 from payproof.domain.enums import Role
 from payproof.domain.permissions import Permission, can
 from payproof.repositories.base import bind_tenant
@@ -30,9 +30,12 @@ class Member:
     role: Role
 
 
-def get_verifier() -> TokenVerifier:
-    # shortcut: dev HS256 only; a JWKS verifier for the managed provider replaces this (ADR-0003)
-    return DevTokenVerifier(get_settings().jwt_secret.get_secret_value())
+def get_verifier(settings: Annotated[Settings, Depends(get_settings)]) -> TokenVerifier:
+    """Dev HS256 tokens are trusted only in dev/test (security.md). Prod fails closed until the
+    managed provider's JWKS verifier exists (ADR-0003)."""
+    if settings.env == "prod":
+        raise RuntimeError("no production token verifier configured (ADR-0003: JWKS)")
+    return DevTokenVerifier(settings.jwt_secret.get_secret_value())
 
 
 async def current_member(

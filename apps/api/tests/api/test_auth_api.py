@@ -65,6 +65,17 @@ async def test_no_dev_login_outside_dev(env: str) -> None:
         ).status_code == 404
 
 
+async def test_prod_never_accepts_dev_tokens(seeded: AsyncSession, auth: Auth) -> None:
+    # until a JWKS verifier exists (ADR-0003), prod refuses every token instead of trusting HS256
+    prod = get_settings().model_copy(update={"env": "prod"})
+    app = create_app(prod)
+    app.dependency_overrides[get_settings] = lambda: prod
+    transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        r = await c.get("/v1/me", headers=auth("u2"))
+    assert r.status_code == 500 and r.json()["error"]["code"] == "INTERNAL_ERROR"
+
+
 async def test_me_needs_a_token(client: httpx.AsyncClient) -> None:
     assert (await client.get("/v1/me")).status_code == 401
 
