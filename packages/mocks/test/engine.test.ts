@@ -3,7 +3,7 @@ import expected from "../../../fixtures/expected.json";
 import { evaluate } from "../src/engine";
 import { createMockDb } from "../src/store";
 
-const IMPLEMENTED = ["R-001", "R-002"];
+const IMPLEMENTED = ["R-001", "R-002", "R-003", "R-004"];
 const cases = Object.entries(expected.packages).filter(([, e]) => e.status !== "PROCESSING");
 
 describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
@@ -45,5 +45,19 @@ describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
       outcome: "UNKNOWN",
       cascade: true,
     });
+  });
+
+  it("INV-1046 R-003: a delivery note of another buyer FAILs", () => {
+    const db = createMockDb();
+    const r003 = evaluate(db, db.pkg("pkg_1046")).find((c) => c.rule_id === "R-003")!;
+    expect(r003).toMatchObject({ outcome: "FAIL", fix_hint: "upload_delivery" });
+    expect(r003.message).toContain("C Restoran Qrupu");
+  });
+
+  it("INV-1049 R-004: currency mismatch is UNKNOWN, no automatic conversion", () => {
+    const db = createMockDb();
+    const r004 = evaluate(db, db.pkg("pkg_1049")).find((c) => c.rule_id === "R-004")!;
+    expect(r004.outcome).toBe("UNKNOWN");
+    expect(r004.message).toContain("Faktura USD, sifariş AZN");
   });
 });

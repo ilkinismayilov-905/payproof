@@ -3,6 +3,7 @@
 import type { MockDb } from "../store";
 import type { Order, Pkg, RequirementSet } from "../types";
 import { ev, type Ev } from "./evidence";
+import { r003, r004 } from "./party-rules";
 import { r001, r002 } from "./po-rules";
 
 export type Outcome = "PASS" | "FAIL" | "UNKNOWN" | "NOT_APPLICABLE";
@@ -46,7 +47,7 @@ export interface Ctx {
 }
 
 /** Evaluation order matters: R-004 sets `comparable`, R-008 reads R-007's outcome. */
-export const RULES: ((ctx: Ctx) => void)[] = [r001, r002];
+export const RULES: ((ctx: Ctx) => void)[] = [r001, r002, r003, r004];
 
 export function evaluate(db: MockDb, p: Pkg): Check[] {
   const o =
