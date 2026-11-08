@@ -8,6 +8,7 @@ import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
+import { ActivityPanel } from "./activity-panel";
 import { DocumentsPanel } from "./documents-panel";
 import { MatchBanner } from "./match-banner";
 import { PackageActions } from "./package-actions";
@@ -60,6 +61,13 @@ export function PackageDetailScreen({ id }: { id: string }) {
       <MatchBanner pkg={pkg.data} />
       {/* while processing nothing is shown yet (prototype) */}
       {pkg.data.status !== "PROCESSING" && <DocumentsPanel pkg={pkg.data} />}
+      <ActivityPanel
+        packageId={id}
+        // prototype: only a package that was never approved or exported can be deleted
+        canDelete={
+          pkg.data.permissions.can_delete && !pkg.data.approvals.length && !pkg.data.exports.length
+        }
+      />
     </div>
   );
 }
