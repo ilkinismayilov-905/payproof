@@ -118,7 +118,14 @@ export interface Pkg {
 }
 /** Rule-engine input: a Pkg whose extracted values may be unread (null), like the API's PackageSnapshot.
  * shortcut: the store never holds these nulls yet (only po_ref, via unreadable_fields); widen Pkg once extraction can leave values unread. */
-export type EnginePkg = Omit<Pkg, "delivery"> & {
+export type EnginePkg = Omit<Pkg, "invoice" | "delivery"> & {
+  invoice: Omit<Pkg["invoice"], "total" | "lines"> & {
+    total: string | null;
+    lines: (Omit<PricedLine, "qty" | "unit_price"> & {
+      qty: number | null;
+      unit_price: string | null;
+    })[];
+  };
   delivery:
     | (Omit<Delivery, "note_number" | "po_ref" | "customer_id" | "signed" | "lines"> & {
         note_number: string | null;

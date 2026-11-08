@@ -1,7 +1,9 @@
 // R-007 delivery note present and linked, R-008 signature (human review), R-009 invoice arithmetic.
 import { cents, sumLines } from "../money";
+import type { PricedLine } from "../types";
 import { money } from "./evidence";
 import type { Ctx } from "./index";
+import { noLines } from "./line-rules";
 
 export function r007({ r, o, p, add, E }: Ctx) {
   const d = p.delivery;
@@ -81,9 +83,25 @@ export function r008({ r, p, out, add, E }: Ctx) {
     );
 }
 
-export function r009({ r, p, add, E }: Ctx) {
+export function r009(ctx: Ctx) {
+  const { r, p, add, E } = ctx;
+  if (noLines(ctx, "R-009")) return;
   const cur = p.currency;
-  const sum = sumLines(p.invoice.lines);
+  const read = p.invoice.lines.filter(
+    (l): l is typeof l & PricedLine => l.qty !== null && l.unit_price !== null,
+  );
+  if (p.invoice.total === null || read.length !== p.invoice.lines.length) {
+    // not in the rules table: arithmetic on an unread amount is never PASS
+    add(
+      "R-009",
+      "UNKNOWN",
+      "Sətirlərin cəmi və ya yekun məbləğ oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+      [E("invoice", "total")],
+      { fix_hint: "edit_field" },
+    );
+    return;
+  }
+  const sum = sumLines(read);
   const total = cents(p.invoice.total);
   const diff = sum - total;
   if (Math.abs(diff) <= cents(r.tolerance))

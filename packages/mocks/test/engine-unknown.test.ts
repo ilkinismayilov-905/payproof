@@ -98,3 +98,64 @@ describe("R-004 units", () => {
     });
   });
 });
+
+const NO_LINES = {
+  outcome: "UNKNOWN",
+  cascade: false,
+  fix_hint: "edit_field",
+  message: "Faktura sətirləri oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+  evidence: [],
+};
+
+describe("R-005 / R-006 / R-009 unread invoice lines and amounts", () => {
+  it("no invoice lines read: UNKNOWN, never a vacuous PASS", () => {
+    const c = run((p) => (p.invoice.lines = []));
+    for (const rule of ["R-005", "R-006", "R-009"]) expect(c[rule]).toMatchObject(NO_LINES);
+  });
+
+  it("unread unit price: R-005 and R-009 UNKNOWN", () => {
+    const c = run((p) => (p.invoice.lines[1]!.unit_price = null));
+    expect(c["R-005"]).toMatchObject({
+      outcome: "UNKNOWN",
+      fix_hint: "edit_field",
+      message: "Vahid qiymət və ya miqdar oxunmadı: CQ-250. Mənbəyə baxıb sahəni təsdiqləyin.",
+    });
+    expect(c["R-006"]!.outcome).toBe("PASS");
+    expect(c["R-009"]).toMatchObject({
+      outcome: "UNKNOWN",
+      fix_hint: "edit_field",
+      message: "Sətirlərin cəmi və ya yekun məbləğ oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+    });
+  });
+
+  it("unread invoice quantity: R-005 and R-006 UNKNOWN", () => {
+    const c = run((p) => (p.invoice.lines[0]!.qty = null));
+    expect(c["R-005"]!.message).toBe(
+      "Vahid qiymət və ya miqdar oxunmadı: ST-1. Mənbəyə baxıb sahəni təsdiqləyin.",
+    );
+    expect(c["R-006"]).toMatchObject({
+      outcome: "UNKNOWN",
+      fix_hint: "edit_field",
+      message: "Miqdar oxunmadı: ST-1. Mənbəyə baxıb sahəni təsdiqləyin.",
+    });
+  });
+
+  it("unread delivered quantity of a linked note: R-006 UNKNOWN, codes listed once", () => {
+    const c = run((p) => {
+      p.invoice.lines[0]!.qty = null;
+      for (const l of p.delivery!.lines) l.qty = null;
+    });
+    expect(c["R-006"]!.message).toBe(
+      "Miqdar oxunmadı: ST-1, CQ-250. Mənbəyə baxıb sahəni təsdiqləyin.",
+    );
+    expect(c["R-006"]!.evidence.map((e) => e.doc)).toEqual(["invoice", "delivery", "delivery"]);
+  });
+
+  it("unread invoice total: R-009 UNKNOWN with the total as evidence", () => {
+    const c = run((p) => (p.invoice.total = null));
+    expect(c["R-009"]).toMatchObject({ outcome: "UNKNOWN", fix_hint: "edit_field" });
+    expect(c["R-009"]!.evidence).toEqual([
+      { doc: "invoice", hl: "total", quote: "Yekun: oxunmur" },
+    ]);
+  });
+});
