@@ -18,5 +18,8 @@
     "openapi-typescript": "7.13.0",
     "typescript": "^5",
     "vitest": "^5"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
   }
 }
