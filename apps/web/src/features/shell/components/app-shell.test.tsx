@@ -25,8 +25,13 @@ test("skip link jumps to the main content", () => {
 
 test("the collapsed sidebar is remembered", async () => {
   const first = shell();
-  await userEvent.click(screen.getByRole("button", { name: "Menyunu yığ" }));
-  expect(screen.getByRole("button", { name: "Menyunu genişləndir" })).toBeInTheDocument();
+  const toggle = screen.getByRole("button", { name: "Menyunu yığ" });
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await userEvent.click(toggle);
+  expect(screen.getByRole("button", { name: "Menyunu genişləndir" })).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
   first.unmount();
   shell();
   expect(screen.getByRole("button", { name: "Menyunu genişləndir" })).toBeInTheDocument();
@@ -34,8 +39,12 @@ test("the collapsed sidebar is remembered", async () => {
 
 test("mobile drawer: opens from the menu button, closes on Esc and after navigating", async () => {
   shell();
-  await userEvent.click(screen.getByRole("button", { name: "Menyunu aç" }));
+  const menuButton = screen.getByRole("button", { name: "Menyunu aç" });
+  expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  expect(menuButton).toHaveAttribute("aria-haspopup", "dialog");
+  await userEvent.click(menuButton);
   const drawer = await screen.findByRole("dialog", { name: "Menyu" });
+  expect(menuButton).toHaveAttribute("aria-expanded", "true");
   expect(drawer).toContainElement(screen.getAllByRole("link", { name: "İcmal" }).at(-1)!);
   await userEvent.keyboard("{Escape}");
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());

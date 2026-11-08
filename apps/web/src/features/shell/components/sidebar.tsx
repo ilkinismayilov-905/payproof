@@ -126,8 +126,9 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
           type="button"
           onClick={onToggleCollapse}
           aria-label={collapsed ? "Menyunu genişləndir" : "Menyunu yığ"}
+          aria-expanded={!collapsed}
           title={collapsed ? "Genişləndir" : "Yığ"}
-          className={cn(item(collapsed), collapsed || "mt-2", collapsed && "mt-auto")}
+          className={cn(item(collapsed), collapsed ? "mt-auto" : "mt-2")}
         >
           {collapsed ? (
             <ChevronRight aria-hidden className="size-5" />

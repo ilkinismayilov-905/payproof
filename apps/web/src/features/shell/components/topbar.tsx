@@ -11,9 +11,11 @@ const iconButton =
 
 export function Topbar({
   onOpenNav,
+  navOpen = false,
   menuButtonRef,
 }: {
   onOpenNav: () => void;
+  navOpen?: boolean;
   /** The drawer returns focus here when it closes. */
   menuButtonRef?: Ref<HTMLButtonElement>;
 }) {
@@ -31,6 +33,8 @@ export function Topbar({
         ref={menuButtonRef}
         type="button"
         aria-label="Menyunu aç"
+        aria-haspopup="dialog"
+        aria-expanded={navOpen}
         onClick={onOpenNav}
         className={`${iconButton} md:hidden`}
       >
@@ -67,7 +71,13 @@ export function Topbar({
         </label>
       </form>
 
-      <button type="button" aria-label="Bildirişlər" disabled className={iconButton}>
+      <button
+        type="button"
+        aria-label="Bildirişlər"
+        title="Bildirişlər tezliklə"
+        disabled
+        className={iconButton}
+      >
         <Bell aria-hidden className="size-5" />
       </button>
       <UserMenu />

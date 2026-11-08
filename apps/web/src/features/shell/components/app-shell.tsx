@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Məzmuna keç
       </a>
-      <Topbar menuButtonRef={menuButton} onOpenNav={() => setNavOpen(true)} />
+      <Topbar menuButtonRef={menuButton} navOpen={navOpen} onOpenNav={() => setNavOpen(true)} />
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
