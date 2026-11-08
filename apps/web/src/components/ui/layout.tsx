@@ -27,11 +27,14 @@ export function PageHeader({
 export function Panel({
   title,
   actions,
+  flush = false,
   className,
   children,
 }: {
   title?: string;
   actions?: ReactNode;
+  /** No inner padding below the header: tables and lists run edge to edge. */
+  flush?: boolean;
   className?: string;
   children: ReactNode;
 }) {
@@ -39,10 +42,14 @@ export function Panel({
   return (
     <section
       aria-labelledby={title ? headingId : undefined}
-      className={cn("bg-surface border-border shadow-1 min-w-0 rounded-lg border p-4", className)}
+      className={cn(
+        "bg-surface border-border shadow-1 min-w-0 rounded-lg border",
+        !flush && "p-4",
+        className,
+      )}
     >
       {title && (
-        <div className="mb-3 flex items-center justify-between gap-2">
+        <div className={cn("flex items-center justify-between gap-2", flush ? "p-4" : "mb-3")}>
           <h2 id={headingId} className="text-lg font-bold">
             {title}
           </h2>

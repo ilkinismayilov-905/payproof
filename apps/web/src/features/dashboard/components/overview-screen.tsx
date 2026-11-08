@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Banner, PageHeader } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { useDashboard } from "../queries";
+import { ApprovalHistory, AttentionPackages } from "./activity";
 import { RuleBars, StatusDonut } from "./charts";
 import { IntroCard } from "./intro-card";
 import { KpiCards } from "./kpi-cards";
@@ -65,6 +66,10 @@ export function OverviewScreen() {
           <div className="grid gap-4 @4xl:grid-cols-2">
             <RuleBars counts={d.rule_counts} />
             <StatusDonut counts={d.status_counts} total={d.package_count} />
+          </div>
+          <div className="grid gap-4 @4xl:grid-cols-2">
+            <AttentionPackages asOf={d.as_of} />
+            <ApprovalHistory approvals={d.recent_approvals} />
           </div>
         </>
       )}
