@@ -10,7 +10,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-01 · FastAPI skeleti
 **Branch:** `feat/B-01-api-skeleton` · **Asılılıq:** S-08
 **Daxildir:** `uv init` (src layout: `src/payproof/`), `pyproject.toml` (ruff, mypy strict, pytest config), qovluqlar `api, services, domain, repositories, schemas, extraction, storage, worker, core`; `core/settings.py` (pydantic-settings, `.env`), `core/logging.py` (JSON log, correlation id middleware), `core/errors.py` (DomainError → standart xəta formatı), `GET /v1/health`; `uv run payproof-api` script.
-**Qəbul:** [ ] `uv run pytest` (health testi) yaşıl [ ] `ruff`, `mypy --strict` təmiz [ ] xəta formatı api-contract.md-dəki kimi
+**Qəbul:** [ ] `uv run pytest` (health testi) yaşıl [ ] `ruff`, `mypy --strict` təmiz [ ] xəta formatı api-contract.md-dəki kimi [ ] CI `api` job-u yaşıl: `uv.lock` commit olunub (CI `uv sync --locked` işlədir), ruff/mypy/pytest `[dependency-groups] dev`-dədir (`optional-dependencies` yox); settings CI-dakı env-lə (`DATABASE_URL`, `JWT_SECRET`, `S3_*`, `AI_PROVIDER=mock`) qalxır
 **Commit-lər:** 1) uv layihə + tooling 2) settings + logging 3) errors + handler + test 4) app factory + health
 
 ### B-02 · DB təməli
