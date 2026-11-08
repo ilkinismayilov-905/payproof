@@ -4,6 +4,11 @@ Backend seed (B-09), MSW mock-lar (S-06) və golden testlər **eyni** fayllardan
 
 Yoxlama: `pnpm fixtures:check` — hər fayl `schema/*.json`-a uyğundur, referanslar bütövdür, cəmlər qəpiklə yenidən hesablanır, `expected.json` `demo-dataset.md` cədvəli ilə tutuşdurulur.
 
+Generasiya: `pnpm fixtures:generate` — `scripts/fixtures/generate.mjs` prototipin JS məlumatlarını və qayda mühərrikini node-da işlədib bütün `fixtures/*.json` fayllarını (o cümlədən `expected.json`) yenidən yazır, Prettier ilə formatlayır və `fixtures:check` işlədir. Nəticə deterministikdir: prototip dəyişməyibsə diff boş olur.
+- **Nə vaxt:** yalnız prototip (`docs/product/prototype/payproof-prototype.html`) məlumatı və ya mühərriki dəyişəndə, ya da fixture formatı dəyişəndə (generator + `schema/` birlikdə).
+- **Nə vaxt yox:** test keçsin deyə — `expected.json` golden məlumatdır.
+- Generasiyadan sonra `git diff fixtures/` diqqətlə nəzərdən keçirilir; dəyişiklik ayrıca `fix(S-03)` commit-i və səbəbi ilə gedir.
+
 ## Konvensiyalar
 - **Pul** — string, 2 onluq (`"9.00"`), həmişə `currency` ilə. Heç vaxt float deyil; validator tam qəpiklə (BigInt) hesablayır. AZN və USD bir cəmdə toplanmır.
 - **Tarix** — `YYYY-MM-DD`; **vaxt** — RFC 3339, Bakı vaxtı (`2026-11-03T09:12:00+04:00`). Demo "bu gün": `expected.demo_now`.
