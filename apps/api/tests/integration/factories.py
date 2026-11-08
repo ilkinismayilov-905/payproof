@@ -103,7 +103,7 @@ async def make_rules(db: AsyncSession, t: Tenant) -> RequirementSet:
     rules = RequirementSet(
         company_id=t.company.id,
         customer_id=t.customer.id,
-        version=1,
+        version=next(_seq),  # unique per customer, so several rule sets can coexist
         require_po=True,
         require_delivery=True,
         require_signature=False,
@@ -117,8 +117,8 @@ async def make_rules(db: AsyncSession, t: Tenant) -> RequirementSet:
 
 
 async def make_run(db: AsyncSession, t: Tenant) -> ValidationRun:
-    """A package (v1) of `t.customer` with one validation run under its v1 rule set."""
-    pkg = package(t)
+    """A fresh package (v1) of `t.customer` with one validation run under a new rule set."""
+    pkg = package(t, f"INV-{next(_seq)}")
     await add(db, pkg)
     run = ValidationRun(
         company_id=t.company.id,

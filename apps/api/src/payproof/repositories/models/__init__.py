@@ -1,5 +1,6 @@
 """All ORM models; importing this package registers every table on `Base.metadata`."""
 
+from payproof.repositories.models.approvals import ApprovalRecord, ExportRecord
 from payproof.repositories.models.customers import Customer, RequirementSet
 from payproof.repositories.models.documents import Document, DocumentVersion
 from payproof.repositories.models.extraction import (
@@ -16,6 +17,7 @@ from payproof.repositories.models.tasks import ResolutionTask
 from payproof.repositories.models.validation import CheckResult, ValidationRun
 
 __all__ = [
+    "ApprovalRecord",
     "CheckResult",
     "Company",
     "Customer",
@@ -24,6 +26,7 @@ __all__ = [
     "Document",
     "DocumentVersion",
     "EvidenceRef",
+    "ExportRecord",
     "ExtractedField",
     "ExtractedInvoice",
     "ExtractedInvoiceLine",

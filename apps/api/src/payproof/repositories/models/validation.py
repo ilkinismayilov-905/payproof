@@ -36,6 +36,15 @@ class ValidationRun(TenantEntity, Base):
     __tablename__ = "validation_runs"
     __table_args__ = (
         tenant_key(),
+        # approvals reference the exact (package, version, rule set) a run evaluated
+        UniqueConstraint(
+            "id",
+            "package_id",
+            "package_version",
+            "requirement_set_id",
+            "company_id",
+            name="uq_validation_runs_run_key",  # generated name exceeds 63 characters
+        ),
         # package and rule set must share the tenant *and* the customer
         _customer_fk("package_id", "invoice_packages"),
         _customer_fk("requirement_set_id", "requirement_sets"),
