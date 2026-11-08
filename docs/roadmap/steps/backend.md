@@ -10,7 +10,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-01 · FastAPI skeleti
 **Branch:** `feat/B-01-api-skeleton` · **Asılılıq:** S-08
 **Daxildir:** `uv init` (src layout: `src/payproof/`), `pyproject.toml` (ruff, mypy strict, pytest config), qovluqlar `api, services, domain, repositories, schemas, extraction, storage, worker, core`; `core/settings.py` (pydantic-settings, `.env`), `core/logging.py` (JSON log, correlation id middleware), `core/errors.py` (DomainError → standart xəta formatı), `GET /v1/health`; `uv run payproof-api` script.
-**Qəbul:** [ ] `uv run pytest` (health testi) yaşıl [ ] `ruff`, `mypy --strict` təmiz [ ] xəta formatı api-contract.md-dəki kimi
+**Qəbul:** [ ] `uv run pytest` (health testi) yaşıl [ ] `ruff`, `mypy --strict` təmiz [ ] xəta formatı api-contract.md-dəki kimi [ ] CI `api` job-u yaşıl: `uv.lock` commit olunub (CI `uv sync --locked` işlədir), ruff/mypy/pytest `[dependency-groups] dev`-dədir (`optional-dependencies` yox); settings CI-dakı env-lə (`DATABASE_URL`, `JWT_SECRET`, `S3_*`, `AI_PROVIDER=mock`) qalxır
 **Commit-lər:** 1) uv layihə + tooling 2) settings + logging 3) errors + handler + test 4) app factory + health
 
 ### B-02 · DB təməli
@@ -119,7 +119,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-22 · Müştəri qaydaları API
 **Branch:** `feat/B-22-requirements` · **Asılılıq:** B-20
 **Daxildir:** `GET /v1/customers`, `GET/POST /v1/customers/{id}/requirements` (yalnız approver; səbəb ≥10; tolerans ≤ 1.00; dəyişiklik yoxdursa 422), yeni versiyadan sonra müştərinin ixrac edilməmiş paketlərinin revalidation-u + köhnə təsdiqlərin etibarsızlaşması.
-**Qəbul:** [ ] c2-yə imza tələbi əlavə edəndə INV-1035 `NEEDS_REVIEW` olur
+**Qəbul:** [ ] c2-yə imza tələbi əlavə edəndə INV-1035 `NEEDS_REVIEW` olur [ ] ADR-0009 (test ilə): yeni qayda dəsti müştərinin cari versiyası ixrac edilməmiş hər paketinin versiyasını artırır (INV-1035 v1 → v2), cari təsdiq `valid=false` olur və auditdə qalır, təsdiqçiyə bildiriş gedir; cari versiyası ixrac edilmiş paket (INV-1031) dəyişmir
 
 ### B-23 · Bildirişlər API
 **Branch:** `feat/B-23-notifications` · **Asılılıq:** B-17

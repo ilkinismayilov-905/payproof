@@ -14,4 +14,4 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | S-05 | `packages/api-client` | ✅ | `feat/S-05-api-client` | 2026-11-08 | openapi-fetch client + ApiError/unwrap/toFormData, az format, i18n; generation drift test |
 | S-06 | `packages/mocks` (MSW + mock mühərriki) | ✅ | `feat/S-06-mocks` | 2026-11-08 | 35/35 əməliyyat, golden = expected.json, INV-1042 axını; ADR-0009 |
 | S-07 | `packages/design-tokens` | ✅ | `feat/S-07-design-tokens` | 2026-11-08 | tokens.css (prototype parity test), Tailwind preset + shadcn aliases, badge tones |
-| S-08 | CI, PR şablonu və repo-nun paylaşılması | ⬜ | | | |
+| S-08 | CI, PR şablonu və repo-nun paylaşılması | ✅ | `feat/S-08-ci` | 2026-11-08 | GitHub Actions; tələb olunan yoxlama: `ci`; branch protection — lead əl ilə |
