@@ -199,7 +199,17 @@ paths:
       operationId: listPackages
       summary: List packages with filters and sorting
       parameters:
-        - { name: status, in: query, schema: { $ref: "#/components/schemas/PackageStatus" } }
+        - name: status
+          in: query
+          description: One or more statuses, comma-separated (`status=NEEDS_FIX,NEEDS_REVIEW`).
+          style: form
+          explode: false
+          schema:
+            {
+              type: array,
+              items: { $ref: "#/components/schemas/PackageStatus" },
+              uniqueItems: true,
+            }
         - { name: customer_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
         - { name: owner_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
         - name: issue
@@ -245,6 +255,8 @@ paths:
                 -owner,
                 updated_at,
                 -updated_at,
+                problem_age,
+                -problem_age,
               ]
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
@@ -272,6 +284,7 @@ paths:
                         { rule_id: R-002, outcome: UNKNOWN },
                         { rule_id: R-007, outcome: FAIL },
                       ]
+                    problem_since: "2026-11-03T05:12:00Z"
                     owner:
                       {
                         id: 0193a000-0000-7000-8000-000000000001,
@@ -2003,6 +2016,7 @@ components:
           po_unreadable,
           blocking,
           owner,
+          problem_since,
           updated_at,
         ]
       properties:
@@ -2026,6 +2040,10 @@ components:
         po_unreadable: { type: boolean }
         blocking: { type: array, items: { $ref: "#/components/schemas/Blocker" } }
         owner: { $ref: "#/components/schemas/UserRef" }
+        problem_since:
+          type: ["string", "null"]
+          format: date-time
+          description: Since when the package is NEEDS_FIX/NEEDS_REVIEW (null otherwise); problem age = now − problem_since.
         updated_at: { type: string, format: date-time }
     PackagePage:
       type: object
