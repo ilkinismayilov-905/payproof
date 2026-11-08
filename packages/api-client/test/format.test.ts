@@ -67,4 +67,18 @@ describe("dates (shown in Asia/Baku, UTC+4)", () => {
   it("rejects garbage", () => {
     expect(() => formatDate("yesterday")).toThrow();
   });
+  it("rejects timestamps without an offset (they would depend on the machine timezone)", () => {
+    expect(() => formatDateTime("2026-11-03T05:12:00")).toThrow();
+    expect(() => formatDateTime("2026-11-03T05:12")).toThrow();
+  });
+  it.each(["2026-13-45", "2026-02-30", "2026-00-10", "2026-11-03T25:00:00Z"])(
+    "rejects impossible date %s",
+    (v) => {
+      expect(() => formatDateLong(v)).toThrow();
+      expect(() => formatDate(v)).toThrow();
+    },
+  );
+  it("accepts a leap day", () => {
+    expect(formatDate("2028-02-29")).toBe("29.02.2028");
+  });
 });
