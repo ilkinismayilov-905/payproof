@@ -29,7 +29,15 @@ const Highlight = ({ bbox }: { bbox: BBox }) =>
     />
   ) : null;
 
-function ImageSource({ url, fileName, bbox }: { url: string; fileName: string; bbox: BBox }) {
+export function ImageSource({
+  url,
+  fileName,
+  bbox,
+}: {
+  url: string;
+  fileName: string;
+  bbox: BBox;
+}) {
   return (
     <div className="relative w-full">
       {/* eslint-disable-next-line @next/next/no-img-element -- a short-lived signed link, not a static asset */}
@@ -80,4 +88,3 @@ export function SourceFile({
     </div>
   );
 }
-SourceFile.Image = ImageSource;

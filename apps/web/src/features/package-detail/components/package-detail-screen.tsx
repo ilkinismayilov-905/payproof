@@ -71,7 +71,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
         // prototype .pd-grid: 1 column → compare|checks over docs|checks (880 px) → docs|compare|checks (1240 px)
         <div className="grid items-start gap-4 [grid-template-areas:'checks'_'compare'_'docs'] @min-[880px]:grid-cols-[minmax(0,1fr)_360px] @min-[880px]:[grid-template-areas:'compare_checks'_'docs_checks'] @min-[1240px]:grid-cols-[250px_minmax(0,1fr)_360px] @min-[1240px]:[grid-template-areas:'docs_compare_checks']">
           <DocumentsPanel pkg={pkg.data} />
-          {/* placeholders until W-09 (comparison) and W-10 (checks) fill these areas */}
+          {/* placeholder until W-10 fills the checks area */}
           <ComparisonPanel
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}

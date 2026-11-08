@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { setToken } from "@/lib/auth";
 import { renderWithQuery } from "@/test/render";
-import { bboxStyle, SourceFile } from "./source-file";
+import { bboxStyle, ImageSource, SourceFile } from "./source-file";
 
 // react-pdf needs canvas and a worker; jsdom has neither — stand in for the page renderer
 vi.mock("./pdf-page", () => ({
@@ -53,11 +53,7 @@ test("the highlight is positioned against the page itself, not the scrolling box
 
 test("an image scan is shown as an image, with the highlight box over it", async () => {
   render(
-    <SourceFile.Image
-      url="https://x/scan.png"
-      fileName="TS-5531.png"
-      bbox={[0.2, 0.4, 0.3, 0.1]}
-    />,
+    <ImageSource url="https://x/scan.png" fileName="TS-5531.png" bbox={[0.2, 0.4, 0.3, 0.1]} />,
   );
   expect(screen.getByRole("img", { name: "TS-5531.png" })).toHaveAttribute(
     "src",

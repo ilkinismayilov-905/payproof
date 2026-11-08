@@ -11,10 +11,13 @@ type Row = Schemas["ComparisonRow"];
 type Cell = Schemas["ComparisonCell"];
 type Column = "invoice" | "order" | "delivery";
 
+/** "lines[KY-10].unit_price" → "KY-10" (the row key, not the display text). */
+const lineCode = (key: string) => /^lines\[(.+?)\]/.exec(key)?.[1] ?? "";
+
 const COLUMNS: { key: Column; label: string }[] = [
-  { key: "invoice", label: "Faktura" },
-  { key: "order", label: "Sifariş" },
-  { key: "delivery", label: "Təhvil" },
+  { key: "invoice", label: t.comparisonColumns.invoice },
+  { key: "order", label: t.comparisonColumns.order },
+  { key: "delivery", label: t.comparisonColumns.delivery },
 ];
 
 /** Decimal strings stay strings: money and quantities go through the shared formatters. */
@@ -39,7 +42,7 @@ interface Props {
 
 /** Invoice · order · delivery side by side (prototype `comparePanel`). */
 export function ComparisonPanel({ pkg, onEvidence }: Props) {
-  const caption = "Müqayisə: faktura · sifariş · təhvil";
+  const caption = t.comparisonCaption;
   return (
     <Panel
       title={t.comparison}
@@ -48,7 +51,7 @@ export function ComparisonPanel({ pkg, onEvidence }: Props) {
       actions={
         <span className="bg-surface-2 text-text-2 border-border inline-flex items-center gap-1 rounded-sm border px-1.5 py-px text-[11px] font-bold">
           <Sparkles aria-hidden className="size-3" />
-          AI çıxarışı · mənbəli
+          {t.aiSourced}
         </span>
       }
     >
@@ -58,13 +61,11 @@ export function ComparisonPanel({ pkg, onEvidence }: Props) {
           <thead>
             <tr className="bg-surface-2 text-text-3 text-left text-xs font-bold uppercase">
               <th scope="col" className="px-4 py-2">
-                Sahə
+                {t.comparisonColumns.field}
               </th>
               {COLUMNS.map((c) => (
                 <th key={c.key} scope="col" className="px-4 py-2">
-                  {c.key === "order" && !pkg.link.confirmed
-                    ? `${c.label} (təsdiqlənməyib)`
-                    : c.label}
+                  {c.key === "order" && !pkg.link.confirmed ? t.unconfirmed(c.label) : c.label}
                 </th>
               ))}
             </tr>
@@ -75,7 +76,7 @@ export function ComparisonPanel({ pkg, onEvidence }: Props) {
                 {row.group && row.group !== pkg.comparison.rows[i - 1]?.group && (
                   <tr>
                     <th
-                      scope="row"
+                      scope="rowgroup"
                       colSpan={4}
                       className="bg-surface-2 text-text-2 px-4 py-1.5 text-left text-xs font-bold"
                     >
@@ -90,9 +91,7 @@ export function ComparisonPanel({ pkg, onEvidence }: Props) {
                   {COLUMNS.map(({ key, label }) => {
                     const cell = row[key];
                     // the line group makes the name unique (every line has a "Vahid qiymət")
-                    const name = row.group
-                      ? `${row.group.split(" · ")[0]} ${row.label}`
-                      : row.label;
+                    const name = row.group ? `${lineCode(row.key)} ${row.label}` : row.label;
                     const state =
                       cell.state === "mismatch" || cell.state === "unknown"
                         ? STATE[cell.state]

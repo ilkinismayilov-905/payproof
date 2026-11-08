@@ -1,6 +1,7 @@
 import type { Schemas } from "@payproof/api-client";
 import { documentTypeLabel } from "@payproof/api-client/i18n";
 import { cn } from "@/lib/utils";
+import { detailText as t } from "../texts";
 
 type Pkg = Schemas["PackageDetail"];
 
@@ -37,7 +38,10 @@ export function PaperPage({
       )}
     >
       <div className="border-paper-ink mb-3 flex justify-between gap-4 border-b-2 pb-2.5">
-        <b>{pkg.customer.name}</b>
+        <span>
+          {`${t.buyer}: `}
+          <b>{pkg.customer.name}</b>
+        </span>
         <div className="text-right text-[11px] font-extrabold tracking-wider uppercase">
           {documentTypeLabel[docType]}
           <b className="block text-[15px] tracking-normal normal-case">{version.file_name}</b>
