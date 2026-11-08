@@ -117,22 +117,26 @@ export function PackageFilters({
           </option>
         ))}
       </Select>
-      <input
-        type="date"
-        aria-label="Tarixdən"
-        value={params.from ?? ""}
-        max={params.to}
-        onChange={(e) => set({ from: e.target.value || undefined })}
-        className={control}
-      />
-      <input
-        type="date"
-        aria-label="Tarixədək"
-        value={params.to ?? ""}
-        min={params.from}
-        onChange={(e) => set({ to: e.target.value || undefined })}
-        className={control}
-      />
+      <label className="text-text-2 flex items-center gap-1.5 text-sm">
+        Tarixdən
+        <input
+          type="date"
+          value={params.from ?? ""}
+          max={params.to}
+          onChange={(e) => set({ from: e.target.value || undefined })}
+          className={control}
+        />
+      </label>
+      <label className="text-text-2 flex items-center gap-1.5 text-sm">
+        Tarixədək
+        <input
+          type="date"
+          value={params.to ?? ""}
+          min={params.from}
+          onChange={(e) => set({ to: e.target.value || undefined })}
+          className={control}
+        />
+      </label>
       {FILTERS.some((k) => params[k] !== undefined) && (
         <Button
           variant="ghost"
