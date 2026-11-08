@@ -243,3 +243,171 @@ write(
     },
   })),
 );
+
+// --- expected.json: computed by the prototype engine itself ---
+const pkgs = {};
+for (const p of S.packages) {
+  const i = st(p);
+  pkgs[p.inv] = {
+    package_id: p.id,
+    status: i.status,
+    version: p.version,
+    requirement_set_version: P.rulesFor(p).v,
+    blockers: blockers(i),
+    checks: outcomes(i),
+    ...(i.checks.find((c) => c.id === "R-005" && c.diff)
+      ? { r005_diff: m(i.checks.find((c) => c.id === "R-005").diff) }
+      : {}),
+  };
+}
+const open = S.packages.filter((p) => ["NEEDS_FIX", "NEEDS_REVIEW"].includes(st(p).status));
+const byCur = {};
+for (const p of open) {
+  byCur[p.currency] ||= { currency: p.currency, amount: 0, packages: 0 };
+  byCur[p.currency].amount += p.invoice.total;
+  byCur[p.currency].packages++;
+}
+const ages = open.map((p) => ({
+  inv: p.inv,
+  d: Math.max(0, P.days(p.problemSince || p.createdAt, P.nowIso())),
+}));
+const longest = ages.reduce((a, x) => (x.d > a.d ? x : a));
+const statusCounts = {};
+for (const p of S.packages) statusCounts[st(p).status] = (statusCounts[st(p).status] || 0) + 1;
+const dashboard = {
+  status_counts: statusCounts,
+  open_problem_amounts: Object.values(byCur).map((x) => ({ ...x, amount: m(x.amount) })),
+  avg_problem_days: (ages.reduce((a, x) => a + x.d, 0) / ages.length).toFixed(1),
+  longest_problem: { invoice_number: longest.inv, days: longest.d },
+};
+
+// INV-1042 flow, mirroring the prototype's demo tour + selfTest
+const p = P.P42();
+const snap = (step, extra = {}) => {
+  const i = st(p);
+  return { step, status: i.status, version: p.version, blockers: blockers(i), ...extra };
+};
+const tasksOf = () =>
+  S.tasks
+    .filter((t) => t.pkg === p.id)
+    .map((t) => ({ number: t.id, rule_id: t.rule, assignee_id: t.who, status: t.status }));
+const flow = [snap("initial")];
+flow.push(
+  snap("approve_blocked", { actor: "u2", result: P.dApprove(p, "u2").ok ? "ok" : "rejected" }),
+);
+P.dConfirmLink(p, "PO-381", "u1");
+flow.push(snap("confirm_link", { actor: "u1", po_number: "PO-381" }));
+P.dCreateTask(p, "R-001", "u6", P.STEP_T["R-001"](p), P.addDays(P.nowIso(), 1), "", "u1");
+P.dCreateTask(p, "R-007", "u3", P.STEP_T["R-007"](p), P.addDays(P.nowIso(), 1), "", "u1");
+flow.push(snap("create_tasks", { actor: "u1", tasks: tasksOf() }));
+P.dUpload(p, P.SAMPLES[0], "u6");
+flow.push(
+  snap("upload_invoice", {
+    actor: "u6",
+    sample_id: "s1",
+    file_name: P.SAMPLES[0].file,
+    checks: { "R-001": outcomes(st(p))["R-001"], "R-002": outcomes(st(p))["R-002"] },
+  }),
+);
+const dup = P.dUpload(p, P.SAMPLES[2], "u1");
+flow.push(
+  snap("upload_duplicate", {
+    actor: "u1",
+    sample_id: "s3",
+    file_name: P.SAMPLES[2].file,
+    duplicate: !!dup.dup,
+  }),
+);
+P.dUpload(p, P.SAMPLES[1], "u3");
+flow.push(
+  snap("upload_delivery", {
+    actor: "u3",
+    sample_id: "s2",
+    file_name: P.SAMPLES[1].file,
+    checks: { "R-007": outcomes(st(p))["R-007"], "R-008": outcomes(st(p))["R-008"] },
+  }),
+);
+P.dReviewSig(p, "u1");
+flow.push(snap("review_signature", { actor: "u1", tasks: tasksOf() }));
+flow.push(
+  snap("approve_as_operator", {
+    actor: "u1",
+    result: P.dApprove(p, "u1").ok ? "ok" : "forbidden",
+    http_status: 403,
+  }),
+);
+flow.push(snap("approve", { actor: "u2", result: P.dApprove(p, "u2").ok ? "ok" : "rejected" }));
+flow.push(
+  snap("approve_repeat", {
+    actor: "u2",
+    idempotent: !!P.dApprove(p, "u2").dup,
+    approvals: p.approvals.length,
+  }),
+);
+const files = P.docTypes(p).map((t) => P.curVer(p, t).file);
+P.dExport(p, "u1", files);
+flow.push(snap("export", { actor: "u1", files }));
+flow.push(
+  snap("export_repeat", {
+    actor: "u1",
+    idempotent: !!P.dExport(p, "u1", files).dup,
+    exports: p.exports.length,
+  }),
+);
+
+// New sets: build like the prototype would and evaluate
+P.reset();
+const newsets = P.NEWSETS.map((n) => {
+  const q = P.buildPkg({
+    id: "tmp_" + n.id,
+    inv: n.inv,
+    c: n.c,
+    cur: n.cur,
+    date: n.date,
+    created: P.nowIso(),
+    owner: "u1",
+    po: n.po,
+    lines: n.lines,
+    orderPo: n.po,
+    dl: n.dl,
+  });
+  P.S.packages.push(q);
+  const s = st(q).status;
+  P.S.packages.pop();
+  return { n, s, b: blockers(st(q)) };
+});
+write(
+  "newsets.json",
+  newsets.map(({ n }) => ({
+    id: n.id,
+    invoice_number: n.inv,
+    customer_id: n.c,
+    currency: n.cur,
+    invoice_date: n.date,
+    po_number: n.po,
+    lines: lines(n.lines),
+    delivery: n.dl && { note_number: n.dl.no, po_ref: n.dl.po },
+    files: n.files,
+    note: n.expect,
+  })),
+);
+
+write("expected.json", {
+  generated_from: "docs/product/prototype/payproof-prototype.html (runChecks/info)",
+  demo_now: "2026-11-08T10:30",
+  counts: {
+    packages: 14,
+    orders: 18,
+    customers: 2,
+    users: 7,
+    products: 10,
+    tasks: 9,
+    samples: 8,
+    newsets: 2,
+  },
+  packages: pkgs,
+  dashboard,
+  flows: { "INV-1042": flow },
+  newsets: Object.fromEntries(newsets.map(({ n, s, b }) => [n.inv, { status: s, blockers: b }])),
+});
+console.log("ok");
