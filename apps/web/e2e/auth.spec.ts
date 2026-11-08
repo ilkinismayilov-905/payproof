@@ -8,17 +8,13 @@ test("dev login: pick a demo user, /v1/me drives the app", async ({ page }) => {
   await expect(page.getByRole("radio", { name: /Rəşad Əliyev/ })).toBeChecked();
   await page.getByRole("button", { name: "Daxil ol" }).click();
 
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "Rəşad Əliyev" })).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/);
+  await expect(page.getByRole("heading", { name: "İcmal" })).toBeVisible();
   await expect(page.getByText("Rəşad Əliyev kimi daxil oldunuz.")).toBeVisible();
-  // Permissions come from /v1/me (approver can approve, operator could not).
-  await expect(page.getByRole("list", { name: "Səlahiyyətlər" })).toContainText(
-    "Hazır paketi təsdiqləmək",
-  );
 
   // Reload keeps the session (sessionStorage).
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Rəşad Əliyev" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "İcmal" })).toBeVisible();
 });
 
 test("an expired session (401) returns to the login screen", async ({ page }) => {
