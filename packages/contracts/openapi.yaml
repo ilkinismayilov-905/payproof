@@ -923,6 +923,16 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: TASK_ALREADY_OPEN — this package already has an open task for the rule
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: TASK_ALREADY_OPEN
+                  message: "Bu qayda üçün açıq tapşırıq artıq var: T-119."
+                  details: { task_id: 0193a000-0000-7000-8006-000000000119, number: T-119 }
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/tasks/{task_id}:
     parameters:
@@ -976,6 +986,20 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: TASK_STATUS_NOT_ALLOWED — a RESOLVED task cannot be cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                {
+                  error:
+                    {
+                      code: TASK_STATUS_NOT_ALLOWED,
+                      message: "Həll edilmiş tapşırıq ləğv edilə bilməz.",
+                      details: {},
+                    },
+                }
   /v1/packages/{package_id}/approve:
     parameters:
       - $ref: "#/components/parameters/PackageId"
@@ -1880,6 +1904,7 @@ components:
         - VERSION_CONFLICT
         - PACKAGE_NOT_READY
         - PACKAGE_NOT_DELETABLE
+        - TASK_ALREADY_OPEN
         - DUPLICATE_FILE
         - DUPLICATE_INVOICE
         - IDEMPOTENCY_IN_PROGRESS
