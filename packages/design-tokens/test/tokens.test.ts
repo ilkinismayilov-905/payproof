@@ -36,4 +36,17 @@ describe("tokens.css matches the prototype", () => {
     expect(expected.size).toBeGreaterThan(70);
     expect(Object.fromEntries(block(tokens, ":root {"))).toEqual(Object.fromEntries(expected));
   });
+
+  it('dark variables are identical, both for the OS preference and for data-theme="dark"', () => {
+    const expected = Object.fromEntries(block(prototype, "@media (prefers-color-scheme:dark)"));
+    expect(Object.keys(expected).length).toBeGreaterThan(30);
+    expect(Object.fromEntries(block(tokens, "@media (prefers-color-scheme: dark)"))).toEqual(
+      expected,
+    );
+    expect(Object.fromEntries(block(tokens, ':root[data-theme="dark"] {'))).toEqual(expected);
+  });
+
+  it("an explicit light theme opts out of the OS dark preference", () => {
+    expect(tokens).toContain(':root:not([data-theme="light"]) {');
+  });
 });

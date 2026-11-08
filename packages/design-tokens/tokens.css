@@ -103,3 +103,95 @@
   /* Layout */
   --topbar-h: 56px;
 }
+
+/* Dark — follows the OS preference unless the app pins data-theme="light". */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand-700: #8cd7e2;
+    --brand-600: #5cc3d2;
+    --brand-500: #3aa9ba;
+    --brand-100: #1b4650;
+    --brand-50: #10292f;
+    --on-brand: #06262c;
+    --bg: #0e1312;
+    --surface: #151c1a;
+    --surface-2: #1b2321;
+    --surface-3: #25302d;
+    --border: #2b3633;
+    --border-strong: #3d4a46;
+    --text: #e7edeb;
+    --text-2: #b8c3bf;
+    --text-3: #97a39e;
+    --success: #62cc91;
+    --success-bg: #12301f;
+    --warning: #edb458;
+    --warning-bg: #33260d;
+    --danger: #f4877c;
+    --danger-bg: #3a1714;
+    --on-danger: #2b0b08;
+    --info: #9db2f2;
+    --info-bg: #1a2340;
+    --neutral: #b8c3bf;
+    --neutral-bg: #222b29;
+    --av-1: #163a40;
+    --av-1t: #9ee0ea;
+    --av-2: #3d2a14;
+    --av-2t: #f3c48f;
+    --av-3: #1f2a4a;
+    --av-3t: #b5c6f5;
+    --av-4: #22341a;
+    --av-4t: #b8de9e;
+    --av-5: #3d1b27;
+    --av-5t: #f2afc4;
+    --overlay: rgba(0, 0, 0, 0.62);
+    --stage-glow: #13292d;
+    --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --sh-2: 0 6px 16px rgba(0, 0, 0, 0.45);
+    --sh-3: 0 24px 48px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Dark — explicit app toggle (same values as above). */
+:root[data-theme="dark"] {
+  --brand-700: #8cd7e2;
+  --brand-600: #5cc3d2;
+  --brand-500: #3aa9ba;
+  --brand-100: #1b4650;
+  --brand-50: #10292f;
+  --on-brand: #06262c;
+  --bg: #0e1312;
+  --surface: #151c1a;
+  --surface-2: #1b2321;
+  --surface-3: #25302d;
+  --border: #2b3633;
+  --border-strong: #3d4a46;
+  --text: #e7edeb;
+  --text-2: #b8c3bf;
+  --text-3: #97a39e;
+  --success: #62cc91;
+  --success-bg: #12301f;
+  --warning: #edb458;
+  --warning-bg: #33260d;
+  --danger: #f4877c;
+  --danger-bg: #3a1714;
+  --on-danger: #2b0b08;
+  --info: #9db2f2;
+  --info-bg: #1a2340;
+  --neutral: #b8c3bf;
+  --neutral-bg: #222b29;
+  --av-1: #163a40;
+  --av-1t: #9ee0ea;
+  --av-2: #3d2a14;
+  --av-2t: #f3c48f;
+  --av-3: #1f2a4a;
+  --av-3t: #b5c6f5;
+  --av-4: #22341a;
+  --av-4t: #b8de9e;
+  --av-5: #3d1b27;
+  --av-5t: #f2afc4;
+  --overlay: rgba(0, 0, 0, 0.62);
+  --stage-glow: #13292d;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-2: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --sh-3: 0 24px 48px rgba(0, 0, 0, 0.6);
+}
