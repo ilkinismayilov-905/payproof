@@ -22,7 +22,7 @@
     "email": "elvin.qasimov@a-distribusiya.test",
     "full_name": "Elvin Qasımov",
     "title": "Anbar və logistika",
-    "role": "warehouse",
+    "role": "assignee",
     "avatar_tone": 4,
     "demo_login": false
   },
@@ -31,7 +31,7 @@
     "email": "nigar.huseynova@a-distribusiya.test",
     "full_name": "Nigar Hüseynova",
     "title": "Satış meneceri",
-    "role": "sales",
+    "role": "assignee",
     "avatar_tone": 5,
     "demo_login": false
   },
@@ -49,7 +49,7 @@
     "email": "leyla.rzayeva@a-distribusiya.test",
     "full_name": "Leyla Rzayeva",
     "title": "Mühasib",
-    "role": "accounting",
+    "role": "assignee",
     "avatar_tone": 2,
     "demo_login": false
   },

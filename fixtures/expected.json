@@ -438,7 +438,7 @@
             "outcome": "FAIL"
           }
         ],
-        "actor": "u6",
+        "actor": "u1",
         "sample_id": "s1",
         "file_name": "INV-1042_v2_PO-381.pdf",
         "checks": {
@@ -471,7 +471,7 @@
             "outcome": "UNKNOWN"
           }
         ],
-        "actor": "u3",
+        "actor": "u1",
         "sample_id": "s2",
         "file_name": "TS-5531_imzali.pdf",
         "checks": {

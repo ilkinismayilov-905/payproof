@@ -179,6 +179,33 @@ for (const n of newsets) {
   n.lines.forEach((l) => ref(codes, l.product_code, n.id));
 }
 
+// ADR-0008: assignees (and readonly) never act in the system, sign in or receive notifications
+const CAN_ACT = new Set(["operator", "approver", "admin"]);
+const mustAct = (id, where) => {
+  if (id == null || id === "system") return;
+  if (!CAN_ACT.has(userById.get(id)?.role))
+    fail(`${where}: ${id} (${userById.get(id)?.role}) cannot act`);
+};
+for (const u of users)
+  if (u.demo_login && u.role === "assignee") fail(`${u.id}: assignee in dev login`);
+for (const p of packages) {
+  const w = p.invoice_number;
+  mustAct(p.owner_id, `${w} owner`);
+  mustAct(p.order_link.confirmed_by, `${w} link`);
+  p.documents.forEach((d) =>
+    d.versions.forEach((v) => mustAct(v.uploaded_by, `${w} ${v.file_name}`)),
+  );
+  p.approvals.forEach((a) => mustAct(a.approver_id, `${w} approval`));
+  p.exports.forEach((e) => mustAct(e.created_by, `${w} export`));
+}
+for (const c of customers)
+  c.requirement_sets.forEach((r) => mustAct(r.approved_by, `${c.id} rules v${r.version}`));
+for (const t of tasks) mustAct(t.created_by, `${t.number} created_by`);
+for (const n of notifications)
+  if (userById.get(n.user_id)?.role === "assignee") fail(`notification to assignee ${n.user_id}`);
+for (const steps of Object.values(expected.flows))
+  steps.forEach((x) => mustAct(x.actor, `flow ${x.step}`));
+
 // expected.json ↔ packages
 const byInv = new Map(packages.map((p) => [p.invoice_number, p]));
 if (Object.keys(expected.packages).sort().join() !== [...byInv.keys()].sort().join())
