@@ -44,10 +44,13 @@ for (const width of [768, 1024, 1440]) {
   test(`no horizontal scroll at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await signIn(page);
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    // the page itself and the scrolling content area (<main> scrolls on its own)
+    const overflow = await page.evaluate(() =>
+      [document.documentElement, document.getElementById("content")!].map(
+        (el) => el.scrollWidth - el.clientWidth,
+      ),
     );
-    expect(overflow).toBe(0);
+    expect(overflow).toEqual([0, 0]);
   });
 }
 
