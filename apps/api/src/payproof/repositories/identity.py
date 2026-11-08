@@ -51,6 +51,16 @@ class MembershipRepository:
         found = result.scalars().all()
         return found[0] if len(found) == 1 else None
 
+    async def sign_in_candidates(self) -> list[tuple[User, Role]]:
+        """Users with an active membership that may sign in (dev login picker)."""
+        result = await self.session.execute(
+            select(User, Membership.role)
+            .join(Membership, Membership.user_id == User.id)
+            .where(Membership.active.is_(True), Membership.role != Role.ASSIGNEE)
+            .order_by(User.full_name)
+        )
+        return [(user, Role(role)) for user, role in result.all()]
+
     async def members(
         self, company_id: uuid.UUID, *, exclude: frozenset[Role] = frozenset()
     ) -> list[tuple[User, Role]]:

@@ -43,6 +43,14 @@ class DomainError(Exception):
         super().__init__(self.message)
 
 
+class InvalidInput(DomainError):
+    """Well-formed request with invalid values (422); `details.fields` names the culprits."""
+
+    status_code = 422
+    code = ErrorCode.VALIDATION_ERROR
+    message = "Daxil edilən məlumat yanlışdır."
+
+
 class Unauthenticated(DomainError):
     status_code = 401
     code = ErrorCode.UNAUTHENTICATED
