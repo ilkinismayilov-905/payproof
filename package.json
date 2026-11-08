@@ -15,6 +15,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "prettier": "^3",
     "turbo": "^2"
   }
 }
