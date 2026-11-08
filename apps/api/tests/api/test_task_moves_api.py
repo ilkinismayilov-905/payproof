@@ -58,3 +58,6 @@ async def test_edit_and_cancel(client: httpx.AsyncClient, seeded: AsyncSession, 
     r = await _patch(client, auth, tid, step="Yeni addım mətni", comment=None)
     assert r.status_code == 200 and r.json()["step"] == "Yeni addım mətni"
     assert (await _patch(client, auth, tid, due_date="2020-01-01")).status_code == 422
+    assert (await client.delete(f"/v1/tasks/{tid}", headers=auth("u1"))).status_code == 204
+    assert (await _patch(client, auth, tid, step="sonra")).status_code == 404
+    assert (await create(client, auth)).status_code == 201  # the rule is free again

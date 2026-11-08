@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,6 +71,12 @@ async def update_task(
         session, actor_id=member.user_id, task_id=task_id, patch=patch
     )
     return await task_out(session, task)
+
+
+@router.delete("/tasks/{task_id}", status_code=204)
+async def cancel_task(task_id: uuid.UUID, session: Session, member: Manager) -> Response:
+    await task_moves.cancel_task(session, actor_id=member.user_id, task_id=task_id)
+    return Response(status_code=204)
 
 
 @router.post("/packages/{package_id}/tasks", status_code=201)

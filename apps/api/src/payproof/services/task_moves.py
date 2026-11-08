@@ -99,3 +99,11 @@ async def update_task(
         await revalidate(session, pkg)  # may resolve it right away
     await session.commit()
     return task
+
+
+async def cancel_task(session: AsyncSession, *, actor_id: uuid.UUID, task_id: uuid.UUID) -> None:
+    """Soft delete; the check result does not change."""
+    task, pkg = await _open(session, task_id)
+    task.deleted_at = dt.datetime.now(dt.UTC)
+    await _audit(session, actor_id, task, pkg, "task.cancelled", f"{task.number} · {task.rule_id}")
+    await session.commit()
