@@ -2,20 +2,22 @@
 
 import datetime as dt
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.api.deps import Member, Session, require
+from payproof.core.errors import InvalidInput
+from payproof.domain.enums import TaskStatus
 from payproof.domain.permissions import Permission
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import InvoicePackage, ResolutionTask
 from payproof.schemas.auth import UserRef
 from payproof.schemas.detail import Task
 from payproof.services import detail_parts as parts
-from payproof.services import tasks
+from payproof.services import task_moves, tasks
 
 router = APIRouter(tags=["tasks"])
 Manager = Annotated[Member, Depends(require(Permission.MANAGE_TASKS))]
@@ -40,6 +42,35 @@ async def task_out(session: AsyncSession, t: ResolutionTask) -> Task:
         return UserRef(id=user.id, full_name=user.full_name, title=user.title, role=role)
 
     return parts.task(t, pkg.invoice_number or "", ref)
+
+
+class UpdateTask(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # RESOLVED is accepted here so the service can answer 422 TASK_STATUS_NOT_ALLOWED
+    status: Literal["OPEN", "IN_PROGRESS", "SUBMITTED_FOR_RECHECK", "RESOLVED"] | None = None
+    assignee_id: uuid.UUID | None = None
+    step: str | None = Field(default=None, min_length=3, max_length=1000)
+    due_date: dt.date | None = None
+    comment: str | None = Field(default=None, max_length=1000)
+
+
+@router.patch("/tasks/{task_id}")
+async def update_task(
+    task_id: uuid.UUID, body: UpdateTask, session: Session, member: Manager
+) -> Task:
+    if not body.model_fields_set:
+        raise InvalidInput("Dəyişiklik göndərilməyib.")
+    data = body.model_dump(exclude={"status"})
+    patch = task_moves.TaskPatch(
+        status=TaskStatus(body.status) if body.status else None,
+        sent=frozenset(body.model_fields_set),
+        **data,
+    )
+    task = await task_moves.update_task(
+        session, actor_id=member.user_id, task_id=task_id, patch=patch
+    )
+    return await task_out(session, task)
 
 
 @router.post("/packages/{package_id}/tasks", status_code=201)
