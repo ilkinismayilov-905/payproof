@@ -62,3 +62,55 @@ test("no rows → the empty slot spans the table", () => {
   render(ui(null, vi.fn(), []));
   expect(screen.getByRole("cell", { name: "Paket yoxdur" })).toHaveAttribute("colspan", "2");
 });
+
+test("row click (mouse convenience) ignores clicks on links and buttons inside the row", async () => {
+  const onRowClick = vi.fn();
+  const linked: ColumnDef<Row>[] = [
+    {
+      id: "invoice",
+      header: "Faktura",
+      cell: ({ row }) => <a href={`/p/${row.original.id}`}>{row.original.invoice}</a>,
+    },
+    { id: "amount", header: "Məbləğ", accessorKey: "amount" },
+  ];
+  render(
+    <DataTable
+      caption="c"
+      empty=""
+      columns={linked}
+      data={rows}
+      getRowId={(r) => r.id}
+      onRowClick={onRowClick}
+    />,
+  );
+  await userEvent.click(screen.getByRole("cell", { name: "500,00 USD" }));
+  expect(onRowClick).toHaveBeenCalledWith(rows[1]);
+  await userEvent.click(screen.getByRole("link", { name: "INV-1042" }));
+  expect(onRowClick).toHaveBeenCalledTimes(1);
+  expect(screen.getAllByRole("row")[1]).toHaveClass("cursor-pointer");
+});
+
+test("row click leaves modified clicks and text selection alone", async () => {
+  const onRowClick = vi.fn();
+  render(
+    <DataTable
+      caption="c"
+      empty=""
+      columns={columns}
+      data={rows}
+      getRowId={(r) => r.id}
+      onRowClick={onRowClick}
+    />,
+  );
+  const cell = screen.getByRole("cell", { name: "500,00 USD" });
+  const user = userEvent.setup(); // one instance, so Control stays held during the click
+  await user.keyboard("{Control>}");
+  await user.click(cell);
+  await user.keyboard("{/Control}");
+  const selection = vi
+    .spyOn(window, "getSelection")
+    .mockReturnValue({ toString: () => "500,00" } as Selection);
+  await userEvent.click(cell);
+  selection.mockRestore();
+  expect(onRowClick).not.toHaveBeenCalled();
+});

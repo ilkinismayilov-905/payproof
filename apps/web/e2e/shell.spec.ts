@@ -40,10 +40,14 @@ test("keyboard only: skip link, sidebar, search and user menu", async ({ page })
   await expect(account).toBeFocused();
 });
 
-for (const width of [768, 1024, 1440]) {
-  test(`no horizontal scroll at ${width}px`, async ({ page }) => {
+// /packages: a wide table must scroll inside its own box, never the page
+for (const [path, width] of ["/overview", "/packages"].flatMap((p) =>
+  [768, 1024, 1440].map((w) => [p, w] as const),
+)) {
+  test(`no horizontal scroll on ${path} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
-    await signIn(page);
+    await signIn(page, path);
+    await page.waitForLoadState("networkidle");
     // the page itself and the scrolling content area (<main> scrolls on its own)
     const overflow = await page.evaluate(() =>
       [document.documentElement, document.getElementById("content")!].map(

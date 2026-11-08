@@ -1,4 +1,12 @@
-// Placeholder until W-07 builds this screen.
+import { Suspense } from "react";
+import { SkeletonTable } from "@/components/ui/skeleton";
+import { PackageListScreen } from "@/features/packages";
+
 export default function PackagesPage() {
-  return <h1 className="text-2xl font-semibold">Faktura paketləri</h1>;
+  // useSearchParams needs a Suspense boundary on a prerendered page
+  return (
+    <Suspense fallback={<SkeletonTable rows={6} columns={8} />}>
+      <PackageListScreen />
+    </Suspense>
+  );
 }

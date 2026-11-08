@@ -14,7 +14,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | W-05 | Ümumi UI dəsti | ✅ | `feat/W-05-ui-kit` | 2026-11-08 | `components/ui`: `PageHeader`, `Panel`, `Banner` (5 ton), `EmptyState` (`headingLevel`), `Skeleton*` + `Loading` (bir status bölgəsi), `ConfirmDialog` (Radix AlertDialog, ilkin fokus "Ləğv et"), `DataTable` (manual sort, sütun üzrə opt-in `enableSorting`, `aria-sort`); `pointer-coarse:` ≥44px (Button + shell), e2e touch testi; `destructive` düymə doymuş qırmızı |
 | W-05b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
 | W-06 | İcmal (dashboard) | ✅ | `feat/W-06-dashboard` | 2026-11-08 | `features/dashboard`: təqdimat kartı (localStorage), 4 KPI → `/packages?status=…`, valyuta üzrə məbləğ, top problem, problem yaşı (Bakı günü, server kimi), qayda bar-ları + status donut (HTML/SVG, prototip kimi — Recharts əlavə edilmədi; mətn alternativi var), diqqət cədvəli (`/v1/packages?status=NEEDS_FIX,NEEDS_REVIEW&sort=-problem_age&limit=5`), təsdiq tarixçəsi; `Panel flush`. "Yeni paket" düyməsi W-14-də |
-| W-07 | Paketlər siyahısı | ⬜ | | | |
+| W-07 | Paketlər siyahısı | ✅ | `feat/W-07-packages-list` | 2026-11-08 | `/packages`: filtrlər/sort/cursor URL-də (API ilə eyni adlar, `features/packages/url.ts` yoxlayır), axtarış debounce + `replace`, filtrlər `push`; tarix `from`/`to` (paylaşılan link sabit qalsın); cursor pagination ("İlk"/"Növbəti", əvvəlki = Geri); `DataTable` `onRowClick` + sort props-dan; `SearchBox`, `useCustomers`, `useAssignableUsers` |
 | W-08 | Paket detalı I — başlıq, banner-lər, sənədlər, tarixçə | ⬜ | | | |
 | W-09 | Paket detalı II — müqayisə və mənbə göstəricisi | ⬜ | | | |
 | W-10 | Paket detalı III — yoxlamalar paneli və əməliyyatlar | ⬜ | | | |
