@@ -17,6 +17,9 @@ export const detailText = {
   export: "İxrac et",
   reExport: "Manifesti yenidən yüklə",
   blocked: "Bloklayan yoxlamalar var",
+  approverOnly: "Hazır paketi yalnız təsdiqçi təsdiqləyə bilər.",
+  noExport: "Bu vəziyyətdə və ya rolunuzla ixrac mümkün deyil",
+  report: "Daxili hesabat",
   stillProcessing: "Sənədlər emal olunur",
   soon: "Tezliklə",
   // can_edit = role AND package state, so the reason names both
