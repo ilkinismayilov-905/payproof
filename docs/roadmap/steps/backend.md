@@ -111,7 +111,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-17 · Validation run, imza yoxlaması
 **Branch:** `feat/B-17-validation` · **Asılılıq:** B-16
 **Daxildir:** `services/validation.py` — snapshot → engine → `validation_runs`/`check_results` persist, status keşi, `problem_since`, tapşırıqların avtomatik bağlanması/qaytarılması (rules-engine.md), `READY_FOR_APPROVAL`-a keçəndə təsdiqçilərə bildiriş; `POST /v1/packages/{id}/validate`, `POST /v1/packages/{id}/signature-review`.
-**Qəbul:** [ ] INV-1042 axını addım 1–5 `expected.json`-a uyğun (inteqrasiya testi) [ ] tapşırıq yalnız qayda keçəndə `RESOLVED`
+**Qəbul:** [ ] INV-1042 axını addım 1–5 `expected.json`-a uyğun (inteqrasiya testi) [ ] tapşırıq yalnız qayda keçəndə `RESOLVED` [ ] `check_results.evidence_ids` yalnız həmin run-ın sənəd versiyalarına aid `evidence_refs` id-ləridir (test; DB-də FK yoxdur — B-04 shortcut) [ ] yeni təhvil versiyası `signature_reviewed_by`-ı sıfırlayır (imza yoxlaması versiyaya bağlı deyil)
 
 ### B-18 · Çıxarış düzəlişi
 **Branch:** `feat/B-18-field-correction` · **Asılılıq:** B-17
