@@ -82,9 +82,12 @@ export function SourceFile({
   if (/\.(png|jpe?g)$/i.test(fileName))
     return <ImageSource url={link.data.url} fileName={fileName} bbox={bbox} />;
   return (
-    <div className="border-border relative w-fit max-w-full overflow-auto rounded-sm border">
-      <PdfPage url={link.data.url} page={page} width={WIDTH} />
-      <Highlight bbox={bbox} />
+    <div className="border-border w-fit max-w-full overflow-auto rounded-sm border">
+      {/* the page's own box: the highlight's percentages must follow the page, not the scroll box */}
+      <div className="relative w-fit">
+        <PdfPage url={link.data.url} page={page} width={WIDTH} />
+        <Highlight bbox={bbox} />
+      </div>
     </div>
   );
 }

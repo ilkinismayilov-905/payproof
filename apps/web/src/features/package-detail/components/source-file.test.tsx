@@ -35,6 +35,22 @@ test("a PDF version: fetches the signed link, then renders that page", async () 
   expect(await screen.findByTestId("pdf")).toHaveTextContent(/mock-files.*#1$/);
 });
 
+test("the highlight is positioned against the page itself, not the scrolling box around it", async () => {
+  renderWithQuery(
+    <SourceFile
+      versionId={mockIds.version("pkg_1044", "invoice", 1)}
+      fileName="INV-1044.pdf"
+      page={1}
+      bbox={[0.1, 0.1, 0.2, 0.05]}
+    />,
+  );
+  const pdf = await screen.findByTestId("pdf");
+  const box = screen.getByTestId("bbox").parentElement!;
+  expect(box).toBe(pdf.parentElement); // same page box: percentages follow the page
+  expect(box).toHaveClass("relative");
+  expect(box).not.toHaveClass("overflow-auto");
+});
+
 test("an image scan is shown as an image, with the highlight box over it", async () => {
   render(
     <SourceFile.Image
