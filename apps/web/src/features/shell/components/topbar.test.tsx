@@ -30,7 +30,8 @@ test("brand, demo tag, menu button and the notifications slot", async () => {
     "title",
     "Bütün məlumatlar sintetikdir",
   );
-  expect(screen.getByRole("button", { name: "Bildirişlər" })).toBeDisabled(); // wired in W-16
+  // the bell names its unread count once the notifications have loaded
+  expect(await screen.findByRole("button", { name: /^Bildirişlər, \d+ oxunmamış$/ })).toBeEnabled();
   await userEvent.click(screen.getByRole("button", { name: "Menyunu aç" }));
   expect(onOpenNav).toHaveBeenCalledOnce();
 });

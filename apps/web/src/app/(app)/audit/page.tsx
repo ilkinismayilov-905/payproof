@@ -1,4 +1,12 @@
-// Placeholder until W-16 builds this screen.
+import { Suspense } from "react";
+import { SkeletonTable } from "@/components/ui/skeleton";
+import { AuditScreen } from "@/features/audit";
+
 export default function AuditPage() {
-  return <h1 className="text-2xl font-semibold">Audit tarixçəsi</h1>;
+  // useSearchParams needs a Suspense boundary on a prerendered page
+  return (
+    <Suspense fallback={<SkeletonTable rows={8} columns={4} />}>
+      <AuditScreen />
+    </Suspense>
+  );
 }
