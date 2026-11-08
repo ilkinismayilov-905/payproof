@@ -54,7 +54,7 @@ dev-api: ## Run the API dev server
 ifeq ($(has_api),)
 	$(call not_ready,apps/api,B-01)
 else
-	cd $(API) && uv run fastapi dev
+	cd $(API) && uv run payproof-api
 endif
 
 dev-web: ## Run the web app
