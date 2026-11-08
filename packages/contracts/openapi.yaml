@@ -420,6 +420,59 @@ paths:
                   }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /v1/documents/versions/{version_id}/file:
+    parameters:
+      - {
+          name: version_id,
+          in: path,
+          required: true,
+          schema: { $ref: "#/components/schemas/Uuid" },
+        }
+    get:
+      tags: [documents]
+      operationId: getDocumentFileUrl
+      summary: Short-lived (5 min) signed download link, issued after a permission check
+      responses:
+        "200":
+          description: Signed link
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SignedUrl" }
+              example:
+                {
+                  url: "http://localhost:9000/payproof-docs/0193a000/INV-1042.pdf?X-Amz-Signature=demo",
+                  expires_at: "2026-11-08T06:35:00Z",
+                }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/jobs/{job_id}:
+    parameters:
+      - { name: job_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    get:
+      tags: [documents]
+      operationId: getJob
+      summary: Processing state of an asynchronous job
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+              example:
+                id: 0193a000-0000-7000-8007-000010420002
+                kind: extract_document
+                status: SUCCEEDED
+                created_at: "2026-11-08T06:31:00Z"
+                updated_at: "2026-11-08T06:31:04Z"
+                result:
+                  {
+                    package_id: 0193a000-0000-7000-8002-000000001042,
+                    package_version: 3,
+                    document_version_id: 0193a000-0000-7000-8005-000010420002,
+                  }
+                error: null
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   securitySchemes:
@@ -1165,3 +1218,48 @@ components:
         exports: { type: array, items: { $ref: "#/components/schemas/ExportRecord" } }
         tasks: { type: array, items: { $ref: "#/components/schemas/Task" } }
         permissions: { $ref: "#/components/schemas/PackagePermissions" }
+    JobAccepted:
+      type: object
+      additionalProperties: false
+      required: [job_id]
+      properties:
+        job_id: { $ref: "#/components/schemas/Uuid" }
+        package_id: { $ref: "#/components/schemas/Uuid" }
+        document_id: { $ref: "#/components/schemas/Uuid" }
+        document_version_id: { $ref: "#/components/schemas/Uuid" }
+    Job:
+      type: object
+      additionalProperties: false
+      required: [id, kind, status, created_at, updated_at, result, error]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        kind: { type: string, enum: [extract_document, create_package] }
+        status: { type: string, enum: [QUEUED, RUNNING, SUCCEEDED, FAILED] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        result:
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [package_id, package_version]
+              properties:
+                package_id: { $ref: "#/components/schemas/Uuid" }
+                package_version: { type: integer }
+                document_version_id: { $ref: "#/components/schemas/Uuid" }
+        error:
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [code, message]
+              properties:
+                code: { type: string }
+                message: { type: string }
+    SignedUrl:
+      type: object
+      additionalProperties: false
+      required: [url, expires_at]
+      properties:
+        url: { type: string, format: uri }
+        expires_at: { type: string, format: date-time }
