@@ -18,6 +18,17 @@ async def test_invoice_number_unique_per_customer(db: AsyncSession, a: Tenant, b
     await add_fails(db, package(a))
 
 
+async def test_invoice_fields_unknown_while_processing(db: AsyncSession, a: Tenant) -> None:
+    # POST /v1/packages creates the row before extraction (openapi: "null while PROCESSING")
+    blank = {"invoice_number": None, "currency": None, "invoice_date": None, "processing": True}
+    await add(db, package(a, **blank), package(a, **blank))
+
+
+async def test_deleted_package_frees_invoice_number(db: AsyncSession, a: Tenant) -> None:
+    await add(db, package(a, deleted_at=dt.datetime.now(dt.UTC)))
+    await add(db, package(a))
+
+
 async def test_owner_must_be_member(db: AsyncSession, a: Tenant, b: Tenant) -> None:
     await add_fails(db, package(a, owner_id=b.user.id))
 

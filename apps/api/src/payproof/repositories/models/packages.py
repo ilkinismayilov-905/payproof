@@ -6,11 +6,13 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
     false,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,8 +35,17 @@ class InvoicePackage(TenantEntity, Base):
 
     __tablename__ = "invoice_packages"
     __table_args__ = (
-        UniqueConstraint("company_id", "customer_id", "invoice_number"),
+        # a soft-deleted package must not keep its invoice number (re-upload after delete)
+        Index(
+            "uq_invoice_packages_live_invoice_number",
+            "company_id",
+            "customer_id",
+            "invoice_number",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         tenant_key(),
+        UniqueConstraint("id", "customer_id", "company_id"),  # validation runs pin the customer
         same_tenant_fk("customer_id", "customers"),
         same_tenant_fk("order_id", "orders"),
         member_fk("owner_id"),
@@ -52,9 +63,10 @@ class InvoicePackage(TenantEntity, Base):
     )
 
     customer_id: Mapped[uuid.UUID] = mapped_column()
-    invoice_number: Mapped[str] = mapped_column(Text)
-    currency: Mapped[str] = mapped_column(String(3))
-    invoice_date: Mapped[dt.date] = mapped_column(Date)
+    # NULL until extraction: the package is created from uploaded files (openapi createPackage)
+    invoice_number: Mapped[str | None] = mapped_column(Text)
+    currency: Mapped[str | None] = mapped_column(String(3))
+    invoice_date: Mapped[dt.date | None] = mapped_column(Date)
     owner_id: Mapped[uuid.UUID] = mapped_column()
     version: Mapped[int] = mapped_column(Integer, server_default="1")
     order_id: Mapped[uuid.UUID | None] = mapped_column()
