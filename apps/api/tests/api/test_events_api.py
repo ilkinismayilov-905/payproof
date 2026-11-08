@@ -49,7 +49,7 @@ async def test_streams_own_company_events_pings_and_closes_at_token_expiry(
     monkeypatch.setattr(api, "HEARTBEAT", 0.1)
     hub: Hub = app.state.hub
     request = asyncio.create_task(
-        client.get("/v1/events", headers={**_token(1.0), "Last-Event-ID": "x"})
+        client.get("/v1/events", headers={**_token(2.0), "Last-Event-ID": "x"})
     )
     await _subscribed(hub)
     own, foreign = _event(COMPANY_ID), _event(uuid.uuid4())
@@ -88,3 +88,21 @@ async def test_full_queue_ends_the_stream(
     sub.close()  # what an overflow or a lost LISTEN connection does
     r = await asyncio.wait_for(request, timeout=5)
     assert r.status_code == 200 and hub.count() == 0
+
+
+async def test_stream_is_one_access_line_without_events(
+    client: httpx.AsyncClient,
+    app: FastAPI,
+    seeded: AsyncSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    hub: Hub = app.state.hub
+    caplog.set_level("INFO", logger="payproof.access")
+    request = asyncio.create_task(client.get("/v1/events", headers=_token(1.5)))
+    await _subscribed(hub)
+    secret = _event(COMPANY_ID)
+    hub.dispatch(secret)
+    await asyncio.wait_for(request, timeout=5)
+    lines = [r for r in caplog.records if r.name == "payproof.access" and "/v1/events" in r.message]
+    assert len(lines) == 1 and "stream" in lines[0].message and "ms" in lines[0].message
+    assert json.loads(secret)["event_id"] not in caplog.text
