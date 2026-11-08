@@ -8,6 +8,7 @@ import { useMe } from "@/features/auth";
 import { Button } from "@/components/ui/button";
 import { Banner, PageHeader } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
+import { NewPackageButton } from "@/features/packages";
 import { useDashboard } from "../queries";
 import { ApprovalHistory, AttentionPackages } from "./activity";
 import { RuleBars, StatusDonut } from "./charts";
@@ -29,12 +30,15 @@ export function OverviewScreen() {
           `${company} · ${formatDateLong(d.as_of)} vəziyyəti · ${d.package_count} unikal faktura paketi`
         }
         actions={
-          <Button asChild variant="outline" size="lg">
-            <Link href="/packages">
-              <Package aria-hidden />
-              Paketlərə bax
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/packages">
+                <Package aria-hidden />
+                Paketlərə bax
+              </Link>
+            </Button>
+            <NewPackageButton />
+          </>
         }
       />
       {dashboard.isPending && (
