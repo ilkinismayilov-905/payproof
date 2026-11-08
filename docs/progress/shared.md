@@ -7,7 +7,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 
 | Step | Ad | Status | Branch | Tarix | Qeyd |
 |---|---|---|---|---|---|
-| S-01 | Monorepo bootstrap | 🟡 | `feat/S-01-monorepo` | 2026-11-08 | |
+| S-01 | Monorepo bootstrap | ✅ | `feat/S-01-monorepo` | 2026-11-08 | pnpm+turbo, tsconfig.base, prettier, Makefile |
 | S-02 | Lokal infrastruktur (Docker Compose) | ⬜ | | | |
 | S-03 | Demo fixtures | ⬜ | | | |
 | S-04 | API müqaviləsi v0 (OpenAPI 3.1) | ⬜ | | | |
