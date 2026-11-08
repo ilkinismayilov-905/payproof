@@ -7,6 +7,7 @@ import { approvalHandlers } from "./approval";
 import { auditHandlers } from "./audit";
 import { authHandlers } from "./auth";
 import { documentHandlers } from "./documents";
+import { eventHandlers } from "./events";
 import { jobHandlers } from "./jobs";
 import type { Ctx } from "./http";
 import { listHandlers } from "./lists";
@@ -19,6 +20,8 @@ import { taskHandlers } from "./tasks";
 export interface MockApiOptions extends MockDbOptions {
   /** Artificial latency per request (ms). Browser ~400, tests 0. */
   latencyMs?: number;
+  /** SSE heartbeat interval of GET /v1/events (ms). Default 15 000 like the server. */
+  heartbeatMs?: number;
 }
 
 /** One in-memory demo company + the MSW handlers that serve it. */
@@ -42,6 +45,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...reportHandlers(ctx),
     ...adminHandlers(ctx),
     ...settingsHandlers(ctx),
+    ...eventHandlers(ctx, options.heartbeatMs ?? 15_000),
   ];
   return {
     handlers,
