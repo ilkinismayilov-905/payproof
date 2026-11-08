@@ -1489,6 +1489,26 @@ paths:
                       role: accounting,
                     }
         "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/exports/{export_id}/download:
+    parameters:
+      - { name: export_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    get:
+      tags: [approval]
+      operationId: getExportDownload
+      summary: Fresh short-lived link to an existing export's zip (VIEW permission; no new export event)
+      responses:
+        "200":
+          description: Signed link
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SignedUrl" }
+              example:
+                {
+                  url: "http://localhost:9000/payproof-docs/exports/INV-1033_v1.zip?X-Amz-Signature=demo",
+                  expires_at: "2026-11-08T06:55:00Z",
+                }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   securitySchemes:
