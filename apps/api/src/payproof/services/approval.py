@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, PackageNotReady
 from payproof.domain.enums import CheckOutcome, PackageStatus
-from payproof.repositories.models import ApprovalRecord, Notification, RequirementSet, User
+from payproof.repositories.models import ApprovalRecord, RequirementSet, User
 from payproof.services.audit import record
 from payproof.services.linking import locked_package
+from payproof.services.notifications import notify
 from payproof.services.package_query import load_states
 
 
@@ -86,14 +87,12 @@ async def approve(
     )
     approver = await session.get_one(User, actor_id)
     if pkg.owner_id != actor_id:
-        session.add(
-            Notification(
-                company_id=pkg.company_id,
-                user_id=pkg.owner_id,
-                package_id=pkg.id,
-                text=f"{pkg.invoice_number} {approver.full_name} tərəfindən təsdiqləndi — "
-                "paket göndərilməyə hazırdır.",
-            )
+        await notify(
+            session,
+            pkg,
+            [pkg.owner_id],
+            f"{pkg.invoice_number} {approver.full_name} tərəfindən təsdiqləndi — "
+            "paket göndərilməyə hazırdır.",
         )
     pkg.problem_since = None
     await session.flush()  # the caller commits, with its idempotency record

@@ -11,12 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.core.errors import Conflict, DomainError, ErrorCode, InvalidInput
 from payproof.domain.enums import CheckOutcome, Role, TaskStatus
 from payproof.domain.rules.catalog import TITLES
-from payproof.repositories.models import (
-    InvoicePackage,
-    Membership,
-    Notification,
-    ResolutionTask,
-)
+from payproof.repositories.models import InvoicePackage, Membership, ResolutionTask
+from payproof.services import notifications
 from payproof.services.audit import record
 from payproof.services.dashboard import BAKU
 from payproof.services.linking import locked_package
@@ -67,13 +63,12 @@ async def assignee_role(session: AsyncSession, company_id: uuid.UUID, user_id: u
     return Role(role)
 
 
-def notify(
+async def notify(
     session: AsyncSession, pkg: InvoicePackage, user_id: uuid.UUID, role: Role, text: str
 ) -> None:
+    """Only people who can sign in are told (assignees work through the operator)."""
     if role in _SIGNS_IN:
-        session.add(
-            Notification(company_id=pkg.company_id, user_id=user_id, package_id=pkg.id, text=text)
-        )
+        await notifications.notify(session, pkg, [user_id], text)
 
 
 async def create_task(
@@ -118,6 +113,6 @@ async def create_task(
     )  # fmt: skip
     if new.assignee_id != actor_id:
         text = f"Yeni tapşırıq {task.number}: {pkg.invoice_number} — {TITLES[task.rule_id]}"
-        notify(session, pkg, new.assignee_id, role, text)
+        await notify(session, pkg, new.assignee_id, role, text)
     await session.commit()
     return task

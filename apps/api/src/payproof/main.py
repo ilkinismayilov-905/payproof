@@ -15,6 +15,7 @@ from payproof.api import (
     export,
     health,
     jobs,
+    notifications,
     packages,
     review,
     tasks,
@@ -61,6 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(approval.router, prefix="/v1")
     app.include_router(export.router, prefix="/v1")
     app.include_router(customers.router, prefix="/v1")
+    app.include_router(notifications.router, prefix="/v1")
     app.include_router(events.router, prefix="/v1")
     return app
 

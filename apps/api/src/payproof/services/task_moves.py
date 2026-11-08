@@ -85,7 +85,7 @@ async def update_task(
         await _audit(session, actor_id, task, pkg, "task.updated",
                      f"{task.number}: {', '.join(changed)} dəyişdi")  # fmt: skip
     if role and patch.assignee_id and "assignee_id" in changed and patch.assignee_id != actor_id:
-        notify(session, pkg, patch.assignee_id, role, f"Tapşırıq {task.number} sizə verildi")
+        await notify(session, pkg, patch.assignee_id, role, f"Tapşırıq {task.number} sizə verildi")
     if moves and patch.status == TaskStatus.IN_PROGRESS:
         task.status = TaskStatus.IN_PROGRESS
         await _audit(session, actor_id, task, pkg, "task.started", task.number)
@@ -95,7 +95,7 @@ async def update_task(
         if pkg.owner_id != actor_id:
             owner_role = await assignee_role(session, pkg.company_id, pkg.owner_id)
             text = f"{task.number} yenidən yoxlamaya göndərildi ({pkg.invoice_number})."
-            notify(session, pkg, pkg.owner_id, owner_role, text)
+            await notify(session, pkg, pkg.owner_id, owner_role, text)
         await revalidate(session, pkg)  # may resolve it right away
     await session.commit()
     return task
