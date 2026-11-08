@@ -18,7 +18,10 @@
   },
   "devDependencies": {
     "@types/node": "^22",
+    "ajv": "^8",
+    "ajv-formats": "^3",
     "typescript": "^5",
-    "vitest": "^5"
+    "vitest": "^5",
+    "yaml": "^2"
   }
 }
