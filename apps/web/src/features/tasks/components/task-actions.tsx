@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { keepFocusOnPage } from "@/components/ui/restore-focus";
 import { useAdvanceTask, useCancelTask } from "../mutations";
 
 type Task = Schemas["Task"];
@@ -57,10 +58,12 @@ export function TaskActions({ task, canManage }: { task: Task; canManage: boolea
               advance.mutate(
                 { task, status: next.status },
                 {
-                  onSuccess: (after) =>
-                    next.status === "IN_PROGRESS"
-                      ? toast.info(`${after.number} icraya götürüldü.`)
-                      : submittedToast(task, after),
+                  onSuccess: (after) => {
+                    keepFocusOnPage(); // the row may have left the current tab
+                    if (next.status === "IN_PROGRESS")
+                      toast.info(`${after.number} icraya götürüldü.`);
+                    else submittedToast(task, after);
+                  },
                 },
               )
             }

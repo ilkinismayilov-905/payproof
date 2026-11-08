@@ -22,13 +22,16 @@ const TABS: { value: TaskTab; label: string }[] = [
   { value: "", label: "Hamısı" },
 ];
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** URL → filter; anything unknown falls back to the default tab (a shared link never breaks). */
 export function taskFilter(q: URLSearchParams): TaskFilter {
   const raw = q.get("status") ?? "active";
   const status = raw === "all" ? "" : raw; // "" cannot travel in a URL
   return {
     status: TABS.some((t) => t.value === status) ? (status as TaskTab) : "active",
-    assignee: q.get("assignee") ?? "",
+    // a hand-edited link must not send garbage to the API
+    assignee: UUID.test(q.get("assignee") ?? "") ? q.get("assignee")! : "",
   };
 }
 
@@ -63,7 +66,13 @@ export function TasksScreen() {
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
         <div className="border-border flex flex-wrap items-center justify-between gap-3 border-b p-3">
           {/* tabs filter one list (no separate panels): a group of toggle buttons */}
-          <div role="group" aria-label="Status" className="flex flex-wrap gap-1">
+          <div
+            role="group"
+            aria-label="Status"
+            tabIndex={-1}
+            data-focus-fallback // where focus lands when an acted-on row leaves the list
+            className="flex flex-wrap gap-1 outline-none"
+          >
             {TABS.map((t) => (
               <Button
                 key={t.label}
@@ -84,7 +93,7 @@ export function TasksScreen() {
             <select
               value={filter.assignee}
               onChange={(e) => go({ ...filter, assignee: e.target.value })}
-              className="border-border-strong bg-surface focus-visible:ring-ring rounded-md border px-3 py-1.5 outline-none focus-visible:ring-2"
+              className="border-border-strong bg-surface focus-visible:ring-ring rounded-md border px-3 py-1.5 outline-none focus-visible:ring-2 pointer-coarse:min-h-11"
             >
               <option value="">Məsul: hamısı</option>
               {users.data?.map((u) => (

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { expect, test, vi } from "vitest";
@@ -70,4 +70,31 @@ test("async confirm: buttons wait without losing focus, a failure keeps the dial
   await waitFor(() => expect(confirm).toHaveAttribute("aria-disabled", "false"));
   expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   expect(confirm).toHaveFocus();
+});
+
+test("when the opener is gone after confirming, focus goes to the page fallback", async () => {
+  function Gone() {
+    const [open, setOpen] = useState(false);
+    const [row, setRow] = useState(true);
+    return (
+      <>
+        <div tabIndex={-1} data-focus-fallback>
+          Siyahı
+        </div>
+        {row && <button onClick={() => setOpen(true)}>Paketi sil</button>}
+        <ConfirmDialog
+          open={open}
+          onOpenChange={setOpen}
+          title="Paket silinsin?"
+          description="Bu əməliyyat geri qaytarılmır."
+          confirmLabel="Sil"
+          onConfirm={() => setRow(false)}
+        />
+      </>
+    );
+  }
+  render(<Gone />);
+  const dialog = await open();
+  await userEvent.click(within(dialog).getByRole("button", { name: "Sil" }));
+  await waitFor(() => expect(screen.getByText("Siyahı")).toHaveFocus());
 });
