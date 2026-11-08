@@ -1,16 +1,29 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 
-from payproof.api import audit, auth, health, packages
+from payproof.api import audit, auth, events, health, packages
 from payproof.core.errors import register_error_handlers
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
+from payproof.realtime.hub import Hub
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    hub: Hub = app.state.hub
+    await hub.start()  # this process's one LISTEN connection
+    yield
+    await hub.stop()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level)
-    app = FastAPI(title="PayProof API", version="0.1.0")
+    app = FastAPI(title="PayProof API", version="0.1.0", lifespan=_lifespan)
+    app.state.hub = Hub(settings.database_url)
     app.middleware("http")(correlation_id_middleware)
     register_error_handlers(app)
     app.include_router(health.router, prefix="/v1")
@@ -19,6 +32,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router, prefix="/v1")
     app.include_router(packages.router, prefix="/v1")
     app.include_router(audit.router, prefix="/v1")
+    app.include_router(events.router, prefix="/v1")
     return app
 
 
