@@ -25,6 +25,83 @@ components:
       bearerFormat: JWT
       description: Tenant comes from the membership in the token; `company_id` is never accepted in a body.
 
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        Client-generated UUID, created once per user intent and reused on retries. A replay returns the
+        original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
+        while the first request is still running → 409 `IDEMPOTENCY_IN_PROGRESS`.
+      schema: { type: string, format: uuid }
+      example: 6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque cursor from `next_cursor` of the previous page.
+      schema: { type: string }
+
+  responses:
+    Unauthenticated:
+      description: Missing or invalid token.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                {
+                  code: UNAUTHENTICATED,
+                  message: "Sessiya bitib. Yenidən daxil olun.",
+                  details: {},
+                },
+            }
+    Forbidden:
+      description: The role has no permission for this action (checked on the server).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                {
+                  code: FORBIDDEN,
+                  message: "Hazır paketi yalnız təsdiqçi rolu təsdiqləyə bilər.",
+                  details: {},
+                },
+            }
+    NotFound:
+      description: Not found — also returned for objects of another tenant (never 403).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { error: { code: NOT_FOUND, message: "Obyekt tapılmadı.", details: {} } }
+    Conflict:
+      description: Version conflict, wrong state, duplicate or an idempotent request still in progress.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error:
+              code: VERSION_CONFLICT
+              message: "Paket v3-ə yenilənib; səhifəni yeniləyin."
+              details: { current_version: 3, expected_version: 2 }
+    ValidationError:
+      description: Request is syntactically valid but not acceptable.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: "Sorğuda xəta var."
+              details: { fields: { reason: "Səbəb məcburidir." } }
+
   schemas:
     Uuid:
       type: string
