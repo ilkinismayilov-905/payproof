@@ -40,7 +40,12 @@ export function FilePicker({
                 checked={file?.name === s.file_name}
                 onChange={() =>
                   // shortcut: mock files are named stand-ins; the mock server matches them by name
-                  onChoose(new File(["%PDF-1.4 demo"], s.file_name, { type: "application/pdf" }))
+                  // (named in the bytes too: the real server refuses a byte-identical file as a duplicate)
+                  onChoose(
+                    new File([`%PDF-1.4 demo ${s.file_name}`], s.file_name, {
+                      type: "application/pdf",
+                    }),
+                  )
                 }
                 className="sr-only"
               />
