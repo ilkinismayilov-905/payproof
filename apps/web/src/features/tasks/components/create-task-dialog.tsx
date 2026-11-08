@@ -9,7 +9,7 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CheckOutcomeBadge } from "@/components/status/status-badges";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/form-field";
+import { Field, fieldInput as input } from "@/components/ui/form-field";
 import { useRestoreFocus } from "@/components/ui/restore-focus";
 import { useAssignableUsers } from "@/features/users";
 import { addDays, bakuToday, defaultAssignee, stepTemplate } from "../helpers";
@@ -21,9 +21,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const input =
-  "border-border-strong bg-surface focus-visible:ring-ring w-full rounded-md border px-3 py-2 outline-none focus-visible:ring-2 aria-invalid:border-danger pointer-coarse:min-h-11";
 
 /** A correction task for a failing or unknown check (prototype `mTask`). */
 export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
