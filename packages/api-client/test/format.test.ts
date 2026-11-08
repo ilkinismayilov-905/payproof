@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bakuDaysBetween,
   formatDate,
   formatDateLong,
   formatDateTime,
@@ -80,5 +81,25 @@ describe("dates (shown in Asia/Baku, UTC+4)", () => {
   );
   it("accepts a leap day", () => {
     expect(formatDate("2028-02-29")).toBe("29.02.2028");
+  });
+});
+
+describe("bakuDaysBetween (problem age, Baku calendar days)", () => {
+  it("is 0 within one Baku day, whatever the hours", () => {
+    expect(bakuDaysBetween("2026-11-07T20:00:00Z", "2026-11-08T19:59:00Z")).toBe(0);
+  });
+  it("counts Baku midnights, not UTC ones", () => {
+    // 23:59 → 00:01 in Baku while both are 7 November in UTC
+    expect(bakuDaysBetween("2026-11-07T19:59:00Z", "2026-11-07T20:01:00Z")).toBe(1);
+    expect(bakuDaysBetween("2026-11-05T06:30:00Z", "2026-11-08T06:30:00Z")).toBe(3);
+  });
+  it("reads explicit offsets", () => {
+    expect(bakuDaysBetween("2026-11-07T23:59:00+04:00", "2026-11-08T00:01:00+04:00")).toBe(1);
+  });
+  it("never goes negative", () => {
+    expect(bakuDaysBetween("2026-11-08T06:30:00Z", "2026-11-05T06:30:00Z")).toBe(0);
+  });
+  it("rejects timestamps without an offset", () => {
+    expect(() => bakuDaysBetween("2026-11-08T06:30:00", "2026-11-08T06:30:00Z")).toThrow();
   });
 });
