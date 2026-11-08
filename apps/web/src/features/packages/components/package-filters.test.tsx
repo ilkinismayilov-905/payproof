@@ -56,3 +56,11 @@ test("the search box follows the URL (Back button)", () => {
   expect(screen.getByRole("searchbox", { name: "Axtarış" })).toHaveValue("");
   expect(screen.queryByRole("button", { name: "Təmizlə" })).toBeNull();
 });
+
+test("several statuses from a shared link are shown as such, not as the first one", async () => {
+  const { onChange } = setup({ status: ["NEEDS_FIX", "NEEDS_REVIEW"] });
+  const status = screen.getByRole("combobox", { name: "Status" });
+  expect(status).toHaveDisplayValue("Bir neçə status (2)");
+  await userEvent.selectOptions(status, "READY_FOR_APPROVAL");
+  expect(onChange).toHaveBeenLastCalledWith({ status: ["READY_FOR_APPROVAL"] }, "push");
+});

@@ -12,6 +12,7 @@ import type { ListParams } from "../url";
 
 type Mode = "push" | "replace";
 const FILTERS = ["q", "status", "customer_id", "issue", "owner_id", "from", "to"] as const;
+const MANY = "__many__";
 const STATUSES = Object.keys(packageStatusLabel) as Schemas["PackageStatus"][];
 const control =
   "border-border-strong bg-surface focus-visible:ring-ring h-10 rounded-md border px-3 text-md outline-none focus-visible:ring-2 pointer-coarse:h-11";
@@ -68,10 +69,14 @@ export function PackageFilters({
       />
       <Select
         label="Status"
-        value={params.status?.[0] ?? ""}
+        value={(params.status?.length ?? 0) > 1 ? MANY : (params.status?.[0] ?? "")}
         onChange={(v) => set({ status: v ? [v as Schemas["PackageStatus"]] : undefined })}
       >
         <option value="">Status: hamısı</option>
+        {/* the API takes several statuses (shared links); this control picks one */}
+        {(params.status?.length ?? 0) > 1 && (
+          <option value={MANY} disabled>{`Bir neçə status (${params.status!.length})`}</option>
+        )}
         {STATUSES.map((s) => (
           <option key={s} value={s}>
             {packageStatusLabel[s]}
