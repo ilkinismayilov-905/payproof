@@ -659,3 +659,128 @@ components:
         items: { type: array, items: { $ref: "#/components/schemas/PackageListItem" } }
         next_cursor: { type: ["string", "null"] }
         total_count: { type: integer, description: Packages matching the filters (all pages) }
+    RequirementSet:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          version,
+          require_po,
+          require_delivery,
+          require_signature,
+          tolerance,
+          effective_from,
+          approved_by,
+          reason,
+          created_at,
+        ]
+      description: Immutable customer rule set; a new version is created on every change.
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        version: { type: integer, minimum: 1 }
+        require_po: { type: boolean }
+        require_delivery: { type: boolean }
+        require_signature: { type: boolean }
+        tolerance: { $ref: "#/components/schemas/Decimal" }
+        effective_from: { type: string, format: date }
+        approved_by: { $ref: "#/components/schemas/UserRef" }
+        reason: { type: string }
+        created_at: { type: string, format: date-time }
+    Evidence:
+      type: object
+      additionalProperties: false
+      required: [document_version_id, page, quote, bbox]
+      description: Source reference; a field without evidence is not considered reliable.
+      properties:
+        document_version_id: { $ref: "#/components/schemas/Uuid" }
+        page: { type: integer, minimum: 1 }
+        quote: { type: string }
+        bbox:
+          description: Normalised [x, y, width, height] on the page (0..1), if known.
+          oneOf:
+            - type: "null"
+            - {
+                type: array,
+                items: { type: number, minimum: 0, maximum: 1 },
+                minItems: 4,
+                maxItems: 4,
+              }
+    DocumentVersion:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          id,
+          version_no,
+          file_name,
+          source_kind,
+          status,
+          sha256,
+          uploaded_by,
+          uploaded_at,
+          package_version_at_upload,
+        ]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        version_no: { type: integer, minimum: 1 }
+        file_name: { type: string }
+        source_kind: { type: string, enum: [pdf, scan, spreadsheet] }
+        status: { $ref: "#/components/schemas/DocumentVersionStatus" }
+        sha256: { type: string, pattern: "^[0-9a-f]{64}$" }
+        uploaded_by: { $ref: "#/components/schemas/UserRef" }
+        uploaded_at: { type: string, format: date-time }
+        package_version_at_upload: { type: integer, minimum: 1 }
+    Document:
+      type: object
+      additionalProperties: false
+      required: [id, type, current, history]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        type: { $ref: "#/components/schemas/DocumentType" }
+        current: { $ref: "#/components/schemas/DocumentVersion" }
+        history:
+          type: array
+          description: Previous versions, newest first (kept for audit).
+          items: { $ref: "#/components/schemas/DocumentVersion" }
+    ExtractedField:
+      type: object
+      additionalProperties: false
+      required:
+        [id, document_version_id, field_path, label, raw_value, value, review_status, evidence]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        document_version_id: { $ref: "#/components/schemas/Uuid" }
+        field_path:
+          type: string
+          description: "`invoice.po_ref`, `invoice.lines[<code>].qty`, `invoice.lines[<code>].unit_price`, …"
+          examples: ["invoice.lines[KY-10].unit_price"]
+        label: { type: string, examples: ["KY-10 vahid qiyməti"] }
+        raw_value: { type: ["string", "null"], description: Text as read from the document }
+        value: { type: ["string", "null"], description: Normalised value used by the rule engine }
+        review_status: { type: string, enum: [EXTRACTED, REVIEW_REQUIRED, CORRECTED] }
+        evidence: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Evidence" }] }
+    MatchCandidate:
+      type: object
+      additionalProperties: false
+      required: [order_id, po_number, order_date, total, reason]
+      description: AI link suggestion — never evidence by itself; a human confirms it.
+      properties:
+        order_id: { $ref: "#/components/schemas/Uuid" }
+        po_number: { type: string, examples: ["PO-381"] }
+        order_date: { type: string, format: date }
+        total: { $ref: "#/components/schemas/Money" }
+        reason: { type: string }
+    OrderLink:
+      type: object
+      additionalProperties: false
+      required: [confirmed, order_id, order_po, method, confirmed_by, candidates]
+      properties:
+        confirmed: { type: boolean }
+        order_id: { oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Uuid" }] }
+        order_po: { type: ["string", "null"] }
+        method: { type: ["string", "null"], enum: [exact_id, human, null] }
+        confirmed_by:
+          description: null for an automatic exact-ID link or when not confirmed.
+          oneOf: [{ type: "null" }, { $ref: "#/components/schemas/UserRef" }]
+        candidates: { type: array, items: { $ref: "#/components/schemas/MatchCandidate" } }
