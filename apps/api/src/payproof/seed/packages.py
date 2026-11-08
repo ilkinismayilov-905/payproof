@@ -15,6 +15,7 @@ from payproof.repositories.models import (
     OrderLine,
 )
 from payproof.repositories.orm import Base
+from payproof.seed.audit import last_event_at
 from payproof.seed.fixtures import ORDERS, PACKAGES, Fixture, load, outcome_of, uid
 from payproof.seed.identity import COMPANY_ID
 
@@ -97,6 +98,7 @@ def _package(p: Fixture) -> InvoicePackage:
         processing=p["processing"],
         problem_since=created if status in _PROBLEM else None,  # fixtures/README.md
         created_at=created,
+        updated_at=last_event_at(p["id"]),  # list default sort: -updated_at
     )
 
 

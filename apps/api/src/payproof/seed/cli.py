@@ -13,6 +13,7 @@ from payproof.core.settings import get_settings
 from payproof.repositories import models  # noqa: F401 — registers every table
 from payproof.repositories.models import Company
 from payproof.repositories.orm import Base
+from payproof.seed.audit import audit_rows
 from payproof.seed.extraction import extraction_rows
 from payproof.seed.identity import COMPANY_ID, identity_rows
 from payproof.seed.packages import package_rows
@@ -32,7 +33,8 @@ async def seed(session: AsyncSession) -> bool:
     Ids are derived from fixture slugs, so a seeded database is always identical."""
     if await session.get(Company, COMPANY_ID) is not None:
         return False
-    for group in identity_rows() + package_rows() + extraction_rows() + workflow_rows():
+    rows = identity_rows() + package_rows() + extraction_rows() + workflow_rows()
+    for group in [*rows, audit_rows()]:
         session.add_all(group)
         await session.flush()
     return True

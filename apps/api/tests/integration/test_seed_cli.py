@@ -39,6 +39,7 @@ async def test_reset_truncates_despite_immutable_and_append_only_triggers(
     assert set((await _counts(db)).values()) == {0}
     await seed(db)
     after = await _counts(db)
-    assert after == {**before, "audit_events": 0}
+    # the reseed restores the demo history; only the extra event added above is gone
+    assert after == {**before, "audit_events": before["audit_events"] - 1}
     for model in (User, RequirementSet, InvoicePackage):
         assert (await db.execute(select(func.count()).select_from(model))).scalar_one() > 0
