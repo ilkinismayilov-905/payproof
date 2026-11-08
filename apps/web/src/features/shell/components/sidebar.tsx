@@ -68,19 +68,26 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
             href={href}
             title={text}
             aria-current={current ? "page" : undefined}
-            aria-label={count ? shellText.withOpenCount(text, count) : undefined}
             onClick={onNavigate}
             className={item(collapsed)}
           >
             <Icon aria-hidden className="size-5 shrink-0" />
             <span className={label(collapsed)}>{text}</span>
-            {!!count && !collapsed && (
-              <span
-                aria-hidden
-                className="bg-danger-bg text-danger ml-auto rounded-full px-[7px] py-px text-[11px] font-bold"
-              >
-                {count}
-              </span>
+            {/* part of the name ("Tapşırıqlar 6 açıq"): the visible text stays inside it (WCAG 2.5.3) */}
+            {!!count && (
+              <>
+                {" "}
+                <span
+                  className={
+                    collapsed
+                      ? "sr-only"
+                      : "bg-danger-bg text-danger ml-auto rounded-full px-[7px] py-px text-[11px] font-bold"
+                  }
+                >
+                  {count}
+                </span>{" "}
+                <span className="sr-only">açıq</span>
+              </>
             )}
           </Link>
         );

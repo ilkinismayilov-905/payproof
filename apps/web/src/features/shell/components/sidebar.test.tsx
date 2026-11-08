@@ -1,5 +1,5 @@
 import { mockIds } from "@payproof/mocks";
-import { screen, within } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import { setToken } from "@/lib/auth";
@@ -28,7 +28,9 @@ test("marks the current section, including its detail pages", () => {
 
 test("shows the open task count and the company from /v1/me", async () => {
   renderWithQuery(<Sidebar collapsed={false} />);
-  expect(await screen.findByRole("link", { name: "Tapşırıqlar, 6 açıq" })).toBeInTheDocument();
+  // the visible count is part of the name (WCAG 2.5.3 label in name)
+  const tasks = await screen.findByRole("link", { name: /^Tapşırıqlar/ });
+  await waitFor(() => expect(tasks).toHaveAccessibleName("Tapşırıqlar 6 açıq"));
   expect(await screen.findByText("A Distribusiya MMC")).toBeInTheDocument();
 });
 

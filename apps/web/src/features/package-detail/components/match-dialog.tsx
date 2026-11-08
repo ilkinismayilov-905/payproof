@@ -81,7 +81,7 @@ export function MatchDialog({
                 {candidates.map((c) => (
                   <label
                     key={c.order_id}
-                    className="border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer gap-3 rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
+                    className="relative border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer gap-3 rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
                   >
                     <input
                       type="radio"

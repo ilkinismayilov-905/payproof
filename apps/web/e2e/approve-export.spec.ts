@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
 const RESAD = "mock.0193a000-0000-7000-8000-000000000002";
