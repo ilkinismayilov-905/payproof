@@ -121,3 +121,125 @@ write(
     lines: lines(ls),
   })),
 );
+
+write(
+  "packages.json",
+  S.packages.map((p) => ({
+    id: p.id,
+    invoice_number: p.inv,
+    customer_id: p.customerId,
+    currency: p.currency,
+    invoice_date: p.date,
+    created_at: p.createdAt,
+    owner_id: p.owner,
+    version: p.version,
+    processing: p.processing,
+    invoice: {
+      po_ref: p.invoice.poRef,
+      po_raw: p.invoice.poRaw,
+      unreadable_fields: p.invoice.unreadable.map(() => "po_ref"),
+      total: m(p.invoice.total),
+      lines: lines(p.invoice.lines),
+    },
+    order_link: {
+      po_number: p.orderPo,
+      confirmed: p.linkConfirmed,
+      confirmed_by: p.linkBy,
+      method: !p.linkConfirmed ? null : p.linkBy === "system" ? "exact_id" : "human",
+    },
+    candidates: p.candidates.map((c) => ({ po_number: c.po, reason: c.why })),
+    delivery: p.delivery && {
+      note_number: p.delivery.no,
+      po_ref: p.delivery.poRef,
+      customer_id: p.delivery.customerId,
+      delivery_date: p.delivery.date,
+      signed: p.delivery.signed,
+      lines: p.delivery.lines.map((l) => ({ product_code: l.code, qty: l.qty })),
+    },
+    signature_reviewed: p.signatureReviewed,
+    documents: p.docs.map((d) => ({
+      type: d.type,
+      versions: d.versions.map((v) => ({
+        version_no: v.v,
+        file_name: v.file,
+        sha256: sha(v.file),
+        source_kind: { PDF: "pdf", Skan: "scan", Cədvəl: "spreadsheet" }[v.src],
+        uploaded_by: v.by,
+        uploaded_at: v.at,
+        status: v.status,
+        ...(d.type === "delivery" && v.snap ? { signed: v.snap.signed } : {}),
+      })),
+    })),
+    approvals: p.approvals.map((a) => ({
+      package_version: a.version,
+      requirement_set_version: a.ruleVersion,
+      approver_id: a.by,
+      created_at: a.at,
+      valid: a.valid,
+      invalidated_reason: a.valid ? null : "Təhvil sənədinin yeni versiyası yükləndi",
+      invalidated_at: a.valid ? null : "2026-11-01T09:46",
+    })),
+    // ^ only INV-1036 has an invalidated approval; text/time come from the prototype's seeded audit event
+    exports: p.exports.map((e) => ({
+      package_version: e.version,
+      requirement_set_version: e.ruleVersion,
+      created_by: e.by,
+      created_at: e.at,
+      files: e.files,
+    })),
+  })),
+);
+
+write(
+  "tasks.json",
+  P.TASKS.map((t) => ({
+    number: t.id,
+    package_id: t.pkg,
+    rule_id: t.rule,
+    assignee_id: t.who,
+    step: t.step,
+    due_date: t.due,
+    status: t.status,
+    created_at: t.at,
+    created_by: t.by,
+    comment: t.comment ?? null,
+    resolved_at: t.resolvedAt ?? null,
+  })),
+);
+write(
+  "notifications.json",
+  S.notifs.map((n) => ({
+    user_id: n.to,
+    package_id: n.pkg,
+    text: n.text,
+    created_at: n.at,
+    read: n.read,
+  })),
+);
+write(
+  "samples.json",
+  P.SAMPLES.map((s) => ({
+    id: s.id,
+    package_id: s.pkg,
+    type: s.type,
+    file_name: s.file,
+    sha256: sha(s.file),
+    note: s.note,
+    extraction: {
+      ...(s.inv?.poRef !== undefined ? { po_ref: s.inv.poRef } : {}),
+      ...(s.inv?.currency ? { currency: s.inv.currency } : {}),
+      ...(s.line
+        ? {
+            line: {
+              product_code: s.line.code,
+              ...(s.line.price ? { unit_price: s.line.price } : {}),
+              ...(s.line.qty != null ? { qty: s.line.qty } : {}),
+            },
+          }
+        : {}),
+      ...(s.dl
+        ? { delivery: { note_number: s.dl.no, po_ref: s.dl.po, signed: s.dl.signed !== false } }
+        : {}),
+    },
+  })),
+);
