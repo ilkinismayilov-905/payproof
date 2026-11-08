@@ -3,6 +3,7 @@ from dataclasses import replace
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from payproof.domain.enums import Role
 from payproof.domain.rules.engine import evaluate
 from payproof.extraction.base import ExtractionAdapter, ExtractionInput, ExtractionResult
 from payproof.extraction.mock import MockExtractionAdapter
@@ -12,6 +13,7 @@ from payproof.repositories.models import DocumentVersion, InvoicePackage
 from payproof.seed.cli import seed
 from payproof.seed.fixtures import uid
 from payproof.seed.identity import COMPANY_ID
+from payproof.services.package_detail import package_detail
 from payproof.services.package_query import load_states
 from payproof.services.snapshot_builder import build_snapshot
 from payproof.services.upload import Upload, upload
@@ -76,3 +78,13 @@ async def test_line_units_are_written_with_the_extraction(db: AsyncSession) -> N
 async def test_unread_unit_makes_r004_unknown(db: AsyncSession) -> None:
     _, checks = await _process(db, "pkg_1047", "INV-1047_v3.pdf", PDF, _UnitNotRead())
     assert checks["R-004"] == "UNKNOWN"
+
+
+async def test_detail_shows_where_each_value_was_read(db: AsyncSession) -> None:
+    version, _ = await _process(db, "pkg_1042", "INV-1042_v2_PO-381.pdf", PDF)
+    detail = await package_detail(db, uid("pkg_1042"), viewer_role=Role.OPERATOR)
+    po = next(f for f in detail.fields if f.field_path == "invoice.po_ref")
+    assert po.evidence is not None and po.evidence.document_version_id == version.id
+    assert (po.evidence.page, po.evidence.quote) == (1, "Sifariş №: PO-381")
+    cells = [c for row in detail.comparison.rows for c in (row.invoice, row.delivery) if c]
+    assert any(c.evidence and c.evidence.document_version_id == version.id for c in cells)
