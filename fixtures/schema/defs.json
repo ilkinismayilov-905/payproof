@@ -77,7 +77,7 @@
       "enum": ["OPEN", "IN_PROGRESS", "SUBMITTED_FOR_RECHECK", "RESOLVED"]
     },
     "role": {
-      "enum": ["operator", "approver", "warehouse", "sales", "readonly", "accounting"]
+      "enum": ["operator", "approver", "readonly", "admin", "assignee"]
     },
     "document_type": {
       "enum": ["invoice", "order", "delivery"]

@@ -1,15 +1,17 @@
 # Təhlükəsizlik və məxfilik (P0 minimumu)
 
 ## Səlahiyyət matrisi (server tərəfi)
-| Əməliyyat | operator | approver | readonly | admin |
-|---|---|---|---|---|
-| Paket/sənəd görmək | ✓ | ✓ | ✓ | ✓ |
-| Yükləmək, çıxarışı düzəltmək, əlaqəni təsdiqləmək, imzanı qeyd etmək | ✓ | ✓ | ✕ | ✓ |
-| Tapşırıq yaratmaq/dəyişmək | ✓ | ✓ | ✕ | ✓ |
-| Müştəri qaydasını təsdiqləmək | ✕ | ✓ | ✕ | ✓ |
-| **Hazır paketi təsdiqləmək** | ✕ | ✓ | ✕ | ✕ (P0) |
-| İxrac | ✓ | ✓ | ✕ | ✓ |
-| Təsdiqlənməmiş paketi silmək | ✓ | ✕ | ✕ | ✓ |
+| Əməliyyat | operator | approver | readonly | admin | assignee |
+|---|---|---|---|---|---|
+| Paket/sənəd görmək | ✓ | ✓ | ✓ | ✓ | ✕ |
+| Yükləmək, çıxarışı düzəltmək, əlaqəni təsdiqləmək, imzanı qeyd etmək | ✓ | ✓ | ✕ | ✓ | ✕ |
+| Tapşırıq yaratmaq/dəyişmək | ✓ | ✓ | ✕ | ✓ | ✕ |
+| Müştəri qaydasını təsdiqləmək | ✕ | ✓ | ✕ | ✓ | ✕ |
+| **Hazır paketi təsdiqləmək** | ✕ | ✓ | ✕ | ✕ (P0) | ✕ |
+| İxrac | ✓ | ✓ | ✕ | ✓ | ✕ |
+| Təsdiqlənməmiş paketi silmək | ✓ | ✕ | ✕ | ✓ | ✕ |
+
+`assignee` (ADR-0008) — tapşırıq icraçısıdır, sistemə daxil olmur: icazəsi yoxdur, `/me.permissions` boşdur, dev-login siyahısında deyil. Onun sənədini operator yükləyir, tapşırıq statusunu operator dəyişir; auditdə actor operatordur. Bu sütun §20 matrisini dəyişmir.
 
 Kodda bir yerdə: `apps/api/src/payproof/domain/permissions.py` — `Permission` enum + `ROLE_PERMISSIONS`. Router-lər yalnız `Depends(require(Permission.APPROVE_PACKAGE))` istifadə edir. Frontend eyni matrisi `GET /v1/me`-dən alır — öz cədvəlini saxlamır.
 

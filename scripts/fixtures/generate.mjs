@@ -70,6 +70,11 @@ const outcomes = (i) => Object.fromEntries(i.checks.map((c) => [c.id, c.outcome]
 P.reset();
 const S = P.S;
 
+// ADR-0008: warehouse/sales/accounting staff are task assignees only — no sign-in, never an actor.
+const ASSIGNEE = new Set(["warehouse", "sales", "accounting"]);
+const role = (u) => (ASSIGNEE.has(u.role) ? "assignee" : u.role);
+const actor = (id, operator) => (ASSIGNEE.has(P.USERS[id]?.role) ? operator : id);
+
 write("company.json", {
   id: "company_a",
   name: P.COMPANY.name,
@@ -83,7 +88,7 @@ write(
     email: email(u.name),
     full_name: u.name,
     title: u.title,
-    role: u.role,
+    role: role(u),
     avatar_tone: u.av,
     demo_login: P.DEMO_USERS.includes(u.id),
   })),
@@ -164,7 +169,7 @@ write(
         file_name: v.file,
         sha256: sha(v.file),
         source_kind: { PDF: "pdf", Skan: "scan", Cədvəl: "spreadsheet" }[v.src],
-        uploaded_by: v.by,
+        uploaded_by: actor(v.by, p.owner),
         uploaded_at: v.at,
         status: v.status,
         ...(d.type === "delivery" && v.snap ? { signed: v.snap.signed } : {}),
@@ -300,10 +305,10 @@ flow.push(snap("confirm_link", { actor: "u1", po_number: "PO-381" }));
 P.dCreateTask(p, "R-001", "u6", P.STEP_T["R-001"](p), P.addDays(P.nowIso(), 1), "", "u1");
 P.dCreateTask(p, "R-007", "u3", P.STEP_T["R-007"](p), P.addDays(P.nowIso(), 1), "", "u1");
 flow.push(snap("create_tasks", { actor: "u1", tasks: tasksOf() }));
-P.dUpload(p, P.SAMPLES[0], "u6");
+P.dUpload(p, P.SAMPLES[0], "u1");
 flow.push(
   snap("upload_invoice", {
-    actor: "u6",
+    actor: "u1",
     sample_id: "s1",
     file_name: P.SAMPLES[0].file,
     checks: { "R-001": outcomes(st(p))["R-001"], "R-002": outcomes(st(p))["R-002"] },
@@ -318,10 +323,10 @@ flow.push(
     duplicate: !!dup.dup,
   }),
 );
-P.dUpload(p, P.SAMPLES[1], "u3");
+P.dUpload(p, P.SAMPLES[1], "u1");
 flow.push(
   snap("upload_delivery", {
-    actor: "u3",
+    actor: "u1",
     sample_id: "s2",
     file_name: P.SAMPLES[1].file,
     checks: { "R-007": outcomes(st(p))["R-007"], "R-008": outcomes(st(p))["R-008"] },
