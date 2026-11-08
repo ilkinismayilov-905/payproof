@@ -1,8 +1,9 @@
-import { unwrap, type paths } from "@payproof/api-client";
-import { useQuery } from "@tanstack/react-query";
+import { unwrap } from "@payproof/api-client";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import type { ListParams } from "./url";
 
-type ListParams = NonNullable<paths["/v1/packages"]["get"]["parameters"]["query"]>;
+export const PAGE_SIZE = 20;
 
 export const packageKeys = {
   all: ["packages"] as const,
@@ -23,3 +24,13 @@ export const useAttentionPackages = () =>
       unwrap(api.GET("/v1/packages", { params: { query: ATTENTION }, signal })),
     select: (page) => page.items,
   });
+
+/** The package list for the given URL filters; the previous page stays visible while the next loads. */
+export const usePackageList = (params: ListParams) => {
+  const query = { limit: PAGE_SIZE, ...params };
+  return useQuery({
+    queryKey: packageKeys.list(query),
+    queryFn: ({ signal }) => unwrap(api.GET("/v1/packages", { params: { query }, signal })),
+    placeholderData: keepPreviousData,
+  });
+};
