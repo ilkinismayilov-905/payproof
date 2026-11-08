@@ -74,13 +74,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 def run() -> None:
-    dev = get_settings().env == "dev"
+    s = get_settings()
+    dev = s.env == "dev" and s.api_reload
     # log_config=None keeps our JSON root handler instead of uvicorn's defaults
     # access_log=False: uvicorn's line has the query string and no correlation id; ours has neither
     # problem (core/logging.py)
     uvicorn.run(
         "payproof.main:create_app",
         factory=True,
+        host=s.api_host,
         port=8000,
         reload=dev,
         log_config=None,

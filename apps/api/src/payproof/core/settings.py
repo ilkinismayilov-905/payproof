@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr
     s3_bucket: str
     ai_provider: Literal["mock", "pdf", "llm"] = "mock"
+    # signed links must use an address the browser reaches; in compose the API itself talks to
+    # http://minio:9000, the browser to http://localhost:9000. Unset: same as s3_endpoint_url
+    s3_public_endpoint_url: str | None = None
+    api_host: str = "127.0.0.1"  # 0.0.0.0 inside a container
+    api_reload: bool = True  # only in dev; off in the container image
     # comma-separated browser origins allowed to call the API (web :3000, mobile :3001)
     cors_origins: str = "http://localhost:3000,http://localhost:3001"
 
