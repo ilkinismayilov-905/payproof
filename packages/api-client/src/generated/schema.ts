@@ -585,6 +585,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live event stream of the current company (Server-Sent Events, ADR-0010)
+         * @description `text/event-stream`. Each event is `id: <event_id>`, `event: <type>`, `data: <LiveEvent JSON>`;
+         *     a `: ping` comment every 15 s. Events carry IDs only — the client invalidates its cache and refetches
+         *     over REST with its own permissions. Sent only after the change is committed. The tenant comes from the
+         *     token only. Browsers' `EventSource` cannot send `Authorization`, so clients use a fetch-based reader
+         *     (`subscribeEvents` in `@payproof/api-client`); a token in the query string is not accepted.
+         */
+        get: operations["streamEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -650,6 +674,33 @@ export interface components {
             full_name: string;
             title: string;
             role: components["schemas"]["Role"];
+        };
+        /**
+         * @description `package.updated` covers documents, fields, order link, signature review, validation and version/status
+         *     changes. Clients treat an unknown type as "invalidate everything".
+         * @enum {string}
+         */
+        LiveEventType: "package.created" | "package.updated" | "package.approved" | "package.exported" | "package.deleted" | "task.changed" | "notification.created" | "requirements.changed";
+        /** @description A change signal with IDs only — no amounts, names or document text (ADR-0010). */
+        LiveEvent: {
+            /** @description The audit (or notification) row id; time-ordered. */
+            event_id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            type: components["schemas"]["LiveEventType"];
+            /**
+             * Format: uuid
+             * @description null when not about a package
+             */
+            package_id: string | null;
+            /** @description Package version after the change */
+            package_version: number | null;
+            /**
+             * Format: uuid
+             * @description null for system actions
+             */
+            actor_id: string | null;
+            /** Format: date-time */
+            at: string;
         };
         PackageRef: {
             id: components["schemas"]["Uuid"];
@@ -3360,6 +3411,37 @@ export interface operations {
             };
             401: components["responses"]["Unauthenticated"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    streamEvents: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Last event id the client saw. Accepted, not replayed in P0 — on (re)connect the client refetches everything. */
+                "Last-Event-ID"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Open stream (never ends on its own; the token's expiry closes it) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example : ping
+                     *
+                     *     id: 0193a000-0000-7000-800a-000000000116
+                     *     event: package.approved
+                     *     data: {"event_id":"0193a000-0000-7000-800a-000000000116","company_id":"0193a000-0000-7000-8000-00000000c0a1","type":"package.approved","package_id":"0193a000-0000-7000-8002-000000001038","package_version":1,"actor_id":"0193a000-0000-7000-8000-000000000002","at":"2026-11-08T06:34:00Z"}
+                     */
+                    "text/event-stream": string;
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
         };
     };
 }

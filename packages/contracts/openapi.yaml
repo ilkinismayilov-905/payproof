@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PayProof API
-  version: 0.1.1
+  version: 0.2.0
   description: |
     PayProof P0 API contract — the single source of truth (docs/architecture/api-contract.md).
     Conventions: `snake_case` fields; money is a decimal **string** with its currency, never a float;
@@ -37,6 +37,8 @@ tags:
     description: Demo utilities (ENV=dev only)
   - name: users
     description: Company members (for assignee, owner and filter pickers)
+  - name: events
+    description: Live change signals (Server-Sent Events)
 paths:
   /v1/auth/dev-users:
     get:
@@ -1533,6 +1535,40 @@ paths:
                 }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /v1/events:
+    get:
+      tags: [events]
+      operationId: streamEvents
+      summary: Live event stream of the current company (Server-Sent Events, ADR-0010)
+      description: |
+        `text/event-stream`. Each event is `id: <event_id>`, `event: <type>`, `data: <LiveEvent JSON>`;
+        a `: ping` comment every 15 s. Events carry IDs only — the client invalidates its cache and refetches
+        over REST with its own permissions. Sent only after the change is committed. The tenant comes from the
+        token only. Browsers' `EventSource` cannot send `Authorization`, so clients use a fetch-based reader
+        (`subscribeEvents` in `@payproof/api-client`); a token in the query string is not accepted.
+      parameters:
+        - name: Last-Event-ID
+          in: header
+          required: false
+          description: Last event id the client saw. Accepted, not replayed in P0 — on (re)connect the client refetches everything.
+          schema: { type: string }
+      responses:
+        "200":
+          description: Open stream (never ends on its own; the token's expiry closes it)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE frames whose `data` is a `LiveEvent`.
+                contentSchema: { $ref: "#/components/schemas/LiveEvent" }
+              example: |
+                : ping
+
+                id: 0193a000-0000-7000-800a-000000000116
+                event: package.approved
+                data: {"event_id":"0193a000-0000-7000-800a-000000000116","company_id":"0193a000-0000-7000-8000-00000000c0a1","type":"package.approved","package_id":"0193a000-0000-7000-8002-000000001038","package_version":1,"actor_id":"0193a000-0000-7000-8000-000000000002","at":"2026-11-08T06:34:00Z"}
+
+        "401": { $ref: "#/components/responses/Unauthenticated" }
 
 components:
   securitySchemes:
@@ -1887,6 +1923,41 @@ components:
         full_name: { type: string }
         title: { type: string }
         role: { $ref: "#/components/schemas/Role" }
+    LiveEventType:
+      type: string
+      enum:
+        [
+          package.created,
+          package.updated,
+          package.approved,
+          package.exported,
+          package.deleted,
+          task.changed,
+          notification.created,
+          requirements.changed,
+        ]
+      description: |
+        `package.updated` covers documents, fields, order link, signature review, validation and version/status
+        changes. Clients treat an unknown type as "invalidate everything".
+    LiveEvent:
+      type: object
+      additionalProperties: false
+      description: A change signal with IDs only — no amounts, names or document text (ADR-0010).
+      required: [event_id, company_id, type, package_id, package_version, actor_id, at]
+      properties:
+        event_id:
+          {
+            $ref: "#/components/schemas/Uuid",
+            description: "The audit (or notification) row id; time-ordered.",
+          }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        type: { $ref: "#/components/schemas/LiveEventType" }
+        package_id:
+          { type: ["string", "null"], format: uuid, description: null when not about a package }
+        package_version:
+          { type: ["integer", "null"], description: Package version after the change }
+        actor_id: { type: ["string", "null"], format: uuid, description: null for system actions }
+        at: { type: string, format: date-time }
     PackageRef:
       type: object
       additionalProperties: false

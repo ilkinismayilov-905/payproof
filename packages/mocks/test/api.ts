@@ -6,7 +6,7 @@ import { createMockApi } from "../src/handlers";
 import { id } from "../src/ids";
 
 export const BASE = "http://api.test";
-export const mock = createMockApi();
+export const mock = createMockApi({ heartbeatMs: 50 });
 const server = setupServer(...mock.handlers);
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => mock.reset());

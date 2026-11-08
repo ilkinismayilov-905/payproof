@@ -31,6 +31,7 @@ Ayrı instans lazımdırsa: `createMockServer({ latencyMs, jobDelayMs })` / `cre
 - **İdempotentlik:** approve/export/upload/create `Idempotency-Key` ilə; eyni açar + eyni body → eyni cavab, fərqli body → 422. Approve/export açardan asılı olmayaraq cari versiya üçün mövcud qeydi qaytarır, yeni audit hadisəsi yaratmır.
 - **Mühərrik:** `fixtures/expected.json` ilə eyni nəticə (14 paket, INV-1042 axını, yeni dəstlər) — golden testlər.
 - **Saat:** demo vaxtı `2026-11-08T06:30Z`-dan başlayır, hər əməliyyat +2 dəq; cavab vaxtları UTC.
+- **Canlı hadisələr** (ADR-0010): uğurlu yazma sorğusunun yaratdığı hər audit sətri və bildiriş bir `LiveEvent` olur (`mockApi.events.subscribe`); xəta/409/idempotent təkrar → hadisə yoxdur. `GET /v1/events` onları SSE kimi axıdır (`heartbeatMs`, default 15 s). Browser worker-i (`createMockWorker`) `BroadcastChannel('payproof-mock')` ilə eyni origin-in tab-larını sinxron saxlayır: yazan tab hadisəni mock DB snapshot-u ilə yayır, digər tab DB-ni götürüb hadisəni öz axınına verir.
 - **ID-lər:** müqavilə nümunələrindəki oxunaqlı UUID-lər (`mockIds.pkg("pkg_1042")` → `0193a000-0000-7000-8002-000000001042`).
 
 ## Mock rejiminin bilərəkdən məhdudiyyətləri
@@ -38,6 +39,7 @@ Ayrı instans lazımdırsa: `createMockServer({ latencyMs, jobDelayMs })` / `cre
 - Yeni paket yalnız demo dəstlərindən (`INV-1051.pdf`, `INV-1052.pdf`) yaranır; job sorğulananda emal bitir.
 - Fayl növü uzantıya görə yoxlanır (real API məzmuna görə — B-13). `sha256` fayl adından hesablanır (fixtures konvensiyası).
 - "İmzalı" linklər `*/mock-files/*` placeholder-ə aparır (mətn faylı).
+- Tab sinxronu: eyni anda iki tab-da yazılarsa son snapshot qalib gəlir. `POST /v1/demo/reset` digər tab-lara ötürülmür (hadisəsi yoxdur) — onları yeniləyin, yoxsa köhnə tab-ın növbəti yazması köhnə DB-ni yayıb reset-i hamıda geri qaytarır. Veb (`:3000`) və mobil (`:3001`) ayrı origin-dir — bir-birini görmür; `Last-Event-ID` qəbul edilir, replay yoxdur.
 
 ## Testlər
 `pnpm --filter @payproof/mocks test` — mühərrik (golden), domen əməliyyatları, serializer-lər (sxem), hər handler qrupu `@payproof/api-client` ilə, müqavilə əhatəsi (hər əməliyyatın handler-i var) və INV-1042 tam axını.

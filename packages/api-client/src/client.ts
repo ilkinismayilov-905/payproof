@@ -29,7 +29,7 @@ export interface ApiClientOptions {
 const UNEXPECTED = errorFallback.INTERNAL_ERROR;
 const OFFLINE = errorFallback.NETWORK_ERROR;
 
-async function toApiError(response: Response): Promise<ApiError> {
+export async function toApiError(response: Response): Promise<ApiError> {
   try {
     const body = (await response.clone().json()) as {
       error?: { code?: ErrorCode; message?: string; details?: Record<string, unknown> };

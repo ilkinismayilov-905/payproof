@@ -32,6 +32,7 @@ await api.POST("/v1/packages/{package_id}/documents", {
 ```
 - `ApiError{code, message, status, details}`: `message` Azərbaycan dilindədir və UI-də göstərilə bilər; `409 VERSION_CONFLICT` → "Paket yenilənib" dialoqu + refetch.
 - Şəbəkə xətası → `NETWORK_ERROR` (status 0, `cause` saxlanır). Ləğv edilmiş sorğu (`AbortSignal`) `ApiError` deyil — orijinal `AbortError` qayıdır.
+- **Canlı hadisələr** (ADR-0010): `subscribeEvents({ baseUrl, getToken, onEvent, onOpen, onError, signal })` → `stop()`. `fetch` əsaslıdır (token `Authorization` header-ində, URL-də yox), `Last-Event-ID` göndərir, qırılanda 1 s → 30 s backoff ilə yenidən qoşulur, `401`-də dayanır (`onError(ApiError UNAUTHENTICATED)`). `onOpen` hər (yenidən) qoşulmada çağırılır — orada bütün keşi invalidate edin; hadisə yalnız ID daşıyır, məlumatı REST-dən alın.
 - `fetch` verilməsə, hər sorğuda `globalThis.fetch` götürülür — MSW (node, `setupServer`) client-dən sonra işə salınsa da tutur.
 
 ## Format

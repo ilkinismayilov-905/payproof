@@ -3,8 +3,10 @@
 import { setupWorker } from "msw/browser";
 import { createMockApi, type MockApiOptions } from "./handlers";
 
-/** Realistic pacing for demos: ~400 ms per request, jobs finish after ~800 ms. */
-export function createMockWorker(options: MockApiOptions = { latencyMs: 400, jobDelayMs: 800 }) {
+/** Realistic pacing for demos: ~400 ms per request, jobs finish after ~800 ms; tabs of one origin stay in sync. */
+export function createMockWorker(
+  options: MockApiOptions = { latencyMs: 400, jobDelayMs: 800, channel: "payproof-mock" },
+) {
   const api = createMockApi(options);
   const worker = setupWorker(...api.handlers);
   return {
