@@ -8,6 +8,7 @@ export const PAGE_SIZE = 20;
 export const packageKeys = {
   all: ["packages"] as const,
   list: (params: ListParams) => [...packageKeys.all, "list", params] as const,
+  detail: (id: string) => [...packageKeys.all, "detail", id] as const,
 };
 
 const ATTENTION: ListParams = {
