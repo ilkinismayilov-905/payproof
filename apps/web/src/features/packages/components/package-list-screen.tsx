@@ -8,6 +8,7 @@ import { Banner, EmptyState, PageHeader } from "@/components/ui/layout";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { usePackageList } from "../queries";
+import { NewPackageButton } from "./new-package-button";
 import { listParams, listSearch, sortFromParam, sortParam, type ListParams } from "../url";
 import { packageColumns } from "./package-columns";
 import { PackageFilters } from "./package-filters";
@@ -28,6 +29,7 @@ export function PackageListScreen() {
       <PageHeader
         title="Faktura paketləri"
         description="Hər paket bir fakturanı, onun sifarişini və təhvil sənədini birləşdirir. Kütləvi təsdiq P0-a daxil deyil."
+        actions={<NewPackageButton />}
       />
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
         <PackageFilters params={params} onChange={go} />

@@ -1,5 +1,9 @@
 import { useId, type ReactNode } from "react";
 
+/** The control style that goes with Field (44px tall on touch). */
+export const fieldInput =
+  "border-border-strong bg-surface focus-visible:ring-ring w-full rounded-md border px-3 py-2 outline-none focus-visible:ring-2 aria-invalid:border-danger pointer-coarse:min-h-11";
+
 /**
  * Label + control + error (or hint), wired for screen readers: the render prop gets the control
  * id and what describes it. Errors replace the hint so only one message is read.

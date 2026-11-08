@@ -5,13 +5,19 @@ import { packageStatusLabel, ui } from "@payproof/api-client/i18n";
 import { PackageX } from "lucide-react";
 import { useIsMutating } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { fieldForCheck } from "../correction";
-import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
+import {
+  packageMutationKey,
+  useDeletePackage,
+  useReviewSignature,
+  useValidate,
+} from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { CreateTaskDialog } from "@/features/tasks";
@@ -43,6 +49,8 @@ export function PackageDetailScreen({ id }: { id: string }) {
   const [correcting, setCorrecting] = useState<string | null>(null); // field id
   const sign = useReviewSignature(id);
   const validate = useValidate(id);
+  const remove = useDeletePackage(id);
+  const router = useRouter();
   const busy = useIsMutating({ mutationKey: packageMutationKey(id) });
   // R-008: show the signature evidence; without one, the delivery note's first page (no invented quote)
   const reviewSignature = (p: Schemas["PackageDetail"]) => {
@@ -214,9 +222,19 @@ export function PackageDetailScreen({ id }: { id: string }) {
       )}
       <ActivityPanel
         packageId={id}
-        // prototype: only a package that was never approved or exported can be deleted
-        canDelete={
-          pkg.data.permissions.can_delete && !pkg.data.approvals.length && !pkg.data.exports.length
+        invoiceNumber={pkg.data.invoice_number ?? "Paket"}
+        report={{ onClick: approval.actions.onReport, pending: approval.actions.pending }}
+        // can_delete = role AND state (never approved or exported); the server checks again
+        onDelete={
+          pkg.data.permissions.can_delete
+            ? () =>
+                remove.mutateAsync({ expected_version: pkg.data.version }).then(() => {
+                  router.push("/packages");
+                  toast.success(
+                    `${pkg.data.invoice_number ?? "Paket"} silindi. Audit qeydi saxlanıldı.`,
+                  );
+                })
+            : undefined
         }
       />
     </div>
