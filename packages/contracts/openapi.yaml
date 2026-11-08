@@ -19,6 +19,8 @@ tags:
     description: Overview KPIs
   - name: packages
     description: Invoice packages (invoice + order + delivery documents)
+  - name: documents
+    description: Document upload, versions and processing jobs
 paths:
   /v1/auth/dev-users:
     get:
@@ -473,6 +475,119 @@ paths:
                 error: null
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
+  /v1/packages/{package_id}/documents:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [documents]
+      operationId: uploadDocument
+      summary: Upload a document into the package (starts extraction; bumps package version)
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [type, file, expected_version]
+              properties:
+                type: { $ref: "#/components/schemas/DocumentType" }
+                file:
+                  {
+                    type: string,
+                    contentEncoding: binary,
+                    description: "PDF, PNG, JPEG, CSV or XLSX (checked by content); ≤ 20 MB, ≤ 50 pages",
+                  }
+                expected_version: { type: integer, minimum: 1 }
+      responses:
+        "202": &job_accepted
+          description: Accepted — poll the job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JobAccepted" }
+              example:
+                job_id: 0193a000-0000-7000-8007-000010420002
+                document_id: 0193a000-0000-7000-8004-000010420001
+                document_version_id: 0193a000-0000-7000-8005-000010420002
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: VERSION_CONFLICT, DUPLICATE_FILE (same sha256 already in this package — no new version) or IDEMPOTENCY_IN_PROGRESS
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: DUPLICATE_FILE
+                  message: "INV-1042.pdf: Faktura v1 ilə eyni fayldır — yeni versiya yaradılmadı."
+                  details:
+                    { document_version_id: 0193a000-0000-7000-8005-000010420001, version_no: 1 }
+        "413": &file_too_large
+          description: FILE_TOO_LARGE
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                {
+                  error:
+                    {
+                      code: FILE_TOO_LARGE,
+                      message: "Fayl 20 MB-dan böyükdür.",
+                      details: { max_mb: 20 },
+                    },
+                }
+        "415": &unsupported_type
+          description: UNSUPPORTED_FILE_TYPE
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                {
+                  error:
+                    {
+                      code: UNSUPPORTED_FILE_TYPE,
+                      message: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+                      details: {},
+                    },
+                }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/documents/{document_id}/versions:
+    parameters:
+      - {
+          name: document_id,
+          in: path,
+          required: true,
+          schema: { $ref: "#/components/schemas/Uuid" },
+        }
+    post:
+      tags: [documents]
+      operationId: uploadDocumentVersion
+      summary: Upload a new version of an existing document (bumps package version, invalidates approval)
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file, expected_version]
+              properties:
+                file: { type: string, contentEncoding: binary }
+                expected_version: { type: integer, minimum: 1, description: Package version }
+      responses:
+        "202": *job_accepted
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "413": *file_too_large
+        "415": *unsupported_type
+        "422": { $ref: "#/components/responses/ValidationError" }
 
 components:
   securitySchemes:
