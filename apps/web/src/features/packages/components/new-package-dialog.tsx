@@ -34,7 +34,9 @@ export function NewPackageDialog({
   const users = useAssignableUsers();
   const me = useMe().data;
   const mock = process.env.NEXT_PUBLIC_API_MOCK === "1";
-  const [customer, setCustomer] = useState("");
+  // a demo set names its customer; the id is resolved once the customer list has loaded
+  const [choice, setCustomer] = useState<{ id?: string; name?: string }>({});
+  const customer = choice.id ?? customers.data?.find((c) => c.name === choice.name)?.id ?? "";
   const [owner, setOwner] = useState<string | null>(null);
   const [files, setFiles] = useState<Partial<Record<Slot, File>>>({});
   const [key, setKey] = useState(() => crypto.randomUUID());
@@ -107,8 +109,7 @@ export function NewPackageDialog({
                 <DemoSetPicker
                   invoice={files.invoice?.name}
                   onPick={(name, picked) => {
-                    const c = customers.data?.find((x) => x.name === name);
-                    if (c) setCustomer(c.id);
+                    setCustomer({ name });
                     change(picked);
                   }}
                 />
@@ -118,7 +119,7 @@ export function NewPackageDialog({
                   <select
                     id={id}
                     value={customer}
-                    onChange={(e) => setCustomer(e.target.value)}
+                    onChange={(e) => setCustomer({ id: e.target.value })}
                     aria-invalid={Boolean(show(errors.customer)) || undefined}
                     aria-describedby={d}
                     className={input}
