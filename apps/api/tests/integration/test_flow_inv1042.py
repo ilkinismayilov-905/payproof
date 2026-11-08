@@ -69,7 +69,7 @@ async def test_exact_po_in_a_new_invoice_links_by_itself(db: AsyncSession) -> No
     await seed(db)
     bind_tenant(db, COMPANY_ID)
     pkg = await db.get_one(InvoicePackage, uid("pkg_1042"))
-    assert pkg.order_id is None
+    linked_before = pkg.order_id
     await upload(
         db, get_storage(), actor_id=uid("u1"), package_id=pkg.id, doc_type="invoice",
         up=Upload("INV-1042_v2_PO-381.pdf", b"%PDF-1.7 " + uuid.uuid4().bytes, pkg.version),
@@ -81,6 +81,7 @@ async def test_exact_po_in_a_new_invoice_links_by_itself(db: AsyncSession) -> No
     handler = extract_handler(adapter_extractor(MockExtractionAdapter(), get_storage()))
     assert await run_once(sessions, PostgresQueue(), {"extract_document": handler})
     await db.refresh(pkg)
+    assert linked_before is None
     assert (pkg.order_id, pkg.link_method, pkg.link_confirmed_by) == (
         uid("PO-381"),
         "exact_id",
