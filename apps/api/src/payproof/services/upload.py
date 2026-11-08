@@ -1,6 +1,7 @@
 """Document upload: one transaction — idempotency key, version check, duplicate check, stored
 file, new document version, package version bump, audit, extraction job."""
 
+import hashlib
 import uuid
 from dataclasses import dataclass
 from pathlib import PurePosixPath, PureWindowsPath
@@ -12,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from payproof.core.errors import Conflict, NotFound, PackageNotReady
 from payproof.core.ids import uuid7
 from payproof.repositories.models import Document, DocumentVersion, InvoicePackage, Job
-from payproof.services import files
+from payproof.services import files, idempotency
 from payproof.services.audit import record
 from payproof.services.versioning import bump
 from payproof.storage.s3 import Storage
@@ -63,9 +64,20 @@ async def upload(
     package_id: uuid.UUID,
     doc_type: str,
     up: Upload,
+    endpoint: str,
+    key: uuid.UUID,
 ) -> Outcome:
     info = files.inspect(up.data)  # 413 / 415 before anything is written
     name = clean_name(up.file_name)
+    fingerprint = f"{endpoint}|{package_id}|{doc_type}|{up.expected_version}|{info.sha256}|{name}"
+    replay = await idempotency.claim(
+        session,
+        endpoint=endpoint,
+        key=key,
+        request_hash=hashlib.sha256(fingerprint.encode()).hexdigest(),
+    )
+    if replay:  # before the version check: a retry after success carries the old version
+        return Outcome(replay.status_code, replay.body)
     pkg = await _locked_package(session, package_id)
     if pkg.processing:
         raise PackageNotReady(details={"status": "PROCESSING"})
@@ -75,6 +87,9 @@ async def upload(
             {"current_version": pkg.version, "expected_version": up.expected_version},
         )
     outcome = await _store(session, storage, actor_id, pkg, doc_type, name, up.data, info)
+    await idempotency.complete(
+        session, endpoint=endpoint, key=key, status_code=outcome.status_code, body=outcome.body
+    )
     await session.commit()
     return outcome
 

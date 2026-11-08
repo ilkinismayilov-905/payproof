@@ -1,10 +1,10 @@
 import uuid
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, NotFound, PackageNotReady
+from payproof.core.errors import Conflict, IdempotencyKeyReused, NotFound, PackageNotReady
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import (
     ApprovalRecord,
@@ -30,7 +30,7 @@ async def seeded(db: AsyncSession) -> AsyncSession:
 
 
 async def _upload(
-    db: AsyncSession, pkg: str, data: bytes, version: int
+    db: AsyncSession, pkg: str, data: bytes, version: int, key: uuid.UUID | None = None
 ) -> tuple[int, dict[str, object]]:
     out = await upload(
         db,
@@ -39,8 +39,22 @@ async def _upload(
         package_id=uid(pkg),
         doc_type="invoice",
         up=Upload("C:\\Users\\a\\INV-1035_v2.pdf", data, version),
+        endpoint="uploadDocument",
+        key=key or uuid.uuid4(),
     )
     return out.status_code, out.body
+
+
+async def test_retry_with_the_same_key_replays(seeded: AsyncSession) -> None:
+    db, key = seeded, uuid.uuid4()
+    version = (await db.get_one(InvoicePackage, uid("pkg_1035"))).version
+    first = await _upload(db, "pkg_1035", PDF + b"once", version, key)
+    again = await _upload(db, "pkg_1035", PDF + b"once", version, key)  # stale version: replay wins
+    assert again == first
+    count = await db.scalar(select(func.count()).select_from(DocumentVersion))
+    with pytest.raises(IdempotencyKeyReused):
+        await _upload(db, "pkg_1035", PDF + b"other", version, key)
+    assert await db.scalar(select(func.count()).select_from(DocumentVersion)) == count
 
 
 async def test_new_version_keeps_the_old_one_and_stores_the_file(seeded: AsyncSession) -> None:
