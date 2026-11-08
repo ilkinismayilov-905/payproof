@@ -27,7 +27,10 @@ export const taskColumns = (canManage: boolean): ColumnDef<Task>[] => [
     header: "Problem",
     cell: ({ row: { original: t } }) => (
       <>
-        <Link href={`/packages/${t.package.id}`} className="font-semibold hover:underline">
+        <Link
+          href={`/packages/${t.package.id}`}
+          className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+        >
           {t.package.invoice_number ?? "—"}
         </Link>
         <div className="text-text-3 text-xs">

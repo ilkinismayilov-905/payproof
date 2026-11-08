@@ -66,7 +66,7 @@ export function SummaryCards({ dashboard: d }: { dashboard: Dashboard }) {
             Ən uzun:{" "}
             <Link
               href={`/packages/${longest.package.id}`}
-              className="text-brand font-semibold hover:underline"
+              className="text-brand font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
             >
               {longest.package.invoice_number}
             </Link>

@@ -7,6 +7,8 @@ const INTERACTIVE =
 async function heights(page: Page) {
   await signIn(page, AYGUN, "/overview");
   await expect(page.getByRole("heading", { name: "İcmal" })).toBeVisible();
+  // measure the loaded page: skeletons have no links yet
+  await expect(page.locator('[aria-busy="true"], [data-slot="skeleton"]')).toHaveCount(0);
   await page.getByRole("button", { name: /Aygün Məmmədova/ }).click(); // menu items too
   await expect(page.getByRole("menu")).toBeVisible();
   return page.locator(INTERACTIVE).evaluateAll((els) =>

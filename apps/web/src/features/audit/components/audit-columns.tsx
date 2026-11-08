@@ -45,7 +45,10 @@ export const auditColumns: ColumnDef<Event>[] = [
     cell: ({ row: { original: e } }) =>
       e.package ? (
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <Link href={`/packages/${e.package.id}`} className="font-semibold hover:underline">
+          <Link
+            href={`/packages/${e.package.id}`}
+            className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+          >
             {e.package.invoice_number ?? "Paket"}
           </Link>
           {e.package_version && (
