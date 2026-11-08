@@ -1,1 +1,1 @@
-export { useAssignableUsers, userKeys } from "./queries";
+export { useAssignableUsers, userKeys, useUsers } from "./queries";

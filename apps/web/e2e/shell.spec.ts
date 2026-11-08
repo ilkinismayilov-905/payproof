@@ -47,7 +47,8 @@ for (const [path, width] of ["/overview", "/packages"].flatMap((p) =>
   test(`no horizontal scroll on ${path} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await signIn(page, path);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the live event stream (ADR-0010) keeps a request open for good
+    await expect(page.getByRole("table").first()).toBeVisible();
     // the page itself and the scrolling content area (<main> scrolls on its own)
     const overflow = await page.evaluate(() =>
       [document.documentElement, document.getElementById("content")!].map(
