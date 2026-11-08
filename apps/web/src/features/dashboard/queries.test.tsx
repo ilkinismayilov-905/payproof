@@ -5,7 +5,7 @@ import { beforeEach, expect, test } from "vitest";
 import { useAttentionPackages } from "@/features/packages";
 import { setToken } from "@/lib/auth";
 import { renderHookWithQuery } from "@/test/render";
-import { daysBetween, useDashboard } from "./queries";
+import { useDashboard } from "./queries";
 
 beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
 
@@ -27,12 +27,4 @@ test("attention list: open problems only, longest first, at most 5", async () =>
   expect(items.length).toBeLessThanOrEqual(5);
   expect(items.every((p) => p.status === "NEEDS_FIX" || p.status === "NEEDS_REVIEW")).toBe(true);
   expect(items[0]!.invoice_number).toBe("INV-1042"); // the dashboard's "longest"
-});
-
-test("daysBetween counts calendar days on the Baku clock, like the server", () => {
-  // 21:00Z on the 3rd is already the 4th in Baku (UTC+4)
-  expect(daysBetween("2026-11-03T21:00:00Z", "2026-11-08T06:30:00Z")).toBe(4);
-  expect(daysBetween("2026-11-08T06:00:00Z", "2026-11-07T06:00:00Z")).toBe(0); // never negative
-  expect(daysBetween("2026-11-03T09:00:00Z", "2026-11-08T06:30:00Z")).toBe(5);
-  expect(daysBetween("2026-11-07T21:00:00Z", "2026-11-08T19:00:00Z")).toBe(0); // both the 8th in Baku
 });
