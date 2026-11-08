@@ -114,6 +114,7 @@ paths:
                       voen: "1700123451",
                     }
                   permissions: [VIEW, EDIT_PACKAGE, MANAGE_TASKS, EXPORT_PACKAGE, DELETE_PACKAGE]
+        "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/me:
@@ -309,6 +310,7 @@ paths:
                   job_id: 0193a000-0000-7000-8007-000010510001,
                   package_id: 0193a000-0000-7000-8002-000000001051,
                 }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "409":
@@ -600,6 +602,7 @@ paths:
                 job_id: 0193a000-0000-7000-8007-000010420002
                 document_id: 0193a000-0000-7000-8004-000010420001
                 document_version_id: 0193a000-0000-7000-8005-000010420002
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -644,6 +647,7 @@ paths:
                 expected_version: { type: integer, minimum: 1, description: Package version }
       responses:
         "202": *job_accepted
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -710,6 +714,7 @@ paths:
               schema: { $ref: "#/components/schemas/PackageDetail" }
               examples:
                 inv1042_linked: { $ref: "#/components/examples/PackageDetailInv1042Linked" }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -854,6 +859,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Task" }
               examples: { t118: { $ref: "#/components/examples/TaskT118" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -887,6 +893,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Task" }
               examples: { t118: { $ref: "#/components/examples/TaskT118" } }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -952,6 +959,7 @@ paths:
                 valid: true
                 invalidated_reason: null
                 invalidated_at: null
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -1041,6 +1049,7 @@ paths:
                     url: "http://localhost:9000/payproof-docs/exports/INV-1042_v4.zip?X-Amz-Signature=demo",
                     expires_at: "2026-11-08T06:47:00Z",
                   }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -1271,6 +1280,7 @@ paths:
                 approved_by: *rashad
                 reason: Müştəri dekabrdan imzalı təhvil aktı tələb edir.
                 created_at: "2026-11-08T06:50:00Z"
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -1377,6 +1387,16 @@ components:
       schema: { type: string }
 
   responses:
+    BadRequest:
+      description: Malformed JSON or multipart body.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                { code: VALIDATION_ERROR, message: "Sorğunun formatı yanlışdır.", details: {} },
+            }
     FileTooLarge:
       description: FILE_TOO_LARGE
       content:
