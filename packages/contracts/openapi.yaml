@@ -15,6 +15,8 @@ security:
 tags:
   - name: auth
     description: Session and current user
+  - name: dashboard
+    description: Overview KPIs
 paths:
   /v1/auth/dev-users:
     get:
@@ -108,6 +110,66 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Me" }
               example: *me_u1
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/dashboard:
+    get:
+      tags: [dashboard]
+      operationId: getDashboard
+      summary: KPIs — status counts, open problem amounts per currency, problem types and age
+      responses:
+        "200":
+          description: Dashboard
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Dashboard" }
+              example:
+                as_of: "2026-11-08T06:30:00Z"
+                package_count: 14
+                customer_count: 2
+                status_counts:
+                  {
+                    PROCESSING: 1,
+                    NEEDS_REVIEW: 4,
+                    NEEDS_FIX: 4,
+                    READY_FOR_APPROVAL: 2,
+                    APPROVED_READY: 1,
+                    EXPORTED: 2,
+                  }
+                open_problem_amounts:
+                  - { total: { amount: "29706.00", currency: AZN }, package_count: 7 }
+                  - { total: { amount: "1800.00", currency: USD }, package_count: 1 }
+                top_issue:
+                  {
+                    category: PO istinadı,
+                    rule_ids: [R-001, R-002],
+                    package_count: 4,
+                    invoice_numbers: [INV-1042, INV-1043, INV-1047, INV-1048],
+                  }
+                rule_counts:
+                  - { rule_id: R-001, fail: 2, unknown: 1 }
+                  - { rule_id: R-002, fail: 1, unknown: 2 }
+                problem_age:
+                  {
+                    average_days: "3.0",
+                    longest:
+                      {
+                        package:
+                          { id: 0193a000-0000-7000-8002-000000001042, invoice_number: INV-1042 },
+                        days: 5,
+                      },
+                  }
+                tasks: { resolved: 3, total: 9 }
+                recent_approvals:
+                  - package: { id: 0193a000-0000-7000-8002-000000001035, invoice_number: INV-1035 }
+                    version: 1
+                    approver:
+                      {
+                        id: 0193a000-0000-7000-8000-000000000002,
+                        full_name: Rəşad Əliyev,
+                        role: approver,
+                      }
+                    approved_at: "2026-11-06T11:10:00Z"
+                    total: { amount: "3100.00", currency: AZN }
         "401": { $ref: "#/components/responses/Unauthenticated" }
 
 components:
@@ -346,3 +408,104 @@ components:
         token_type: { const: bearer }
         expires_in: { type: integer, description: Seconds }
         user: { $ref: "#/components/schemas/Me" }
+    Dashboard:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          as_of,
+          package_count,
+          customer_count,
+          status_counts,
+          open_problem_amounts,
+          top_issue,
+          rule_counts,
+          problem_age,
+          tasks,
+          recent_approvals,
+        ]
+      properties:
+        as_of: { type: string, format: date-time }
+        package_count:
+          { type: integer, description: Unique invoice packages (each invoice counted once) }
+        customer_count: { type: integer }
+        status_counts:
+          type: object
+          additionalProperties: false
+          required:
+            [PROCESSING, NEEDS_REVIEW, NEEDS_FIX, READY_FOR_APPROVAL, APPROVED_READY, EXPORTED]
+          properties:
+            PROCESSING: { type: integer }
+            NEEDS_REVIEW: { type: integer }
+            NEEDS_FIX: { type: integer }
+            READY_FOR_APPROVAL: { type: integer }
+            APPROVED_READY: { type: integer }
+            EXPORTED: { type: integer }
+        open_problem_amounts:
+          type: array
+          description: NEEDS_FIX + NEEDS_REVIEW invoice totals, one entry per currency (never converted). Not a financial loss.
+          items:
+            type: object
+            additionalProperties: false
+            required: [total, package_count]
+            properties:
+              total: { $ref: "#/components/schemas/Money" }
+              package_count: { type: integer }
+        top_issue:
+          description: Most frequent primary (non-cascade) problem category among non-exported packages.
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [category, rule_ids, package_count, invoice_numbers]
+              properties:
+                category: { type: string }
+                rule_ids: { type: array, items: { $ref: "#/components/schemas/RuleId" } }
+                package_count: { type: integer }
+                invoice_numbers: { type: array, items: { type: string } }
+        rule_counts:
+          type: array
+          description: Primary blockers per rule (cascade results are not counted).
+          items:
+            type: object
+            additionalProperties: false
+            required: [rule_id, fail, unknown]
+            properties:
+              rule_id: { $ref: "#/components/schemas/RuleId" }
+              fail: { type: integer }
+              unknown: { type: integer }
+        problem_age:
+          type: object
+          additionalProperties: false
+          required: [average_days, longest]
+          properties:
+            average_days: { type: string, pattern: "^[0-9]+\\.[0-9]$" }
+            longest:
+              oneOf:
+                - type: "null"
+                - type: object
+                  additionalProperties: false
+                  required: [package, days]
+                  properties:
+                    package: { $ref: "#/components/schemas/PackageRef" }
+                    days: { type: integer }
+        tasks:
+          type: object
+          additionalProperties: false
+          required: [resolved, total]
+          properties:
+            resolved: { type: integer }
+            total: { type: integer }
+        recent_approvals:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            additionalProperties: false
+            required: [package, version, approver, approved_at, total]
+            properties:
+              package: { $ref: "#/components/schemas/PackageRef" }
+              version: { type: integer }
+              approver: { $ref: "#/components/schemas/UserRef" }
+              approved_at: { type: string, format: date-time }
+              total: { $ref: "#/components/schemas/Money" }
