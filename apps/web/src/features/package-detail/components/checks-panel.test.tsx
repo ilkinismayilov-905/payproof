@@ -94,6 +94,6 @@ test("upload fixes are live for editors, inert and explained otherwise; tasks co
   // a role without edit rights sees the fix, inert, with the reason
   rerender(<ChecksPanel pkg={pkg} canEdit={false} onFix={onFix} onEvidence={vi.fn()} />);
   expect(screen.getByRole("button", { name: "Təhvil sənədi yüklə" })).toHaveAccessibleDescription(
-    /icazə vermir/,
+    /mümkün deyil/,
   );
 });

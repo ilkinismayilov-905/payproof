@@ -3,11 +3,14 @@
 import type { Schemas } from "@payproof/api-client";
 import { actionLabel, packageStatusLabel } from "@payproof/api-client/i18n";
 import { Upload } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "radix-ui";
 import { useId, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRestoreFocus } from "@/components/ui/restore-focus";
+import { packageKeys } from "@/features/packages";
+import { StaleBanner, usePackageChangedSince } from "@/lib/stale";
 import { useCorrectField } from "../mutations";
 import { PaperPage } from "./paper-page";
 import { SourceFile } from "./source-file";
@@ -41,6 +44,8 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
   const [shown, setShown] = useState(false); // show errors only after a submit attempt
   const correct = useCorrectField(pkg.id);
   const focus = useRestoreFocus();
+  const client = useQueryClient();
+  const changed = usePackageChangedSince(pkg.id, pkg.version);
   const ids = { value: useId(), reason: useId() };
   const valueError = invalidValue(field.field_path, value);
   const reasonError = reason.trim().length < 3 ? "Səbəb ən azı 3 simvol olmalıdır." : null;
@@ -92,6 +97,14 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
+              {changed && (
+                <StaleBanner
+                  version={changed}
+                  onRefresh={() =>
+                    void client.invalidateQueries({ queryKey: packageKeys.detail(pkg.id) })
+                  }
+                />
+              )}
               <p className="text-sm">{`Oxunan dəyər: ${field.raw_value ?? "oxunmadı"}`}</p>
               {evidence &&
                 version &&
