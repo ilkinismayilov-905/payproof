@@ -11,6 +11,7 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`. Rea
 
 ### M-01 · Mobil PWA skeleti
 **Branch:** `feat/M-01-mobile-skeleton` · **Asılılıq:** S-08
+Əvvəl packages/*/README.md fayllarını oxu — @payproof paketlərini qoşmaq üçün transpilePackages və Tailwind @config qeydləri oradadır.
 **Daxildir:** Next.js app (`create-next-app` müvəqqəti qovluqda → köçür, `CLAUDE.md` saxlanılsın), TS strict, Tailwind + tokens, viewport meta (`viewport-fit=cover`), safe-area padding-ləri, PWA (Serwist; `manifest.webmanifest`, ikonlar, `theme_color` brand), ESLint/Prettier, Vitest, Playwright (iPhone 13 profili), `src/{app,features,components/ui,lib}`.
 **Qəbul:** [ ] `pnpm --filter mobile dev|build|lint|typecheck|test` [ ] Lighthouse PWA "installable" [ ] light/dark
 **Commit-lər:** 1) next app 2) tailwind + tokens 3) PWA manifest + SW 4) lint/test config

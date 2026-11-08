@@ -22,6 +22,16 @@ function setup(
 }
 
 describe("createApiClient", () => {
+  it("serializes array query params as the contract says (form, explode: false)", async () => {
+    const { client, seen } = setup(() =>
+      json(200, { items: [], next_cursor: null, total_count: 0 }),
+    );
+    await client.GET("/v1/packages", {
+      params: { query: { status: ["NEEDS_FIX", "NEEDS_REVIEW"] } },
+    });
+    expect(new URL(seen[0]!.url).searchParams.getAll("status")).toEqual(["NEEDS_FIX,NEEDS_REVIEW"]);
+  });
+
   it("sends the bearer token and returns data on success", async () => {
     const { client, seen } = setup(() => json(200, { items: [] }));
     const { data } = await client.GET("/v1/customers");

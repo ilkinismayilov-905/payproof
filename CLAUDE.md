@@ -27,6 +27,7 @@ Hər app-in öz `CLAUDE.md` faylı var — həmin qovluqda işləyəndə onu da 
 7. Test-first: domen məntiqi (qaydalar, pul, status, versiya) üçün əvvəl test, sonra kod.
 8. Step bitəndə `/finish-step <ID>`: lint + typecheck + test keçməlidir, Definition of Done (`docs/engineering/definition-of-done.md`) yoxlanır, progress faylı yenilənir.
 9. Başqa track-in qovluğuna toxunma. API müqaviləsini dəyişmək lazımdırsa — `/contract-change` prosesi.
+10. **Preview:** W-, M-, B- step-i bitəndə server işlədilir (web :3000, mobile :3001, api :8000/docs; mock rejimi) və istifadəçiyə klikləməli linklər + nəyə baxmalı + hansı demo istifadəçi verilir — `/finish-step`-in "Preview" bölməsi. Server artıq işləyirsə yenidən başladılmır, sonda dayandırılmır.
 
 ## Domen invariantları (heç vaxt pozulmur)
 - Pul **heç vaxt float deyil**: Python-da `Decimal`, API-də string (`"12000.00"`) + `currency`. AZN və USD bir cəmdə toplanmır.

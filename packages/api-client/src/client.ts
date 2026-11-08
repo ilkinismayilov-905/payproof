@@ -50,7 +50,12 @@ async function toApiError(response: Response): Promise<ApiError> {
 
 export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) {
   // Resolve globalThis.fetch per request: MSW (node) patches it after modules create their client.
-  const client = createClient<paths>({ baseUrl, fetch: fetch ?? ((req) => globalThis.fetch(req)) });
+  const client = createClient<paths>({
+    baseUrl,
+    fetch: fetch ?? ((req) => globalThis.fetch(req)),
+    // contract: array query params are `style: form, explode: false` → status=A,B
+    querySerializer: { array: { style: "form", explode: false } },
+  });
   const middleware: Middleware = {
     onRequest({ request }) {
       const token = getToken?.();
