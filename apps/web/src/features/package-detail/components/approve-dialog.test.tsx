@@ -62,3 +62,21 @@ test("a version conflict hands over to the 'package updated' dialog", async () =
   await userEvent.click(screen.getByRole("button", { name: "Təsdiqlə" }));
   expect(onConflict).toHaveBeenCalled();
 });
+
+test("a newer version in the live query locks the dialog: nothing is sent", async () => {
+  const sent = vi.fn();
+  mutate.fn = sent;
+  const pkg = await unwrap(
+    api.GET("/v1/packages/{package_id}", {
+      params: { path: { package_id: mockIds.pkg("pkg_1038") } },
+    }),
+  );
+  const props = { onOpenChange: vi.fn(), onConflict: vi.fn() };
+  const { rerender } = renderWithQuery(<ApproveDialog pkg={pkg} open {...props} />);
+  await userEvent.click(screen.getByRole("checkbox"));
+  // the live query now holds v+1 (someone else changed the package)
+  rerender(<ApproveDialog pkg={{ ...pkg, version: pkg.version + 1 }} open {...props} />);
+  expect(screen.getByText(`Başqa istifadəçi paketi yenilədi (v${pkg.version + 1}).`)).toBeVisible();
+  await userEvent.click(screen.getByRole("button", { name: "Təsdiqlə" }));
+  expect(sent).not.toHaveBeenCalled(); // never approves a version the user did not review
+});

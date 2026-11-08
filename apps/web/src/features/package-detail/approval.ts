@@ -1,5 +1,7 @@
-import { unwrap, type ApiError } from "@payproof/api-client";
+import { unwrap, type ApiError, type Schemas } from "@payproof/api-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { usePackageChangedSince } from "@/lib/stale";
 import { dashboardKeys } from "@/features/dashboard";
 import { packageKeys } from "@/features/packages";
 import { api } from "@/lib/api";
@@ -10,6 +12,32 @@ interface Intent {
   expected_version: number;
   expected_requirement_set_version: number;
   idempotencyKey: string;
+}
+
+type Pkg = Schemas["PackageDetail"];
+const bind = (pkg: Pkg) => ({
+  version: pkg.version,
+  ruleSet: pkg.requirement_set.version,
+  key: crypto.randomUUID(), // one intent per bound version
+});
+
+/**
+ * A dialog approves/exports the version the user looked at, not whatever the live query holds
+ * now. `newer`: a later version exists (from the live stream, or already refetched) — the dialog
+ * locks its action until the user rebinds, which refetches and starts a new intent (new key).
+ */
+export function useBoundVersion(pkg: Pkg) {
+  const client = useQueryClient();
+  const [seen, setSeen] = useState(() => bind(pkg));
+  const live = usePackageChangedSince(pkg.id, seen.version);
+  const moved = pkg.version !== seen.version || pkg.requirement_set.version !== seen.ruleSet;
+  const rebind = async () => {
+    await client.refetchQueries({ queryKey: packageKeys.detail(pkg.id) });
+    const latest = client.getQueryData<Pkg>(packageKeys.detail(pkg.id)) ?? pkg;
+    setSeen(bind(latest));
+    return latest;
+  };
+  return { seen, newer: live ?? (moved ? pkg.version : null), rebind };
 }
 
 /**
@@ -79,6 +107,10 @@ export async function saveFile(name: string, source: string | object) {
         })
       : new Blob([JSON.stringify(source, null, 2)], { type: "application/json" });
   const href = URL.createObjectURL(blob);
-  Object.assign(document.createElement("a"), { href, download: name }).click();
-  setTimeout(() => URL.revokeObjectURL(href), 0);
+  // attached and revoked late: some browsers cancel a detached or instantly revoked download
+  const link = Object.assign(document.createElement("a"), { href, download: name });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10_000);
 }

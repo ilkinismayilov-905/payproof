@@ -3,16 +3,15 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatMoney } from "@payproof/api-client/format";
 import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
-import { useQueryClient } from "@tanstack/react-query";
 import { Check, Info } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Banner } from "@/components/ui/layout";
 import { useRestoreFocus } from "@/components/ui/restore-focus";
-import { packageKeys } from "@/features/packages";
-import { StaleBanner, usePackageChangedSince } from "@/lib/stale";
-import { useApprove } from "../approval";
+import { StaleBanner } from "@/lib/stale";
+import { useApprove, useBoundVersion } from "../approval";
 
 type Pkg = Schemas["PackageDetail"];
 
@@ -37,22 +36,23 @@ interface Props {
 /** "Ready to send" for exactly this version and rule set — never a payment approval. */
 export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
   const approve = useApprove(pkg.id);
-  const client = useQueryClient();
   const focus = useRestoreFocus();
-  const changed = usePackageChangedSince(pkg.id, pkg.version);
-  const [key] = useState(() => crypto.randomUUID()); // one intent per opened dialog
+  const { seen, newer, rebind } = useBoundVersion(pkg);
   const [reviewed, setReviewed] = useState(false);
+  // after a rebind the package may be blocked: say why instead of offering a doomed approval
+  const blocked = !newer && pkg.status !== "READY_FOR_APPROVAL";
+  const locked = Boolean(newer) || blocked;
   const [missing, setMissing] = useState(false);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!reviewed) return setMissing(true);
-    if (approve.isPending || changed) return; // a newer version exists: the server would say 409
+    if (approve.isPending || locked) return;
     approve.mutate(
       {
-        expected_version: pkg.version,
-        expected_requirement_set_version: pkg.requirement_set.version,
-        idempotencyKey: key,
+        expected_version: seen.version,
+        expected_requirement_set_version: seen.ruleSet,
+        idempotencyKey: seen.key,
       },
       {
         onSuccess: () => {
@@ -82,13 +82,21 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
-              {changed && (
+              {newer && (
                 <StaleBanner
-                  version={changed}
+                  version={newer}
                   onRefresh={() =>
-                    void client.invalidateQueries({ queryKey: packageKeys.detail(pkg.id) })
+                    // the note was about the old version: review the new one again
+                    void rebind().then(() => setReviewed(false))
                   }
                 />
+              )}
+              {blocked && (
+                <Banner tone="danger" role="alert" title="Təsdiq mümkün deyil">
+                  {pkg.summary.blocking.length
+                    ? `Bloklayan yoxlamalar: ${pkg.summary.blocking.map((b) => b.rule_id).join(", ")}.`
+                    : "Paket təsdiq gözləyən vəziyyətdə deyil."}
+                </Banner>
               )}
               <div className="border-border rounded-md border px-4 py-1">
                 <Row label="Cari versiya" value={`v${pkg.version}`} />
@@ -131,7 +139,7 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                   {actionLabel.cancel}
                 </Button>
               </Dialog.Close>
-              <Button type="submit" size="lg" aria-disabled={approve.isPending || Boolean(changed)}>
+              <Button type="submit" size="lg" aria-disabled={approve.isPending || locked}>
                 <Check aria-hidden />
                 {approve.isPending ? "Təsdiqlənir…" : actionLabel.confirm}
               </Button>
