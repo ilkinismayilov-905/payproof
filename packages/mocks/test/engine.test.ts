@@ -3,7 +3,7 @@ import expected from "../../../fixtures/expected.json";
 import { evaluate } from "../src/engine";
 import { createMockDb } from "../src/store";
 
-const IMPLEMENTED = ["R-001", "R-002", "R-003", "R-004"];
+const IMPLEMENTED = ["R-001", "R-002", "R-003", "R-004", "R-005", "R-006"];
 const cases = Object.entries(expected.packages).filter(([, e]) => e.status !== "PROCESSING");
 
 describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
@@ -52,6 +52,27 @@ describe("mock rule engine = prototype engine (fixtures/expected.json)", () => {
     const r003 = evaluate(db, db.pkg("pkg_1046")).find((c) => c.rule_id === "R-003")!;
     expect(r003).toMatchObject({ outcome: "FAIL", fix_hint: "upload_delivery" });
     expect(r003.message).toContain("C Restoran Qrupu");
+  });
+
+  it("INV-1044 R-005: price difference 500.00 AZN in cents, prototype message", () => {
+    const db = createMockDb();
+    const r005 = evaluate(db, db.pkg("pkg_1044")).find((c) => c.rule_id === "R-005")!;
+    expect(r005).toMatchObject({
+      outcome: "FAIL",
+      data: {
+        line_difference: { amount: expected.packages["INV-1044"].r005_diff, currency: "AZN" },
+      },
+    });
+    expect(r005.message).toBe(
+      "KY-10: fakturada 110,00 AZN, sifarişdə 100,00 AZN × 50 = 500,00 AZN fərq. Aktual qiymət əlavəsini yoxlayın. Fərq itki və ya gəlir sayılmır.",
+    );
+  });
+
+  it("INV-1045 R-006: delivered 100 vs invoiced 120 FAILs", () => {
+    const db = createMockDb();
+    const r006 = evaluate(db, db.pkg("pkg_1045")).find((c) => c.rule_id === "R-006")!;
+    expect(r006.outcome).toBe("FAIL");
+    expect(r006.message).toContain("MS-05: fakturada 120, təhvil aktında 100 qutu");
   });
 
   it("INV-1049 R-004: currency mismatch is UNKNOWN, no automatic conversion", () => {
