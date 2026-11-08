@@ -4,6 +4,12 @@ from pydantic import ValidationError
 from payproof.core.settings import Settings
 
 
+@pytest.fixture(autouse=True)
+def _database_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    # these tests skip .env, so give them a URL; nothing connects to it
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost:1/db")
+
+
 def test_loads_ci_environment() -> None:
     s = Settings(_env_file=None)
     assert s.env == "test"
