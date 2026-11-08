@@ -11,8 +11,10 @@ from payproof.core.errors import DomainError
 from payproof.domain.enums import PackageStatus
 from payproof.domain.permissions import Permission
 from payproof.schemas import packages as s
+from payproof.schemas.detail import PackageDetail
 from payproof.services import package_list
 from payproof.services.dashboard import build_dashboard
+from payproof.services.package_detail import package_detail
 from payproof.services.package_query import load_states
 
 router = APIRouter(tags=["packages"])
@@ -33,6 +35,11 @@ def _statuses(raw: str | None) -> frozenset[PackageStatus]:
 @router.get("/dashboard", response_model=s.Dashboard, tags=["dashboard"])
 async def get_dashboard(session: Session, _: Viewer) -> s.Dashboard:
     return await build_dashboard(session, now=dt.datetime.now(dt.UTC))
+
+
+@router.get("/packages/{package_id}", response_model=PackageDetail)
+async def get_package(package_id: uuid.UUID, session: Session, member: Viewer) -> PackageDetail:
+    return await package_detail(session, package_id, viewer_role=member.role)
 
 
 @router.get("/packages", response_model=s.PackagePage)
