@@ -6,6 +6,10 @@ const prototype = readFileSync(
   new URL("../../../docs/product/prototype/payproof-prototype.html", import.meta.url),
   "utf8",
 );
+const glossary = readFileSync(
+  new URL("../../../docs/product/glossary.md", import.meta.url),
+  "utf8",
+);
 // Evaluates `const NAME = { … };` from the prototype (trusted repo file, plain object literal).
 const literal = (name: string): Record<string, unknown> => {
   const start = prototype.indexOf(`const ${name} = {`);
@@ -26,15 +30,59 @@ describe("az labels match the prototype", () => {
   it("document version statuses (+ UPLOADED from the glossary)", () =>
     expect(az.documentStatusLabel).toEqual({ ...labels("DST"), UPLOADED: "Yükləndi" }));
   it("document types", () => expect(az.documentTypeLabel).toEqual(literal("TYPE_L")));
-  it("rule titles, short names and categories", () => {
-    expect(az.ruleTitle).toEqual(labels("RULES", "t"));
+  it("rule titles (+ R-010 from the glossary), short names and categories", () => {
+    expect(az.ruleTitle).toEqual({ ...labels("RULES", "t"), "R-010": "Ümumi hazırlıq" });
     expect(az.ruleShort).toEqual(labels("RULES", "s"));
     expect(az.ruleCategory).toEqual(literal("CAT"));
+  });
+  it("ruleLabel accepts any contract rule id and falls back to the id", () => {
+    expect(az.ruleLabel("R-005")).toBe("Vahid qiymət uyğunluğu");
+    expect(az.ruleLabel("R-099")).toBe("R-099");
   });
   it("signed-in roles keep the prototype names", () => {
     const proto = literal("ROLE_L");
     for (const role of ["operator", "approver", "readonly"] as const)
       expect(az.roleLabel[role]).toBe(proto[role]);
+  });
+  it("admin and assignee use the glossary names", () => {
+    expect(glossary).toContain(`| \`admin\` | ${az.roleLabel.admin}`);
+    expect(glossary).toContain(`| \`assignee\` | ${az.roleLabel.assignee} |`);
+  });
+  it("permissions reuse the prototype PERM_L wording", () => {
+    const p = literal("PERM_L") as Record<string, string>;
+    expect(az.permissionLabel).toMatchObject({
+      MANAGE_TASKS: p.task,
+      MANAGE_REQUIREMENTS: p.rules,
+      APPROVE_PACKAGE: p.approve,
+      EXPORT_PACKAGE: p.export,
+      DELETE_PACKAGE: p.del,
+    });
+    expect(az.permissionLabel.EDIT_PACKAGE).toBe(`${p.upload} və ${p.edit!.toLowerCase()}`);
+  });
+  it("fix hints are the prototype's action button texts", () => {
+    for (const text of Object.values(az.fixHintLabel))
+      expect(prototype).toContain(`${text}</button>`);
+  });
+  it("labels every UI-visible contract enum", () => {
+    expect(Object.keys(az.fieldReviewStatusLabel).sort()).toEqual([
+      "CORRECTED",
+      "EXTRACTED",
+      "REVIEW_REQUIRED",
+    ]);
+    expect(Object.keys(az.comparisonStateLabel).sort()).toEqual([
+      "empty",
+      "mismatch",
+      "ok",
+      "unknown",
+    ]);
+    expect(Object.keys(az.jobStatusLabel).sort()).toEqual([
+      "FAILED",
+      "QUEUED",
+      "RUNNING",
+      "SUCCEEDED",
+    ]);
+    expect(Object.keys(az.linkMethodLabel).sort()).toEqual(["exact_id", "human"]);
+    expect(az.errorFallback.NETWORK_ERROR).toBeTruthy();
   });
 });
 

@@ -4,8 +4,10 @@
 import type { components } from "../generated/schema";
 
 type S = components["schemas"];
-type RuleId =
+/** Rules that produce check results; R-010 is the derived overall readiness (no check row). */
+export type CheckRuleId =
   "R-001" | "R-002" | "R-003" | "R-004" | "R-005" | "R-006" | "R-007" | "R-008" | "R-009";
+export type RuleId = CheckRuleId | "R-010";
 
 export const packageStatusLabel = {
   PROCESSING: "Emal olunur",
@@ -72,7 +74,11 @@ export const ruleTitle = {
   "R-007": "Məcburi təhvil sənədi",
   "R-008": "İmza tələbi (insan yoxlaması)",
   "R-009": "Cəmlərin arifmetik uyğunluğu",
+  "R-010": "Ümumi hazırlıq",
 } as const satisfies Record<RuleId, string>;
+
+/** Title for a contract `RuleId` (typed as string in the schema); unknown ids are shown as-is. */
+export const ruleLabel = (id: string): string => (ruleTitle as Record<string, string>)[id] ?? id;
 
 export const ruleShort = {
   "R-001": "PO çatışmır",
@@ -84,7 +90,7 @@ export const ruleShort = {
   "R-007": "Təhvil sənədi",
   "R-008": "İmza yoxlaması",
   "R-009": "Cəm fərqi",
-} as const satisfies Record<RuleId, string>;
+} as const satisfies Record<CheckRuleId, string>;
 
 export const ruleCategory = {
   "R-001": "PO istinadı",
@@ -96,7 +102,64 @@ export const ruleCategory = {
   "R-007": "Təhvil sənədi",
   "R-008": "Təhvil sənədi",
   "R-009": "Cəm fərqi",
-} as const satisfies Record<RuleId, string>;
+} as const satisfies Record<CheckRuleId, string>;
+
+export const fieldReviewStatusLabel = {
+  EXTRACTED: "Çıxarıldı",
+  REVIEW_REQUIRED: "Sahə oxunmadı",
+  CORRECTED: "Əl ilə düzəldilib",
+} as const satisfies Record<S["ExtractedField"]["review_status"], string>;
+
+/** Comparison cell states — "no document" and "not readable" are different things. */
+export const comparisonStateLabel = {
+  ok: "Uyğundur",
+  mismatch: "Uyğunsuz",
+  unknown: "Oxunmadı",
+  empty: "Sənəd yoxdur",
+} as const satisfies Record<S["ComparisonCell"]["state"], string>;
+
+export const jobStatusLabel = {
+  QUEUED: "Növbədə",
+  RUNNING: "Emal olunur",
+  SUCCEEDED: "Hazırdır",
+  FAILED: "Emal xətası",
+} as const satisfies Record<S["Job"]["status"], string>;
+
+export const linkMethodLabel = {
+  exact_id: "Təsdiqlənmiş ID",
+  human: "İnsan təsdiqi",
+} as const satisfies Record<NonNullable<S["OrderLink"]["method"]>, string>;
+
+/** Action buttons for a check's `fix_hint` (prototype checkCard). */
+export const fixHintLabel = {
+  link_order: "Sifarişi seç",
+  edit_field: "Mənbəyə bax, sahəni düzəlt",
+  review_signature: "İmzaya bax və təsdiqlə",
+  upload_delivery: "Təhvil sənədi yüklə",
+  upload_invoice: "Yeni faktura versiyası",
+} as const satisfies Record<NonNullable<S["CheckResult"]["fix_hint"]>, string>;
+
+/** Shown only when the server sent no message (normally `ApiError.message` is used). */
+export const errorFallback = {
+  VALIDATION_ERROR: "Sorğuda xəta var.",
+  TASK_STATUS_NOT_ALLOWED: "Tapşırığın bu statusa keçidi mümkün deyil.",
+  INVOICE_REQUIRED: "İxrac paketində faktura məcburidir.",
+  IDEMPOTENCY_KEY_REUSED: "Eyni sorğu fərqli məlumatla təkrarlandı.",
+  UNAUTHENTICATED: "Sessiya bitib. Yenidən daxil olun.",
+  FORBIDDEN: "Bu əməliyyat üçün səlahiyyətiniz yoxdur.",
+  NOT_FOUND: "Obyekt tapılmadı.",
+  VERSION_CONFLICT: "Paket yenilənib; səhifəni yeniləyin.",
+  PACKAGE_NOT_READY: "Paket bu əməliyyat üçün hazır deyil.",
+  PACKAGE_NOT_DELETABLE: "Təsdiqlənmiş paket silinə bilməz.",
+  TASK_ALREADY_OPEN: "Bu qayda üçün açıq tapşırıq artıq var.",
+  DUPLICATE_FILE: "Bu fayl paketdə artıq var — yeni versiya yaradılmadı.",
+  DUPLICATE_INVOICE: "Bu faktura bu müştəri üçün artıq mövcuddur.",
+  IDEMPOTENCY_IN_PROGRESS: "Eyni sorğu hələ emal olunur.",
+  FILE_TOO_LARGE: "Fayl 20 MB-dan böyükdür.",
+  UNSUPPORTED_FILE_TYPE: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+  INTERNAL_ERROR: "Gözlənilməz xəta baş verdi. Bir az sonra yenidən cəhd edin.",
+  NETWORK_ERROR: "Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayın.",
+} as const satisfies Record<S["ErrorCode"] | "NETWORK_ERROR", string>;
 
 /** Common UI texts. */
 export const ui = {

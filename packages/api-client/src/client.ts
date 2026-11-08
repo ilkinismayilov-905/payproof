@@ -1,5 +1,6 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { components, paths } from "./generated/schema";
+import { errorFallback } from "./i18n/az";
 
 export type ErrorCode = components["schemas"]["ErrorCode"] | "NETWORK_ERROR";
 
@@ -25,8 +26,8 @@ export interface ApiClientOptions {
   fetch?: (input: Request) => Promise<Response>;
 }
 
-const UNEXPECTED = "Gözlənilməz xəta baş verdi. Bir az sonra yenidən cəhd edin.";
-const OFFLINE = "Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayın.";
+const UNEXPECTED = errorFallback.INTERNAL_ERROR;
+const OFFLINE = errorFallback.NETWORK_ERROR;
 
 async function toApiError(response: Response): Promise<ApiError> {
   try {
