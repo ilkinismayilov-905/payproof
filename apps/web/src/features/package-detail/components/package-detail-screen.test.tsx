@@ -1,8 +1,9 @@
 import { mockIds } from "@payproof/mocks";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, expect, test } from "vitest";
 import { setToken } from "@/lib/auth";
-import { renderWithQuery } from "@/test/render";
+import { usePackageList } from "@/features/packages";
+import { renderHookWithQuery, renderWithQuery } from "@/test/render";
 import { PackageDetailScreen } from "./package-detail-screen";
 
 beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
@@ -34,4 +35,21 @@ test("a missing package says so and leads back to the list", async () => {
     "href",
     "/packages",
   );
+});
+
+test("the three detail areas sit in one container-query grid (prototype .pd-grid)", async () => {
+  renderWithQuery(<PackageDetailScreen id={PKG_1042} />);
+  const docs = await screen.findByRole("region", { name: "Sənədlər" });
+  const grid = docs.parentElement!;
+  expect(grid).toHaveClass("grid");
+  expect(within(grid).getByRole("region", { name: "Müqayisə" })).toBeInTheDocument(); // W-09
+  expect(within(grid).getByRole("region", { name: "Yoxlamalar" })).toBeInTheDocument(); // W-10
+});
+
+test("PROCESSING: only the banner and history, no results yet", async () => {
+  const list = renderHookWithQuery(() => usePackageList({ status: ["PROCESSING"] }));
+  await waitFor(() => expect(list.result.current.data?.items.length).toBeGreaterThan(0));
+  renderWithQuery(<PackageDetailScreen id={list.result.current.data!.items[0]!.id} />);
+  await screen.findByRole("region", { name: "Fəaliyyət tarixçəsi" });
+  expect(screen.queryByRole("region", { name: "Sənədlər" })).toBeNull();
 });
