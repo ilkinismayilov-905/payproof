@@ -71,6 +71,36 @@ describe("createApiClient", () => {
     const { client } = setup(() => {
       throw new TypeError("fetch failed");
     });
-    await expect(client.GET("/v1/me")).rejects.toMatchObject({ code: "NETWORK_ERROR", status: 0 });
+    const err = await client.GET("/v1/me").catch((e: unknown) => e);
+    expect(err).toMatchObject({ code: "NETWORK_ERROR", status: 0 });
+    expect((err as Error).cause).toBeInstanceOf(TypeError);
+  });
+
+  it("lets an aborted request reject with the AbortError (query cancellation is not an outage)", async () => {
+    const { client } = setup(
+      (req) =>
+        new Promise((_, reject) => {
+          if (req.signal.aborted) reject(req.signal.reason);
+          req.signal.addEventListener("abort", () => reject(req.signal.reason));
+        }),
+    );
+    const ctrl = new AbortController();
+    const pending = client.GET("/v1/me", { signal: ctrl.signal }).catch((e: unknown) => e);
+    ctrl.abort();
+    const err = await pending;
+    expect(err).not.toBeInstanceOf(ApiError);
+    expect((err as Error).name).toBe("AbortError");
+  });
+
+  it("uses globalThis.fetch at request time (MSW in node patches it after the client exists)", async () => {
+    const client = createApiClient({ baseUrl: "http://api.test" });
+    const original = globalThis.fetch;
+    globalThis.fetch = (async () => json(200, { items: [] })) as typeof fetch;
+    try {
+      const { data } = await client.GET("/v1/customers");
+      expect(data).toEqual({ items: [] });
+    } finally {
+      globalThis.fetch = original;
+    }
   });
 });

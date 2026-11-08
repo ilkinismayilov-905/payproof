@@ -11,8 +11,9 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly details: Record<string, unknown> = {},
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
   }
 }
 
@@ -47,7 +48,8 @@ async function toApiError(response: Response): Promise<ApiError> {
 }
 
 export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) {
-  const client = createClient<paths>({ baseUrl, ...(fetch ? { fetch } : {}) });
+  // Resolve globalThis.fetch per request: MSW (node) patches it after modules create their client.
+  const client = createClient<paths>({ baseUrl, fetch: fetch ?? ((req) => globalThis.fetch(req)) });
   const middleware: Middleware = {
     onRequest({ request }) {
       const token = getToken?.();
@@ -60,7 +62,9 @@ export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) 
     },
     onError({ error }) {
       if (error instanceof ApiError) return error;
-      return new ApiError("NETWORK_ERROR", OFFLINE, 0);
+      // Cancellation (TanStack Query, navigation) is not an outage: rethrow the original AbortError.
+      if (error instanceof Error && error.name === "AbortError") return;
+      return new ApiError("NETWORK_ERROR", OFFLINE, 0, {}, { cause: error });
     },
   };
   client.use(middleware);
