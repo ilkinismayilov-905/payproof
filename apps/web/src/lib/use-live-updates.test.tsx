@@ -1,6 +1,7 @@
 import { ApiError, type Schemas, type SubscribeEventsOptions } from "@payproof/api-client";
 import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { authKeys } from "@/features/auth";
 import { packageKeys } from "@/features/packages";
 import { renderHookWithQuery, testQueryClient } from "@/test/render";
 import { onLiveEvent, useLiveUpdates } from "./live";
@@ -106,7 +107,7 @@ describe("fallback polling while the stream is down", () => {
     renderHookWithQuery(() => useLiveUpdates(), client);
     act(() => sub.options!.onError!(new ApiError("UNAUTHENTICATED", "x", 401)));
     vi.advanceTimersByTime(60_000);
-    expect(refetch).not.toHaveBeenCalled();
+    expect(refetch).not.toHaveBeenCalledWith({ type: "active" }); // (the session re-check may refetch `me`)
   });
 
   test("unmount clears the polling timer", () => {
@@ -118,4 +119,21 @@ describe("fallback polling while the stream is down", () => {
     vi.advanceTimersByTime(60_000);
     expect(refetch).not.toHaveBeenCalled();
   });
+});
+
+test("a failed first connect counts as offline: the later open refetches everything", () => {
+  const client = testQueryClient();
+  const invalidate = vi.spyOn(client, "invalidateQueries");
+  renderHookWithQuery(() => useLiveUpdates(), client);
+  act(() => sub.options!.onError!(new ApiError("NETWORK_ERROR", "x", 0)));
+  act(() => sub.options!.onOpen!());
+  expect(invalidate).toHaveBeenCalledWith();
+});
+
+test("a 401 on the stream rechecks the session, so the app signs out like on any 401", () => {
+  const client = testQueryClient();
+  const invalidate = vi.spyOn(client, "invalidateQueries");
+  renderHookWithQuery(() => useLiveUpdates(), client);
+  act(() => sub.options!.onError!(new ApiError("UNAUTHENTICATED", "x", 401)));
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: authKeys.me() });
 });

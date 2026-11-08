@@ -3,6 +3,7 @@
 import { subscribeEvents, type Schemas } from "@payproof/api-client";
 import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { authKeys } from "@/features/auth";
 import { customerKeys } from "@/features/customers";
 import { dashboardKeys } from "@/features/dashboard";
 import { notificationKeys } from "@/features/notifications";
@@ -24,7 +25,8 @@ export function liveInvalidation(event: LiveEvent): QueryKey[] | "all" {
     case "package.approved":
     case "package.exported":
     case "package.deleted":
-      // packageKeys.all covers every list and detail; status counts feed the dashboard and task badge
+      // packageKeys.all covers every list and detail; status counts feed the dashboard; a package
+      // change can resolve or open tasks (rules re-run), hence the sidebar's open task count too
       return [packageKeys.all, dashboardKeys.all, taskKeys.all];
     case "task.changed":
       return [
@@ -59,7 +61,8 @@ export function onLiveEvent(listener: (event: LiveEvent) => void) {
 export function useLiveUpdates() {
   const queryClient = useQueryClient();
   useEffect(() => {
-    let connectedBefore = false;
+    // true after any open or error: from then on, an open may follow missed events
+    let mayHaveMissed = false;
     // Fallback while the stream is down: active queries every 30 s (ADR-0010).
     let polling: ReturnType<typeof setInterval> | undefined;
     const stopPolling = () => {
@@ -71,8 +74,8 @@ export function useLiveUpdates() {
       getToken,
       onOpen: () => {
         stopPolling();
-        if (connectedBefore) void queryClient.invalidateQueries();
-        connectedBefore = true;
+        if (mayHaveMissed) void queryClient.invalidateQueries();
+        mayHaveMissed = true;
       },
       onEvent: (event) => {
         const keys = liveInvalidation(event);
@@ -81,8 +84,14 @@ export function useLiveUpdates() {
         listeners.forEach((listener) => listener(event));
       },
       onError: (error) => {
-        // 401: the stream has stopped for good and the app is signing out — nothing to poll
-        if (error.status === 401 || polling) return;
+        mayHaveMissed = true;
+        if (error.status === 401) {
+          // the stream stopped for good (token expired while idle): re-check the session, whose 401
+          // takes the usual sign-out path (query client → /login)
+          void queryClient.invalidateQueries({ queryKey: authKeys.me() });
+          return;
+        }
+        if (polling) return;
         polling = setInterval(() => void queryClient.refetchQueries({ type: "active" }), POLL_MS);
       },
     });
