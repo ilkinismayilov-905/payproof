@@ -5,8 +5,12 @@ from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import (
     Company,
     Customer,
+    DeliveryNote,
     Document,
     DocumentVersion,
+    ExtractedField,
+    ExtractedInvoice,
+    ExtractedInvoiceLine,
     InvoicePackage,
     Membership,
     Order,
@@ -14,6 +18,7 @@ from payproof.repositories.models import (
     RequirementSet,
     User,
 )
+from payproof.seed.extraction import extraction_rows
 from payproof.seed.fixtures import EXPECTED, ORDERS, PACKAGES, load, uid
 from payproof.seed.identity import identity_rows
 from payproof.seed.packages import package_rows
@@ -57,6 +62,21 @@ async def test_package_rows_match_fixture_counts(db: AsyncSession) -> None:
     }
     rows = (await db.execute(select(InvoicePackage.id, InvoicePackage.problem_since))).all()
     assert {pid for pid, since in rows if since is not None} == problem
+
+
+async def test_extraction_rows_for_finished_packages(db: AsyncSession) -> None:
+    for group in identity_rows() + package_rows() + extraction_rows():
+        db.add_all(group)
+        await db.flush()
+    bind_tenant(db, uid("company_a"))
+    done = [p for p in PACKAGES.values() if not p["processing"]]
+    assert await _count(db, ExtractedInvoice) == len(done) == 13
+    assert await _count(db, ExtractedInvoiceLine) == sum(len(p["invoice"]["lines"]) for p in done)
+    assert await _count(db, DeliveryNote) == sum(1 for p in done if p["delivery"])
+    review = (
+        await db.execute(select(ExtractedField.field_path, ExtractedField.review_status))
+    ).all()
+    assert review == [("invoice.po_ref", "REVIEW_REQUIRED")]  # INV-1047 scan
 
 
 async def test_assignees_keep_their_role(db: AsyncSession) -> None:
