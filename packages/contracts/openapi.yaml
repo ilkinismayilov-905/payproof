@@ -940,7 +940,11 @@ paths:
       tags: [approval]
       operationId: approvePackage
       summary: Approve the current version (approver only). "Ready to send" — not a payment approval
-      description: Repeating the request for an already approved version returns the existing approval with 200 and creates no new audit event.
+      description: |
+        Checks in this order: 403 (role is not approver) → 409 VERSION_CONFLICT (`expected_version` or
+        `expected_requirement_set_version` is not current) → 200 with the existing approval if the current version
+        is already validly approved under the current rule set (no new audit event, whatever the Idempotency-Key)
+        → 409 PACKAGE_NOT_READY if the status is not READY_FOR_APPROVAL → 200 with a new approval.
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -950,12 +954,19 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [expected_version, documents_reviewed]
+              required: [expected_version, expected_requirement_set_version, documents_reviewed]
               properties:
                 expected_version: { type: integer, minimum: 1 }
+                expected_requirement_set_version:
+                  {
+                    type: integer,
+                    minimum: 1,
+                    description: Rule set version the user saw (PackageDetail.requirement_set.version),
+                  }
                 documents_reviewed:
                   { const: true, description: The approver confirms every document was opened }
-            example: { expected_version: 4, documents_reviewed: true }
+            example:
+              { expected_version: 4, expected_requirement_set_version: 2, documents_reviewed: true }
       responses:
         "200":
           description: Approval of the current version (new or existing)
@@ -1000,8 +1011,10 @@ paths:
       operationId: exportPackage
       summary: Export the approved current version with the selected documents (manifest + zip)
       description: |
-        Internal AI explanations and audit records are never included. Re-exporting an already exported
-        version returns the existing export with 200 and creates no new audit event.
+        Internal AI explanations and audit records are never included. Checks in this order: 403 → 409
+        VERSION_CONFLICT → 200 with the existing export if the current version is already exported (no new audit
+        event) → 409 PACKAGE_NOT_READY if the status is not APPROVED_READY → 422 INVOICE_REQUIRED if no current
+        invoice version is selected (an empty list is a 422 VALIDATION_ERROR) → 200 with a new export.
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
@@ -1011,9 +1024,15 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [expected_version, document_version_ids]
+              required: [expected_version, expected_requirement_set_version, document_version_ids]
               properties:
                 expected_version: { type: integer, minimum: 1 }
+                expected_requirement_set_version:
+                  {
+                    type: integer,
+                    minimum: 1,
+                    description: Rule set version the user saw (PackageDetail.requirement_set.version),
+                  }
                 document_version_ids:
                   type: array
                   minItems: 1
@@ -1022,6 +1041,7 @@ paths:
                   items: { $ref: "#/components/schemas/Uuid" }
             example:
               expected_version: 4
+              expected_requirement_set_version: 2
               document_version_ids:
                 [
                   0193a000-0000-7000-8005-000010420002,
@@ -1072,7 +1092,20 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
-        "409": { $ref: "#/components/responses/Conflict" }
+        "409":
+          description: PACKAGE_NOT_READY (not APPROVED_READY), VERSION_CONFLICT or IDEMPOTENCY_IN_PROGRESS
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                {
+                  error:
+                    {
+                      code: PACKAGE_NOT_READY,
+                      message: "İxrac üçün cari versiyanın təsdiqi tələb olunur.",
+                      details: { status: READY_FOR_APPROVAL },
+                    },
+                }
         "422":
           description: INVOICE_REQUIRED or VALIDATION_ERROR (e.g. a non-current document version)
           content:

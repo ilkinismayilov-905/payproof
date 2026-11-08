@@ -35,6 +35,9 @@ OPEN ──(icraya götür)──► IN_PROGRESS ──(yoxlamaya göndər)─�
 | Status `READY_FOR_APPROVAL` deyil | 409 `PACKAGE_NOT_READY` |
 | `expected_version` cari versiya deyil | 409 `VERSION_CONFLICT` |
 | Eyni versiya artıq təsdiqlənib | 200, mövcud təsdiq qaytarılır (yeni audit yoxdur) |
+| `expected_requirement_set_version` cari qayda dəsti deyil | 409 `VERSION_CONFLICT` (istifadəçi görmədiyi qayda versiyasını təsdiqləyə bilməz) |
+
+Yoxlama ardıcıllığı: 403 → 409 `VERSION_CONFLICT` → (cari versiya + cari qayda dəsti üçün etibarlı təsdiq varsa) 200 mövcud → 409 `PACKAGE_NOT_READY` → 200 yeni. Təkrar sorğu `Idempotency-Key`-dən asılı olmayaraq eyni cavabı alır.
 
 ## İxrac qaydaları
 | Şərt | Nəticə |
@@ -42,3 +45,5 @@ OPEN ──(icraya götür)──► IN_PROGRESS ──(yoxlamaya göndər)─�
 | Status `APPROVED_READY` deyil və cari versiya ixrac edilməyib | 409 |
 | Cari versiya artıq ixrac edilib | 200, mövcud ixrac qaytarılır (yeni audit yoxdur) |
 | Faktura seçilməyib | 422 (faktura məcburidir) |
+
+Yoxlama ardıcıllığı: 403 → 409 `VERSION_CONFLICT` → (cari versiya ixrac edilibsə) 200 mövcud → 409 `PACKAGE_NOT_READY` → 422 `INVOICE_REQUIRED` → 200 yeni.
