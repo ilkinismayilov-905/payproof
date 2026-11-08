@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from payproof.core.logging import configure_logging
 from payproof.core.settings import get_settings
+from payproof.repositories import models  # noqa: F401 — registers tables on Base.metadata
 from payproof.repositories.orm import Base
 
 config = context.config

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from sqlalchemy import exists, func, insert, select, update
+from sqlalchemy import Column, Table, Uuid, exists, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -14,16 +14,16 @@ from payproof.repositories.base import (
     TenantViolation,
     bind_tenant,
 )
-from payproof.repositories.orm import IdMixin, TenantEntity
+from payproof.repositories.models import Company
+from payproof.repositories.orm import TenantEntity
 
 
 class _TestBase(DeclarativeBase):
     """Own registry: test tables never reach the app metadata or migrations."""
 
 
-# shortcut: stands in for `companies` until B-03; then use the real Company model here
-class Company(IdMixin, _TestBase):
-    __tablename__ = "companies"
+# FK target only, so `widgets.company_id -> companies.id` resolves; the real table is migrated
+Table("companies", _TestBase.metadata, Column("id", Uuid, primary_key=True))
 
 
 class Widget(TenantEntity, _TestBase):
@@ -44,8 +44,10 @@ class World:
 
 @pytest.fixture
 async def world(db: AsyncSession) -> AsyncIterator[World]:
-    await db.run_sync(lambda s: _TestBase.metadata.create_all(s.connection()))  # rolled back
-    a, b = Company(), Company()
+    widgets = _TestBase.metadata.tables["widgets"]
+    # rolled back with the test
+    await db.run_sync(lambda s: _TestBase.metadata.create_all(s.connection(), tables=[widgets]))
+    a, b = Company(name="A", voen="1700123451"), Company(name="B", voen="1700123452")
     db.add_all([a, b])
     await db.flush()
     b_widget = Widget(name="b-1", company_id=b.id)
