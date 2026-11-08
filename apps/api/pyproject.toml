@@ -39,6 +39,9 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "S", "SIM", "RUF", "ASYNC", "DTZ",
 # RUF001-003: Azerbaijani UI text uses "ı"; N818: errors are named NotFound, Forbidden (CLAUDE.md)
 ignore = ["RUF001", "RUF002", "RUF003", "N818"]
 
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = ["sqlalchemy.orm.declared_attr"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
 
