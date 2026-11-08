@@ -34,25 +34,29 @@ export const jobHandlers = (ctx: Ctx) => [
       const job = db.jobs.get(String(params.job_id));
       if (!job) throw notFound();
       const ready = Date.now() >= job.ready_at_ms;
-      const p = db.pkg(job.package_id);
+      const p = job.package_id ? db.pkg(job.package_id) : null;
       if (ready && !job.done) {
-        if (job.kind === "create_package") finishProcessing(db, p);
+        if (job.kind === "create_package" && p) finishProcessing(db, p);
         job.done = true;
       }
+      const failed = ready && !!job.error;
       return json({
         id: job.id,
         kind: job.kind,
-        status: ready ? "SUCCEEDED" : "RUNNING",
+        status: !ready ? "RUNNING" : failed ? "FAILED" : "SUCCEEDED",
         created_at: job.created_at,
         updated_at: db.nowIso(),
-        result: ready
-          ? {
-              package_id: id.pkg(p.id),
-              package_version: p.version,
-              ...(job.document_version_id ? { document_version_id: job.document_version_id } : {}),
-            }
-          : null,
-        error: null,
+        result:
+          ready && p && !failed
+            ? {
+                package_id: id.pkg(p.id),
+                package_version: p.version,
+                ...(job.document_version_id
+                  ? { document_version_id: job.document_version_id }
+                  : {}),
+              }
+            : null,
+        error: failed ? job.error : null,
       });
     }),
   ),

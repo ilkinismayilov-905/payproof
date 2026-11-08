@@ -1,7 +1,7 @@
 // Multipart parsing with the contract's file limits, and job creation for asynchronous work.
 import { MockError } from "../domain/audit";
 import { id } from "../ids";
-import type { MockDb } from "../store";
+import type { Job, MockDb } from "../store";
 import type { Pkg } from "../types";
 
 // shortcut: type is judged by extension; the real API checks magic bytes (security.md) — B-13.
@@ -40,16 +40,18 @@ export async function form(request: Request): Promise<FormData> {
 export function startJob(
   db: MockDb,
   kind: "extract_document" | "create_package",
-  p: Pkg,
+  p: Pkg | null,
   document_version_id?: string,
+  error?: { code: string; message: string },
 ) {
-  const job = {
+  const job: Job = {
     id: id.job(++db.seq.job),
     kind,
     created_at: db.nowIso(),
     ready_at_ms: Date.now() + db.jobDelayMs,
-    package_id: p.id,
+    package_id: p?.id ?? null,
     document_version_id,
+    error,
     done: false,
   };
   db.jobs.set(job.id, job);

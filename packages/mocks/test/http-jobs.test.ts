@@ -1,6 +1,7 @@
 import { toFormData, unwrap } from "@payproof/api-client";
 import { describe, expect, it } from "vitest";
-import { as, pkgId } from "./api";
+import { startJob } from "../src/handlers/multipart";
+import { as, mock, pkgId } from "./api";
 import { assertSchema } from "./contract";
 
 describe("jobs and file links", () => {
@@ -51,5 +52,22 @@ describe("jobs and file links", () => {
         params: { path: { job_id: "0193a000-0000-7000-8007-999999999999" } },
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("a job that failed before a package existed reports FAILED with the error code", async () => {
+    const api = await as("u1");
+    const job = startJob(mock.db, "create_package", null, undefined, {
+      code: "DUPLICATE_INVOICE",
+      message: "INV-1051 bu müştəri üçün artıq mövcuddur.",
+    });
+    const res = await unwrap(
+      api.GET("/v1/jobs/{job_id}", { params: { path: { job_id: job.id } } }),
+    );
+    assertSchema("Job", res);
+    expect(res).toMatchObject({
+      status: "FAILED",
+      result: null,
+      error: { code: "DUPLICATE_INVOICE" },
+    });
   });
 });

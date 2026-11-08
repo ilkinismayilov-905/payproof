@@ -23,9 +23,10 @@ export interface Job {
   kind: "extract_document" | "create_package";
   created_at: string;
   ready_at_ms: number;
-  package_id: string;
-  document_version_id?: string;
-  error?: { code: string; message: string };
+  /** null when the job failed before a package existed (e.g. DUPLICATE_INVOICE). */
+  package_id: string | null;
+  document_version_id?: string | undefined;
+  error?: { code: string; message: string } | undefined;
   done: boolean;
 }
 
