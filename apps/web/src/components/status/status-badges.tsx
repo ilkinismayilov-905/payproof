@@ -49,7 +49,7 @@ export function StatusBadge({ tone, icon: Icon, label, className }: Meta & { cla
 }
 
 // Icons follow the prototype's PST / OUT / TST / DST maps.
-const icons = {
+export const statusIcons = {
   package: {
     PROCESSING: Clock,
     NEEDS_REVIEW: CircleHelp,
@@ -97,11 +97,19 @@ function statusBadge<S extends string>(
   };
 }
 
-export const PackageStatusBadge = statusBadge(packageStatusTone, icons.package, packageStatusLabel);
-export const CheckOutcomeBadge = statusBadge(checkOutcomeTone, icons.outcome, checkOutcomeLabel);
-export const TaskStatusBadge = statusBadge(taskStatusTone, icons.task, taskStatusLabel);
+export const PackageStatusBadge = statusBadge(
+  packageStatusTone,
+  statusIcons.package,
+  packageStatusLabel,
+);
+export const CheckOutcomeBadge = statusBadge(
+  checkOutcomeTone,
+  statusIcons.outcome,
+  checkOutcomeLabel,
+);
+export const TaskStatusBadge = statusBadge(taskStatusTone, statusIcons.task, taskStatusLabel);
 export const DocumentStatusBadge = statusBadge(
   documentStatusTone,
-  icons.document,
+  statusIcons.document,
   documentStatusLabel,
 );

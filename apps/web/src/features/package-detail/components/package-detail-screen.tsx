@@ -1,29 +1,49 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { ui } from "@payproof/api-client/i18n";
+import { packageStatusLabel, ui } from "@payproof/api-client/i18n";
 import { PackageX } from "lucide-react";
+import { useIsMutating } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Banner, EmptyState, Panel } from "@/components/ui/layout";
+import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
+import { packageMutationKey, useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { ActivityPanel } from "./activity-panel";
+import { ChecksPanel } from "./checks-panel";
 import { ComparisonPanel } from "./comparison-panel";
 import { DocumentsPanel } from "./documents-panel";
 import { EvidenceViewer } from "./evidence-viewer";
 import { MatchBanner } from "./match-banner";
+import { MatchDialog } from "./match-dialog";
 import { PackageActions } from "./package-actions";
 import { PackageHeader } from "./package-header";
 import { ReadinessBanner } from "./readiness-banner";
 
 export function PackageDetailScreen({ id }: { id: string }) {
   const pkg = usePackage(id);
-  const [viewing, setViewing] = useState<{ evidence: Schemas["Evidence"]; label: string } | null>(
-    null,
-  );
+  const [viewing, setViewing] = useState<{
+    evidence: Schemas["Evidence"];
+    label: string;
+    signature?: boolean;
+  } | null>(null);
+  const [matching, setMatching] = useState(false);
+  const sign = useReviewSignature(id);
+  const validate = useValidate(id);
+  const busy = useIsMutating({ mutationKey: packageMutationKey(id) });
+  // R-008: show the signature evidence; without one, the delivery note's first page (no invented quote)
+  const reviewSignature = (p: Schemas["PackageDetail"]) => {
+    const check = p.checks.find((c) => c.fix_hint === "review_signature");
+    const delivery = p.documents.find((d) => d.type === "delivery")?.current;
+    const evidence =
+      check?.evidence[0] ??
+      (delivery && { document_version_id: delivery.id, page: 1, quote: "", bbox: null });
+    if (evidence) setViewing({ evidence, label: "İmza", signature: true });
+  };
 
   if (pkg.isPending)
     return (
@@ -63,9 +83,29 @@ export function PackageDetailScreen({ id }: { id: string }) {
 
   return (
     <div className="@container flex flex-col gap-4">
-      <PackageHeader pkg={pkg.data} actions={<PackageActions status={pkg.data.status} />} />
+      <PackageHeader
+        pkg={pkg.data}
+        actions={
+          <PackageActions
+            status={pkg.data.status}
+            recheck={{
+              pending: busy > 0,
+              onClick: () =>
+                validate.mutate(
+                  { expected_version: pkg.data.version },
+                  {
+                    onSuccess: (next) =>
+                      toast.success(
+                        `Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`,
+                      ),
+                  },
+                ),
+            }}
+          />
+        }
+      />
       <ReadinessBanner pkg={pkg.data} onRefresh={() => pkg.refetch()} />
-      <MatchBanner pkg={pkg.data} />
+      <MatchBanner pkg={pkg.data} onReview={() => setMatching(true)} />
       {/* while processing nothing is shown yet (prototype) */}
       {pkg.data.status !== "PROCESSING" && (
         // prototype .pd-grid: 1 column → compare|checks over docs|checks (880 px) → docs|compare|checks (1240 px)
@@ -76,9 +116,11 @@ export function PackageDetailScreen({ id }: { id: string }) {
             pkg={pkg.data}
             onEvidence={(evidence, label) => setViewing({ evidence, label })}
           />
-          <Panel title={t.checks} className="[grid-area:checks]">
-            <p className="text-text-3 text-sm">{t.soon}</p>
-          </Panel>
+          <ChecksPanel
+            pkg={pkg.data}
+            onEvidence={(evidence, label) => setViewing({ evidence, label })}
+            onFix={(fix) => (fix === "link_order" ? setMatching(true) : reviewSignature(pkg.data))}
+          />
         </div>
       )}
       <EvidenceViewer
@@ -86,7 +128,27 @@ export function PackageDetailScreen({ id }: { id: string }) {
         evidence={viewing?.evidence ?? null}
         label={viewing?.label ?? ""}
         onClose={() => setViewing(null)}
+        signature={
+          viewing?.signature
+            ? {
+                pending: sign.isPending,
+                onConfirm: () =>
+                  sign.mutate(
+                    { expected_version: pkg.data.version },
+                    {
+                      onSuccess: (next) => {
+                        setViewing(null);
+                        toast.success(
+                          `İmzanın mövcudluğu qeyd edildi. Paket: ${packageStatusLabel[next.status]}.`,
+                        );
+                      },
+                    },
+                  ),
+              }
+            : undefined
+        }
       />
+      {matching && <MatchDialog pkg={pkg.data} open onOpenChange={setMatching} />}
       <ActivityPanel
         packageId={id}
         // prototype: only a package that was never approved or exported can be deleted

@@ -32,10 +32,17 @@ export const Inert = ({
 );
 
 /**
- * Header actions by status (prototype `pgPackage`). Re-check (W-10), upload (W-11) and
+ * Header actions by status (prototype `pgPackage`). Upload (W-11) and
  * approve/export (W-13) arrive in later steps; until then they are inert and say so.
  */
-export function PackageActions({ status }: { status: Schemas["PackageStatus"] }) {
+export function PackageActions({
+  status,
+  recheck,
+}: {
+  status: Schemas["PackageStatus"];
+  /** Re-run the rules on the current version (live since W-10). */
+  recheck: { onClick: () => void; pending: boolean };
+}) {
   const primary =
     status === "READY_FOR_APPROVAL" ? (
       <Inert primary icon={Check} label={actionLabel.confirm} reason={t.soon} />
@@ -53,7 +60,18 @@ export function PackageActions({ status }: { status: Schemas["PackageStatus"] })
     );
   return (
     <>
-      <Inert icon={RefreshCw} label={t.recheck} reason={t.soon} />
+      <Button
+        variant="outline"
+        size="lg"
+        aria-disabled={recheck.pending}
+        onClick={() => recheck.pending || recheck.onClick()}
+      >
+        <RefreshCw
+          aria-hidden
+          className={recheck.pending ? "motion-safe:animate-spin" : undefined}
+        />
+        {recheck.pending ? "Yoxlanılır…" : t.recheck}
+      </Button>
       <Inert icon={Upload} label={t.upload} reason={t.soon} />
       {primary}
     </>

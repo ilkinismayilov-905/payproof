@@ -2,8 +2,9 @@
 
 import { actionLabel } from "@payproof/api-client/i18n";
 import { AlertDialog } from "radix-ui";
-import { useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { Button } from "./button";
+import { useRestoreFocus } from "./restore-focus";
 
 interface Props {
   open: boolean;
@@ -34,8 +35,7 @@ export function ConfirmDialog({
   destructive = true,
 }: Props) {
   const [pending, setPending] = useState(false);
-  // Opened from state, not an AlertDialog.Trigger: remember the opener so focus can go back to it.
-  const opener = useRef<HTMLElement | null>(null);
+  const focus = useRestoreFocus(); // opened from state, not an AlertDialog.Trigger
 
   const confirm = async (event: MouseEvent) => {
     event.preventDefault(); // close only after the action succeeds
@@ -56,13 +56,7 @@ export function ConfirmDialog({
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="bg-overlay fixed inset-0 z-50" />
         <AlertDialog.Content
-          onOpenAutoFocus={() => {
-            opener.current = document.activeElement as HTMLElement | null;
-          }}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            opener.current?.focus();
-          }}
+          {...focus}
           className="bg-surface border-border shadow-3 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(560px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border"
         >
           <div className="px-6 pt-5 pb-3">

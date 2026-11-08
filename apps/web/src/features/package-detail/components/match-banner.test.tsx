@@ -11,7 +11,7 @@ beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
 
 function Of({ id }: { id: string }) {
   const pkg = usePackage(id).data;
-  return pkg ? <MatchBanner pkg={pkg} /> : <p>…</p>;
+  return pkg ? <MatchBanner onReview={() => {}} pkg={pkg} /> : <p>…</p>;
 }
 
 test("INV-1042: an unconfirmed AI suggestion names its candidate(s) and says a human decides", async () => {
@@ -21,10 +21,7 @@ test("INV-1042: an unconfirmed AI suggestion names its candidate(s) and says a h
   });
   expect(b).toHaveTextContent(/PO-\d+: /);
   expect(b).toHaveTextContent("Semantik oxşarlıq sübut deyil — əlaqəni insan təsdiqləyir.");
-  expect(screen.getByRole("button", { name: "Bax və təsdiqlə" })).toHaveAttribute(
-    "aria-disabled",
-    "true",
-  ); // W-10
+  expect(screen.getByRole("button", { name: "Bax və təsdiqlə" })).toBeEnabled();
 });
 
 const pkg = (
@@ -39,15 +36,19 @@ const cand = (po_number: string) =>
   ({ po_number, reason: "Alıcı eynidir" }) as Schemas["MatchCandidate"];
 
 test("several candidates → a choice is required", () => {
-  render(<MatchBanner pkg={pkg({ candidates: [cand("PO-1"), cand("PO-2")] })} />);
+  render(
+    <MatchBanner onReview={() => {}} pkg={pkg({ candidates: [cand("PO-1"), cand("PO-2")] })} />,
+  );
   expect(
     screen.getByRole("region", { name: "2 mümkün sifariş tapıldı — seçim tələb olunur" }),
   ).toBeInTheDocument();
 });
 
 test("nothing to show once confirmed, or while processing", () => {
-  const { container, rerender } = render(<MatchBanner pkg={pkg({ confirmed: true })} />);
+  const { container, rerender } = render(
+    <MatchBanner onReview={() => {}} pkg={pkg({ confirmed: true })} />,
+  );
   expect(container).toBeEmptyDOMElement();
-  rerender(<MatchBanner pkg={pkg({}, "PROCESSING")} />);
+  rerender(<MatchBanner onReview={() => {}} pkg={pkg({}, "PROCESSING")} />);
   expect(container).toBeEmptyDOMElement();
 });
