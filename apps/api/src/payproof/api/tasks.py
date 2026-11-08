@@ -4,12 +4,14 @@ import datetime as dt
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.api.deps import Member, Session, require
 from payproof.core.errors import InvalidInput
+from payproof.core.paging import decode_cursor, encode_cursor
 from payproof.domain.enums import TaskStatus
 from payproof.domain.permissions import Permission
 from payproof.repositories import package_reads as reads
@@ -21,6 +23,7 @@ from payproof.services import task_moves, tasks
 
 router = APIRouter(tags=["tasks"])
 Manager = Annotated[Member, Depends(require(Permission.MANAGE_TASKS))]
+Viewer = Annotated[Member, Depends(require(Permission.VIEW))]
 
 
 class CreateTask(BaseModel):
@@ -71,6 +74,62 @@ async def update_task(
         session, actor_id=member.user_id, task_id=task_id, patch=patch
     )
     return await task_out(session, task)
+
+
+class TaskPage(BaseModel):
+    items: list[Task]
+    next_cursor: str | None
+    status_counts: dict[TaskStatus, int]
+
+
+@router.get("/tasks")
+async def list_tasks(
+    session: Session,
+    _: Viewer,
+    status: Literal["active", "OPEN", "IN_PROGRESS", "SUBMITTED_FOR_RECHECK", "RESOLVED"] = (
+        "active"
+    ),
+    assignee_id: uuid.UUID | None = None,
+    package_id: uuid.UUID | None = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    cursor: str | None = None,
+) -> TaskPage:
+    base = (
+        select(ResolutionTask, InvoicePackage.invoice_number)
+        .join(InvoicePackage, InvoicePackage.id == ResolutionTask.package_id)
+        .where(ResolutionTask.deleted_at.is_(None), InvoicePackage.deleted_at.is_(None))
+    )
+    if assignee_id:
+        base = base.where(ResolutionTask.assignee_id == assignee_id)
+    if package_id:
+        base = base.where(ResolutionTask.package_id == package_id)
+    counts = dict.fromkeys(TaskStatus, 0)
+    for t, _number in (await session.execute(base)).all():
+        counts[TaskStatus(t.status)] += 1  # same filters, every status
+    if status == "active":
+        base = base.where(ResolutionTask.status != TaskStatus.RESOLVED)
+    else:
+        base = base.where(ResolutionTask.status == status)
+    start = decode_cursor(cursor)
+    rows = (
+        await session.execute(
+            base.order_by(ResolutionTask.due_date, ResolutionTask.number)
+            .offset(start)
+            .limit(limit + 1)
+        )
+    ).all()
+    page = rows[:limit]
+    users = await reads.owners(session, {u for t, _ in page for u in (t.assignee_id, t.created_by)})
+
+    def ref(user_id: uuid.UUID) -> UserRef:
+        user, role = users[user_id]
+        return UserRef(id=user.id, full_name=user.full_name, title=user.title, role=role)
+
+    return TaskPage(
+        items=[parts.task(t, number or "", ref) for t, number in page],
+        next_cursor=encode_cursor(start + limit) if len(rows) > limit else None,
+        status_counts=counts,
+    )
 
 
 @router.delete("/tasks/{task_id}", status_code=204)

@@ -65,3 +65,25 @@ async def test_readonly_cannot_create(
         f"/v1/packages/{uid('pkg_1042')}/tasks", headers=auth("u5"), json=task_body()
     )
     assert r.status_code == 403
+
+
+async def test_list_filters_and_counts(
+    client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
+) -> None:
+    r = await client.get("/v1/tasks", headers=auth("u5"))
+    assert r.status_code == 200
+    page = r.json()
+    assert set(page) == {"items", "next_cursor", "status_counts"}  # inline schema in openapi
+    assert page["items"] and all(t["status"] != "RESOLVED" for t in page["items"])
+    for t in page["items"]:
+        assert_matches("Task", t)
+    assert page["status_counts"] == {
+        "OPEN": 4,
+        "IN_PROGRESS": 2,
+        "SUBMITTED_FOR_RECHECK": 0,
+        "RESOLVED": 3,
+    }  # tasks.json
+    mine = (await client.get(f"/v1/tasks?assignee_id={uid('u6')}", headers=auth("u5"))).json()
+    assert all(t["assignee"]["id"] == str(uid("u6")) for t in mine["items"])
+    done = (await client.get("/v1/tasks?status=RESOLVED&limit=2", headers=auth("u5"))).json()
+    assert len(done["items"]) == 2 and done["next_cursor"]
