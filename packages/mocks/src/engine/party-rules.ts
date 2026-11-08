@@ -3,11 +3,11 @@ import type { Ctx } from "./index";
 
 export function r003({ db, o, p, add, E }: Ctx) {
   const d = p.delivery;
-  const wrongDl = !!d && d.customer_id !== p.customer_id;
+  const wrongDl = !!d && d.customer_id !== null && d.customer_id !== p.customer_id;
   const wrongO = !!o && o.customer_id !== p.customer_id;
   const buyer = db.customer(p.customer_id);
   if (wrongDl || wrongO) {
-    const other = db.customer(wrongDl ? d!.customer_id : o!.customer_id).name;
+    const other = db.customer(wrongDl ? d!.customer_id! : o!.customer_id).name;
     add(
       "R-003",
       "FAIL",
@@ -15,7 +15,16 @@ export function r003({ db, o, p, add, E }: Ctx) {
       [E("invoice", "customer"), wrongDl ? E("delivery", "customer") : E("order", "customer")],
       { fix_hint: wrongDl ? "upload_delivery" : null },
     );
-  } else if (!o)
+  } else if (d && d.customer_id === null)
+    // not in the rules table: an unread buyer must never count as "same buyer" (PASS)
+    add(
+      "R-003",
+      "UNKNOWN",
+      "Təhvil sənədində alıcı oxunmadı — tərəflərin uyğunluğu təsdiqlənmir.",
+      [E("delivery", "customer")],
+      { fix_hint: "edit_field" },
+    );
+  else if (!o)
     add("R-003", "UNKNOWN", "Sifariş təsdiqlənmədən tərəflər müqayisə olunmur.", [], {
       cascade: true,
     });

@@ -114,6 +114,19 @@ export interface Pkg {
   corrections?: Record<string, { from: string; to: string; reason: string; by: string }>;
   deleted?: boolean;
 }
+/** Rule-engine input: a Pkg whose extracted values may be unread (null), like the API's PackageSnapshot.
+ * shortcut: the store never holds these nulls yet (only po_ref, via unreadable_fields); widen Pkg once extraction can leave values unread. */
+export type EnginePkg = Omit<Pkg, "delivery"> & {
+  delivery:
+    | (Omit<Delivery, "note_number" | "po_ref" | "customer_id" | "signed" | "lines"> & {
+        note_number: string | null;
+        po_ref: string | null;
+        customer_id: string | null;
+        signed: boolean | null;
+        lines: { product_code: string; qty: number | null }[];
+      })
+    | null;
+};
 export interface Task {
   number: string;
   package_id: string;
