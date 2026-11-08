@@ -3,7 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { PackageActions } from "./package-actions";
 
-const ui = (status: Schemas["PackageStatus"]) => render(<PackageActions status={status} />);
+const ui = (status: Schemas["PackageStatus"], pending = false) =>
+  render(<PackageActions status={status} recheck={{ onClick: () => {}, pending }} />);
 const names = () => screen.getAllByRole("button").map((b) => b.textContent);
 
 test.each([
@@ -27,8 +28,16 @@ test.each(["NEEDS_FIX", "NEEDS_REVIEW", "PROCESSING"] as const)(
 
 test("actions that arrive in later steps are inert but focusable and explained", () => {
   ui("READY_FOR_APPROVAL");
-  for (const b of screen.getAllByRole("button")) {
+  for (const b of screen.getAllByRole("button").filter((b) => b.textContent !== "Yenidən yoxla")) {
     expect(b).toHaveAttribute("aria-disabled", "true");
     expect(b).not.toBeDisabled(); // stays in the tab order, so the reason can be read
   }
+});
+
+test("re-check shows its progress", () => {
+  ui("NEEDS_FIX", true);
+  expect(screen.getByRole("button", { name: "Yoxlanılır…" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
 });

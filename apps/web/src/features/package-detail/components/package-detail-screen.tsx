@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
-import { useReviewSignature } from "../mutations";
+import { useReviewSignature, useValidate } from "../mutations";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { ActivityPanel } from "./activity-panel";
@@ -32,6 +32,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
   } | null>(null);
   const [matching, setMatching] = useState(false);
   const sign = useReviewSignature(id);
+  const validate = useValidate(id);
   // R-008: show the signature evidence; without one, the delivery note's first page (no invented quote)
   const reviewSignature = (p: Schemas["PackageDetail"]) => {
     const check = p.checks.find((c) => c.fix_hint === "review_signature");
@@ -80,7 +81,27 @@ export function PackageDetailScreen({ id }: { id: string }) {
 
   return (
     <div className="@container flex flex-col gap-4">
-      <PackageHeader pkg={pkg.data} actions={<PackageActions status={pkg.data.status} />} />
+      <PackageHeader
+        pkg={pkg.data}
+        actions={
+          <PackageActions
+            status={pkg.data.status}
+            recheck={{
+              pending: validate.isPending,
+              onClick: () =>
+                validate.mutate(
+                  { expected_version: pkg.data.version },
+                  {
+                    onSuccess: (next) =>
+                      toast.success(
+                        `Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`,
+                      ),
+                  },
+                ),
+            }}
+          />
+        }
+      />
       <ReadinessBanner pkg={pkg.data} onRefresh={() => pkg.refetch()} />
       <MatchBanner pkg={pkg.data} onReview={() => setMatching(true)} />
       {/* while processing nothing is shown yet (prototype) */}
