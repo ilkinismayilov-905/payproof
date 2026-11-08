@@ -10,9 +10,12 @@ async function signIn(page: Page, path: string) {
 
 test("a new package from a demo set opens processing, then shows its result", async ({ page }) => {
   await signIn(page, "/packages");
+  // let the page settle first: a navigation still in flight would reset the dialog
+  await expect(page.getByRole("table", { name: "Faktura paketləri" })).toBeVisible();
   await page.getByRole("button", { name: "Yeni paket" }).click();
   const dialog = page.getByRole("dialog", { name: "Yeni faktura paketi" });
-  await dialog.getByRole("radio", { name: /INV-1051/ }).check({ force: true });
+  await dialog.getByText("INV-1051 · C Restoran Qrupu").click(); // the card, as a user would
+  await expect(dialog.getByRole("radio", { name: /INV-1051/ })).toBeChecked();
   await expect(dialog.getByLabel("Müştəri")).toHaveValue(/.+/);
   await dialog.getByRole("button", { name: "Paketi yarat və emal et" }).click();
   await expect(page).toHaveURL(/\/packages\/[0-9a-f-]{36}$/);

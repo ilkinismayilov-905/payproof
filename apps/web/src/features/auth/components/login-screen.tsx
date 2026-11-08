@@ -62,7 +62,7 @@ export function LoginScreen() {
                 <label
                   key={u.id}
                   className={cn(
-                    "border-border bg-surface flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-lg border-[1.5px] px-4 py-3 transition duration-base ease-base",
+                    "border-border bg-surface relative flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-lg border-[1.5px] px-4 py-3 transition duration-base ease-base",
                     "has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring has-focus-visible:ring-2",
                   )}
                 >

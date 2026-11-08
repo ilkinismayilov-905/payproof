@@ -17,7 +17,7 @@ export function DemoSetPicker({
       {demoSets().map((s) => (
         <label
           key={s.id}
-          className="border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer flex-col rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
+          className="relative border-border has-checked:border-brand has-checked:bg-brand-50 has-focus-visible:ring-ring flex cursor-pointer flex-col rounded-lg border-[1.5px] p-3 has-focus-visible:ring-2"
         >
           <input
             type="radio"
