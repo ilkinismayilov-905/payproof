@@ -46,3 +46,11 @@ test("useCan reads permissions from /v1/me, not from the role", async () => {
   await waitFor(() => expect(result.current.edit).toBe(true));
   expect(result.current.approve).toBe(false);
 });
+
+test("signing in as another user drops the previous user's cached data", async () => {
+  const { result, client } = renderHookWithQuery(() => useDevLogin());
+  client.setQueryData(["packages", "list"], ["A-nın paketi"]);
+  await act(() => result.current.mutateAsync(RASHAD));
+  expect(client.getQueryData(["packages", "list"])).toBeUndefined();
+  expect(client.getQueryData(authKeys.me())).toMatchObject({ full_name: "Rəşad Əliyev" });
+});

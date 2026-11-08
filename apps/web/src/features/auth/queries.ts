@@ -35,6 +35,7 @@ export function useDevLogin() {
       unwrap(api.POST("/v1/auth/dev-login", { body: { user_id: userId } })),
     onSuccess: (session) => {
       setToken(session.access_token);
+      queryClient.clear(); // nothing cached for the previous user may leak to this one
       queryClient.setQueryData(authKeys.me(), session.user);
     },
   });
