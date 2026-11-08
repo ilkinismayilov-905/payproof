@@ -3,7 +3,7 @@ fixtures/expected.json (computed by the prototype engine). Never edit expected.j
 
 import pytest
 
-from tests.golden.fixtures import EXPECTED, PACKAGES, blocker_list, outcome_of
+from payproof.seed.fixtures import EXPECTED, PACKAGES, blocker_list, outcome_of
 
 CASES = sorted(EXPECTED["packages"].items())
 
