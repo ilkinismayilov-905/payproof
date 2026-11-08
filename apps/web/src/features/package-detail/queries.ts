@@ -25,3 +25,17 @@ export const usePackageAudit = (id: string) =>
       ),
     select: (page) => page.items,
   });
+
+/** Short-lived (5 min) signed link to a document version's file. */
+export const useDocumentFile = (versionId: string) =>
+  useQuery({
+    queryKey: ["documents", "file", versionId],
+    queryFn: ({ signal }) =>
+      unwrap(
+        api.GET("/v1/documents/versions/{version_id}/file", {
+          params: { path: { version_id: versionId } },
+          signal,
+        }),
+      ),
+    staleTime: 4 * 60_000, // refetch before the link expires
+  });
