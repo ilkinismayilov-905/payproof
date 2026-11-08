@@ -1,6 +1,7 @@
 import type { RequestHandler } from "msw";
 import { createDemoDb } from "../domain/seed";
 import { EventBus } from "../events";
+import { syncTabs } from "../tabs";
 import type { MockDb, MockDbOptions } from "../store";
 import { adminHandlers } from "./admin";
 import { approvalHandlers } from "./approval";
@@ -22,6 +23,8 @@ export interface MockApiOptions extends MockDbOptions {
   latencyMs?: number;
   /** SSE heartbeat interval of GET /v1/events (ms). Default 15 000 like the server. */
   heartbeatMs?: number;
+  /** BroadcastChannel name that keeps same-origin tabs in sync (browser). Off when unset. */
+  channel?: string;
 }
 
 /** One in-memory demo company + the MSW handlers that serve it. */
@@ -31,6 +34,14 @@ export function createMockApi(options: MockApiOptions = {}) {
     db = createDemoDb(options);
   };
   const events = new EventBus();
+  const close = options.channel
+    ? syncTabs(
+        options.channel,
+        events,
+        () => db,
+        (next) => (db = next),
+      )
+    : () => {};
   const ctx: Ctx = { db: () => db, events, latencyMs: options.latencyMs ?? 0, reset };
   const handlers: RequestHandler[] = [
     ...authHandlers(ctx),
@@ -56,5 +67,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     events,
     /** Back to the fixtures dataset (demo reset, test isolation). */
     reset,
+    /** Leave the tab channel (tests, HMR). */
+    close,
   };
 }
