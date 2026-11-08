@@ -1,6 +1,6 @@
-import { expect, signIn, test, USERS, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const INV_1042 = "/packages/0193a000-0000-7000-8002-000000001042";
+const INV_1042 = "/packages/INV-1042";
 const status = (page: Page) => page.getByRole("heading", { level: 1 }).locator("..");
 
 async function upload(page: Page, type: "invoice" | "delivery", file: string) {

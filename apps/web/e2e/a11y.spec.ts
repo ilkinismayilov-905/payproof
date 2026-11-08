@@ -4,7 +4,7 @@ import { expect, signIn, test, USERS } from "./fixtures";
 const PAGES = [
   { path: "/overview", ready: "İcmal" },
   { path: "/packages", ready: "Faktura paketləri" },
-  { path: "/packages/0193a000-0000-7000-8002-000000001042", ready: "INV-1042" },
+  { path: "/packages/INV-1042", ready: "INV-1042" },
   { path: "/tasks", ready: "Tapşırıqlar" },
   { path: "/rules", ready: "Müştəri qaydaları" },
   { path: "/audit", ready: "Audit tarixçəsi" },

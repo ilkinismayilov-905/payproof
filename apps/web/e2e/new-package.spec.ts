@@ -1,15 +1,13 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 
-async function signIn(page: Page, path: string) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(path);
+async function enter(page: Page, path: string) {
+  await signIn(page, AYGUN, path);
 }
 
 test("a new package from a demo set opens processing, then shows its result", async ({ page }) => {
-  await signIn(page, "/packages");
+  await enter(page, "/packages");
   // let the page settle first: a navigation still in flight would reset the dialog
   await expect(page.getByRole("table", { name: "Faktura paketləri" })).toBeVisible();
   await page.getByRole("button", { name: "Yeni paket" }).click();
@@ -25,7 +23,7 @@ test("a new package from a demo set opens processing, then shows its result", as
 });
 
 test("a never-approved package can be deleted after confirming", async ({ page }) => {
-  await signIn(page, "/packages/0193a000-0000-7000-8002-000000001048");
+  await enter(page, "/packages/INV-1048");
   await page.getByRole("button", { name: "Paketi sil" }).click();
   const confirm = page.getByRole("alertdialog", { name: "INV-1048 paketini silmək?" });
   await confirm.getByRole("button", { name: "Bəli, sil" }).click();

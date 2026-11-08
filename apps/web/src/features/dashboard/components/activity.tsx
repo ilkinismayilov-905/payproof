@@ -34,7 +34,10 @@ const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
     header: "Faktura",
     cell: ({ row: { original: p } }) => (
       <>
-        <Link href={`/packages/${p.id}`} className="font-semibold hover:underline">
+        <Link
+          href={`/packages/${p.id}`}
+          className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+        >
           {p.invoice_number}
         </Link>
         <div className="text-text-3 text-xs">{p.customer.name}</div>
@@ -113,7 +116,10 @@ export function ApprovalHistory({ approvals }: { approvals: Approval[] }) {
               className="border-border flex items-center gap-2.5 border-b py-2.5 text-sm last:border-b-0"
             >
               <div className="min-w-0 grow">
-                <Link href={`/packages/${a.package.id}`} className="font-bold hover:underline">
+                <Link
+                  href={`/packages/${a.package.id}`}
+                  className="font-bold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+                >
                   {a.package.invoice_number}
                 </Link>
                 {` · v${a.version} · `}

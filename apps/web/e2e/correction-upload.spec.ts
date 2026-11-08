@@ -1,12 +1,10 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, REAL, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
-const pkgUrl = (n: number) => `/packages/0193a000-0000-7000-8002-00000000${n}`;
+const AYGUN = USERS.aygun;
+const pkgUrl = (n: number) => `/packages/INV-${n}`;
 
 async function open(page: Page, n: number) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(pkgUrl(n));
+  await signIn(page, AYGUN, pkgUrl(n));
   await expect(page.getByRole("region", { name: "Yoxlamalar" })).toBeVisible();
 }
 const status = (page: Page) => page.getByRole("heading", { level: 1 }).locator("..");
@@ -31,19 +29,15 @@ test("INV-1042: a new invoice version goes through the stages; the same file aga
   page,
 }) => {
   await open(page, 1042);
-  await page.getByRole("button", { name: "Sənəd yüklə" }).click();
-  let dialog = page.getByRole("dialog", { name: "INV-1042: sənəd yüklə" });
-  await dialog.getByLabel("Sənəd növü").selectOption("invoice");
-  // the file already in the package: refused, nothing changes
-  await dialog.getByRole("radio", { name: /^INV-1042\.pdf/ }).check({ force: true });
-  await dialog.getByRole("button", { name: "Yüklə və emal et" }).click();
-  await expect(
-    dialog.getByText("Bu fayl paketdə artıq var — yeni versiya yaradılmadı."),
-  ).toBeVisible();
-  await expect(page.getByText("Paket v1", { exact: true })).toBeVisible();
-
-  await dialog.getByRole("radio", { name: /INV-1042_v2_PO-381\.pdf/ }).check({ force: true });
-  await dialog.getByRole("button", { name: "Yüklə və emal et" }).click();
+  const again = async (file: RegExp) => {
+    await page.getByRole("button", { name: "Sənəd yüklə" }).click();
+    const dialog = page.getByRole("dialog", { name: "INV-1042: sənəd yüklə" });
+    await dialog.getByLabel("Sənəd növü").selectOption("invoice");
+    await dialog.getByRole("radio", { name: file }).check({ force: true });
+    await dialog.getByRole("button", { name: "Yüklə və emal et" }).click();
+    return dialog;
+  };
+  let dialog = await again(/INV-1042_v2_PO-381\.pdf/);
   await expect(dialog).toBeHidden();
   await expect(
     page.getByText(/INV-1042_v2_PO-381\.pdf yükləndi\. Paket v2 yenidən yoxlandı/),
@@ -53,12 +47,18 @@ test("INV-1042: a new invoice version goes through the stages; the same file aga
   await expect(invoice).toContainText("INV-1042_v2_PO-381.pdf");
   await expect(invoice).toContainText("Əvvəlki versiyalar (1)");
 
-  // the replaced version is history now: uploading it again still creates nothing
-  await page.getByRole("button", { name: "Sənəd yüklə" }).click();
-  dialog = page.getByRole("dialog", { name: "INV-1042: sənəd yüklə" });
-  await dialog.getByLabel("Sənəd növü").selectOption("invoice");
-  await dialog.getByRole("radio", { name: /^INV-1042\.pdf/ }).check({ force: true });
-  await dialog.getByRole("button", { name: "Yüklə və emal et" }).click();
+  // the same file again: refused, nothing changes
+  dialog = await again(/INV-1042_v2_PO-381\.pdf/);
+  await expect(
+    dialog.getByText("Bu fayl paketdə artıq var — yeni versiya yaradılmadı."),
+  ).toBeVisible();
+  await expect(page.getByText("Paket v2", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // the replaced version is history now: uploading it again still creates nothing (the real
+  // server compares bytes, and a demo file only stands in for the seeded one by name)
+  if (REAL) return;
+  dialog = await again(/^INV-1042\.pdf/);
   await expect(dialog.getByText(/yeni versiya yaradılmadı/)).toBeVisible();
   await expect(page.getByText("Paket v2", { exact: true })).toBeVisible();
 });

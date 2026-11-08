@@ -18,7 +18,10 @@ export const packageColumns: ColumnDef<Item>[] = [
     ...sortable,
     cell: ({ row: { original: p } }) => (
       <>
-        <Link href={`/packages/${p.id}`} className="font-semibold hover:underline">
+        <Link
+          href={`/packages/${p.id}`}
+          className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
+        >
           {p.invoice_number ?? "Emal olunur…"}
         </Link>
         <div className="text-text-3 text-xs">{`v${p.version} · ${poNote(p)}`}</div>

@@ -12,6 +12,7 @@ import { useRestoreFocus } from "@/components/ui/restore-focus";
 import { dashboardKeys } from "@/features/dashboard";
 import { packageKeys } from "@/features/packages";
 import { taskKeys } from "@/features/tasks";
+import { demoFiles } from "@/lib/api";
 import { StaleBanner, usePackageChangedSince } from "@/lib/stale";
 import { useJob, useUploadDocument } from "../mutations";
 import { samplesFor, stageOf } from "../upload-helpers";
@@ -46,7 +47,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
   const focus = useRestoreFocus();
   const typeId = useId();
   const changed = usePackageChangedSince(pkg.id, pkg.version);
-  const mock = process.env.NEXT_PUBLIC_API_MOCK === "1";
+  const mock = demoFiles();
   const doc = pkg.documents.find((d) => d.type === type);
   const existing = pkg.documents.flatMap((d) => [d.current, ...d.history].map((v) => v.file_name));
   const samples = mock ? samplesFor(pkg.invoice_number ?? "", type, existing) : [];

@@ -1,7 +1,9 @@
 import { demoSets } from "../new-package";
 
 // shortcut: demo files are named stand-ins; the mock server recognises them by name
-const stub = (name: string) => new File(["%PDF-1.4 demo"], name, { type: "application/pdf" });
+// (the name is in the bytes too: the real server refuses a byte-identical file as a duplicate)
+const stub = (name: string) =>
+  new File([`%PDF-1.4 demo ${name}`], name, { type: "application/pdf" });
 
 /** Mock mode only: synthetic document sets the mock server recognises by file name. */
 export function DemoSetPicker({

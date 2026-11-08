@@ -1,12 +1,10 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
-const pkgUrl = (n: number) => `/packages/0193a000-0000-7000-8002-00000000${n}`;
+const AYGUN = USERS.aygun;
+const pkgUrl = (n: number) => `/packages/INV-${n}`;
 
 async function open(page: Page, n: number) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(pkgUrl(n));
+  await signIn(page, AYGUN, pkgUrl(n));
   await expect(page.getByRole("region", { name: "Yoxlamalar" })).toBeVisible();
 }
 
