@@ -1,6 +1,6 @@
 import { expect, signIn, test, USERS } from "./fixtures";
 
-const pkg = (n: number) => `/packages/0193a000-0000-7000-8002-00000000${n}`;
+const pkg = (n: number) => `/packages/INV-${n}`;
 
 test("INV-1048: the operator picks one of two candidates and confirms the link", async ({
   page,
