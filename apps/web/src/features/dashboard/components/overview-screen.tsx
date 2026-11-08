@@ -11,6 +11,7 @@ import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { useDashboard } from "../queries";
 import { IntroCard } from "./intro-card";
 import { KpiCards } from "./kpi-cards";
+import { SummaryCards } from "./summary-cards";
 
 export function OverviewScreen() {
   const dashboard = useDashboard();
@@ -59,6 +60,7 @@ export function OverviewScreen() {
         <>
           <IntroCard />
           <KpiCards dashboard={d} />
+          <SummaryCards dashboard={d} />
         </>
       )}
     </div>
