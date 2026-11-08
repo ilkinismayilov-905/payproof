@@ -26,9 +26,23 @@ const lost = (cause?: unknown) =>
 
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener("abort", () => (clearTimeout(timer), resolve()), { once: true });
+    const done = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal.addEventListener("abort", done, { once: true });
   });
+
+/** A throwing callback is the caller's bug, not a lost connection: report it and keep the stream. */
+const isolated = (fn: () => void) => {
+  try {
+    fn();
+  } catch (e) {
+    console.error("[subscribeEvents] callback failed", e);
+  }
+};
 
 /** Subscribes to GET /v1/events until stopped or 401. Returns `stop`. */
 export function subscribeEvents(options: SubscribeEventsOptions): () => void {
@@ -36,9 +50,10 @@ export function subscribeEvents(options: SubscribeEventsOptions): () => void {
   const { minMs, maxMs } = options.retry ?? { minMs: 1_000, maxMs: 30_000 };
   const doFetch = options.fetch ?? ((req: Request) => globalThis.fetch(req));
   const stopper = new AbortController();
-  const signal = options.signal
-    ? AbortSignal.any([options.signal, stopper.signal])
-    : stopper.signal;
+  const { signal } = stopper;
+  // not AbortSignal.any: missing before iOS Safari 17.4
+  if (options.signal?.aborted) stopper.abort();
+  options.signal?.addEventListener("abort", () => stopper.abort(), { once: true });
   let lastEventId: string | undefined;
 
   const feed = createSseParser((m) => {
@@ -49,29 +64,40 @@ export function subscribeEvents(options: SubscribeEventsOptions): () => void {
     } catch {
       return; // a malformed frame is skipped; the next (re)connect refetches everything anyway
     }
-    onEvent(event);
+    isolated(() => onEvent(event));
   });
 
   void (async () => {
     for (let attempt = 0; !signal.aborted;) {
+      let reader: ReadableStreamDefaultReader<string> | undefined;
       try {
         const headers = new Headers({ Accept: "text/event-stream" });
         const token = getToken?.();
         if (token) headers.set("Authorization", `Bearer ${token}`);
         if (lastEventId) headers.set("Last-Event-ID", lastEventId);
         const res = await doFetch(new Request(`${baseUrl}/v1/events`, { headers, signal }));
-        if (res.status === 401) return onError?.(await toApiError(res));
-        if (!res.ok || !res.body) throw await toApiError(res);
-        attempt = 0;
-        onOpen?.();
-        const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
-        for (let r = await reader.read(); !r.done; r = await reader.read()) feed(r.value);
+        if (res.status === 401) {
+          const error = await toApiError(res);
+          return isolated(() => onError?.(error));
+        }
+        if (!res.ok) throw await toApiError(res);
+        // e.g. a wrong baseUrl answering 200 with the SPA's HTML: not a stream
+        if (!res.body || !res.headers.get("Content-Type")?.startsWith("text/event-stream"))
+          throw lost();
+        isolated(() => onOpen?.());
+        reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+        for (let r = await reader.read(); !r.done; r = await reader.read()) {
+          attempt = 0; // reset only once data flows, so a stream closed at once still backs off
+          feed(r.value);
+        }
         throw lost(); // the server closed the stream (restart, token expiry) — reconnect
       } catch (e) {
         if (signal.aborted) return;
-        onError?.(e instanceof ApiError ? e : lost(e));
+        isolated(() => onError?.(e instanceof ApiError ? e : lost(e)));
         const delay = Math.min(maxMs, minMs * 2 ** attempt++);
         await sleep(delay / 2 + Math.random() * (delay / 2), signal);
+      } finally {
+        reader?.cancel().catch(() => {});
       }
     }
   })();

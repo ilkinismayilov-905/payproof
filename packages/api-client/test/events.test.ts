@@ -12,6 +12,7 @@ const sse = (frames: string[], { end = true } = {}) =>
     end
       ? frames.join("")
       : new ReadableStream({ start: (c) => c.enqueue(new TextEncoder().encode(frames.join(""))) }),
+    { headers: { "Content-Type": "text/event-stream" } },
   );
 
 const BASE = "http://api.test";
@@ -73,6 +74,44 @@ describe("subscribeEvents", () => {
     await vi.waitFor(() => expect(onOpen).toHaveBeenCalledOnce());
     stop();
     expect(calls).toBe(3);
+  });
+
+  it("a throwing onEvent does not drop the connection", async () => {
+    const fetch = vi.fn(async () => sse([frame(event(1)), frame(event(2))], { end: false }));
+    const got: string[] = [];
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => {});
+    const stop = subscribeEvents({
+      baseUrl: BASE,
+      fetch,
+      retry,
+      onEvent: (e) => {
+        got.push(e.event_id);
+        if (e.event_id === "e1") throw new Error("bug in a listener");
+      },
+    });
+    await vi.waitFor(() => expect(got).toEqual(["e1", "e2"]));
+    stop();
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(quiet).toHaveBeenCalledOnce();
+    quiet.mockRestore();
+  });
+
+  it("a 200 that is not an event stream (e.g. SPA HTML) is not an open connection", async () => {
+    const fetch = vi.fn(async () => new Response("<!doctype html>", { status: 200 }));
+    const onOpen = vi.fn();
+    const onError = vi.fn();
+    const stop = subscribeEvents({
+      baseUrl: BASE,
+      fetch,
+      retry,
+      onOpen,
+      onError,
+      onEvent: () => {},
+    });
+    await vi.waitFor(() => expect(fetch.mock.calls.length).toBeGreaterThan(1));
+    stop();
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(onError.mock.calls[0]![0]).toMatchObject({ code: "NETWORK_ERROR" });
   });
 
   it("stops on 401 and reports UNAUTHENTICATED", async () => {
