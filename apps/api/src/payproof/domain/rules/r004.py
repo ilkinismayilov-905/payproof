@@ -33,11 +33,15 @@ def r004(s: PackageSnapshot) -> CheckResult:
             fix_hint=FixHint.UPLOAD_INVOICE,
         )
     order_units = {line.code: line.unit for line in order.lines}
-    # unread units and lines missing from the order are not a mismatch here (R-005 reports them)
-    mismatches = [
+    # lines missing from the order are R-005's finding; only shared lines are compared here
+    shared = [
         (line.code, line.unit, order_units[line.code])
         for line in s.invoice.lines
-        if line.unit and order_units.get(line.code) and line.unit != order_units[line.code]
+        if line.code in order_units
+    ]
+    mismatches = [(c, inv, ord_) for c, inv, ord_ in shared if inv and ord_ and inv != ord_]
+    unread = [
+        (c, "faktura" if not inv else "sifariş") for c, inv, ord_ in shared if not inv or not ord_
     ]
     if mismatches:
         listed = "; ".join(
@@ -50,6 +54,18 @@ def r004(s: PackageSnapshot) -> CheckResult:
             "Təsdiqlənmiş çevirmə qaydası olmadığı üçün qiymət müqayisəsi dayandırıldı.",
             totals,
             data={"unit_mismatch": [code for code, _, _ in mismatches]},
+        )
+    if unread:
+        # an unread unit is never "units match": prices could be per box vs per piece
+        listed = "; ".join(f"{code} ({where})" for code, where in unread)
+        return CheckResult(
+            RULE,
+            CheckOutcome.UNKNOWN,
+            f"Ölçü vahidi oxunmadı: {listed}. "
+            "Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı.",
+            totals,
+            fix_hint=FixHint.EDIT_FIELD,
+            data={"unit_unread": [code for code, _ in unread]},
         )
     return CheckResult(
         RULE, CheckOutcome.PASS, f"Valyuta ({s.currency}) və ölçü vahidləri uyğundur.", totals

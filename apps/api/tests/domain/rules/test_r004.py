@@ -51,14 +51,33 @@ def test_unit_mismatch_is_unknown() -> None:
     assert not comparable(r)
 
 
-def test_unread_unit_or_unknown_line_is_not_a_mismatch() -> None:
-    inv = invoice(
-        lines=(
-            InvoiceLine("GY-1L", Decimal("800"), None, azn("9.00")),  # unit not read
-            InvoiceLine("KY-10", Decimal("1"), "kq", azn("1.00")),  # not in the order: R-005
-        )
+def test_unread_unit_is_unknown_not_pass() -> None:
+    # a per-box price must never be compared with a per-piece price by accident
+    inv = invoice(lines=(InvoiceLine("GY-1L", Decimal("800"), None, azn("9.00")),))
+    o = order(lines=(OrderLine("GY-1L", Decimal("800"), "ədəd", azn("9.00")),))
+    r = r004(snapshot(invoice=inv, order=o, delivery=None))
+    assert (r.outcome, r.cascade, r.fix_hint) == (O.UNKNOWN, False, FixHint.EDIT_FIELD)
+    assert r.message == (
+        "Ölçü vahidi oxunmadı: GY-1L (faktura). "
+        "Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı."
     )
-    assert r004(snapshot(invoice=inv, delivery=None)).outcome is O.PASS
+    assert r.data == {"unit_unread": ["GY-1L"]}
+    assert not comparable(r)
+
+
+def test_unread_order_unit_is_unknown() -> None:
+    o = order(lines=(OrderLine("GY-1L", Decimal("800"), None, azn("9.00")),))
+    inv = invoice(lines=(InvoiceLine("GY-1L", Decimal("800"), "ədəd", azn("9.00")),))
+    r = r004(snapshot(invoice=inv, order=o, delivery=None))
+    assert (r.outcome, r.message.split(".")[0]) == (
+        O.UNKNOWN,
+        "Ölçü vahidi oxunmadı: GY-1L (sifariş)",
+    )
+
+
+def test_line_missing_from_order_is_left_to_r005() -> None:
+    inv = invoice(lines=(*invoice().lines, InvoiceLine("KY-10", Decimal("1"), None, azn("1.00"))))
+    assert r004(snapshot(invoice=inv)).outcome is O.PASS
 
 
 def test_same_currency_and_units_pass() -> None:
