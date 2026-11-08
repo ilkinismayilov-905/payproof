@@ -28,8 +28,9 @@ Kodda adlar **ingiliscə**, UI mətnləri **Azərbaycan dilində**. UI mətnlər
 | `approver` | Təsdiqçi |
 | `readonly` | Yalnız baxış |
 | `admin` | Admin (P0-da UI yoxdur) |
+| `assignee` | Tapşırıq icraçısı |
 
-Tapşırıq icraçıları (`accounting`, `warehouse`, `sales`) — tapşırıq alır, P0-da UI-yə daxil olmur.
+`assignee` (ADR-0008) — anbar, satış, mühasibatlıq əməkdaşları: tapşırıq alır, sistemə daxil olmur, icazəsi yoxdur. Onların sənədini operator yükləyir. P1-də `contributor` rolu mümkündür.
 
 ## Statuslar
 **Paket** (`PackageStatus`)
