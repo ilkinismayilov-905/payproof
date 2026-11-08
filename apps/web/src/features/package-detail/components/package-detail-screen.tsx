@@ -8,6 +8,7 @@ import { Banner, EmptyState } from "@/components/ui/layout";
 import { Loading, SkeletonBar } from "@/components/ui/skeleton";
 import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
+import { PackageActions } from "./package-actions";
 import { PackageHeader } from "./package-header";
 
 export function PackageDetailScreen({ id }: { id: string }) {
@@ -51,7 +52,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
 
   return (
     <div className="@container flex flex-col gap-4">
-      <PackageHeader pkg={pkg.data} />
+      <PackageHeader pkg={pkg.data} actions={<PackageActions status={pkg.data.status} />} />
     </div>
   );
 }

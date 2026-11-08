@@ -12,4 +12,11 @@ export const detailText = {
   date: "Tarix",
   ruleSet: "Qayda dəsti",
   owner: "Məsul",
+  recheck: "Yenidən yoxla",
+  upload: "Sənəd yüklə",
+  export: "İxrac et",
+  reExport: "Manifesti yenidən yüklə",
+  blocked: "Bloklayan yoxlamalar var",
+  stillProcessing: "Sənədlər emal olunur",
+  soon: "Tezliklə",
 } as const;
