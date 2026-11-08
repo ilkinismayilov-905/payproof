@@ -5,9 +5,9 @@ import pytest
 from payproof.domain.enums import CheckOutcome as O
 from payproof.domain.enums import PackageStatus as S
 from payproof.domain.rules.engine import blockers, evaluate, primary_blockers
-from payproof.domain.rules.result import CheckResult
+from payproof.domain.rules.result import CheckResult, FixHint
 from payproof.domain.status import derive_status
-from tests.domain.builders import delivery, rules, snapshot
+from tests.domain.builders import azn, delivery, invoice, rules, snapshot
 
 
 def test_evaluates_all_nine_rules_in_order() -> None:
@@ -74,3 +74,20 @@ def test_unknown_never_ready_or_approved(flags: tuple[bool, bool, bool, bool]) -
 
 def test_export_without_valid_approval_is_not_exported() -> None:
     assert _status(_checks(O.PASS), exported=True) is S.READY_FOR_APPROVAL
+
+
+def test_invoice_without_lines_blocks_instead_of_crashing() -> None:
+    # extraction read no lines (B-15): nothing to compare is never PASS
+    s = snapshot(invoice=invoice(lines=(), total=azn("0.00")))
+    by_id = {c.rule_id: c for c in evaluate(s)}
+    for rule in ("R-005", "R-006", "R-009"):
+        assert (by_id[rule].outcome, by_id[rule].fix_hint) == (O.UNKNOWN, FixHint.EDIT_FIELD)
+        assert by_id[rule].message == (
+            "Faktura sətirləri oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin."
+        )
+
+
+def test_no_results_is_never_ready() -> None:
+    # a run not written yet (job queued, failed) must not read as "everything passed"
+    assert _status([]) is S.NEEDS_REVIEW
+    assert _status([], approved=True) is S.NEEDS_REVIEW

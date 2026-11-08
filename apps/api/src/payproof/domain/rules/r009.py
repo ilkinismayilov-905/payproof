@@ -4,13 +4,15 @@ from payproof.domain.enums import CheckOutcome
 from payproof.domain.format import format_money
 from payproof.domain.money import Money
 from payproof.domain.rules.paths import INVOICE_TOTAL
-from payproof.domain.rules.result import CheckResult, FixHint, evidence_for
+from payproof.domain.rules.result import CheckResult, FixHint, evidence_for, no_lines
 from payproof.domain.snapshot import PackageSnapshot
 
 RULE = "R-009"
 
 
 def r009(s: PackageSnapshot) -> CheckResult:
+    if empty := no_lines(RULE, s):
+        return empty
     inv, ev = s.invoice, evidence_for(s, INVOICE_TOTAL)
     amounts = [
         li.unit_price * li.qty

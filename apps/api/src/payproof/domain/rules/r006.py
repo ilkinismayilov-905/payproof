@@ -6,7 +6,7 @@ from decimal import Decimal
 from payproof.domain.enums import CheckOutcome
 from payproof.domain.format import format_qty
 from payproof.domain.rules.paths import line
-from payproof.domain.rules.result import CheckResult, FixHint, evidence_for
+from payproof.domain.rules.result import CheckResult, FixHint, evidence_for, no_lines
 from payproof.domain.snapshot import PackageSnapshot
 
 RULE = "R-006"
@@ -22,20 +22,26 @@ def r006(s: PackageSnapshot, *, comparable: bool) -> CheckResult:
             "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
             cascade=True,
         )
+    if empty := no_lines(RULE, s):
+        return empty
     linked = dl is not None and dl.po_ref == order.po and dl.customer_id == s.customer_id
     ordered = {ol.code: ol for ol in order.lines}
     delivered: dict[str, Decimal | None] = {dl_.code: dl_.qty for dl_ in dl.lines} if dl else {}
     invoice_codes = [li.code for li in s.invoice.lines]
-    unread = [li.code for li in s.invoice.lines if li.qty is None]
+    # (code, document) of every quantity that was not read
+    unread = [(li.code, "invoice") for li in s.invoice.lines if li.qty is None]
     if linked:
-        unread += [c for c in invoice_codes if c in delivered and delivered[c] is None]
+        unread += [
+            (c, "delivery") for c in invoice_codes if c in delivered and delivered[c] is None
+        ]
     if unread:
         # not in the rules table: an unread quantity is never "quantities match"
+        codes = dict.fromkeys(code for code, _ in unread)
         return CheckResult(
             RULE,
             CheckOutcome.UNKNOWN,
-            f"Miqdar oxunmadı: {', '.join(dict.fromkeys(unread))}. "
-            "Mənbəyə baxıb sahəni təsdiqləyin.",
+            f"Miqdar oxunmadı: {', '.join(codes)}. Mənbəyə baxıb sahəni təsdiqləyin.",
+            evidence_for(s, *(line(doc, code, "qty") for code, doc in unread)),
             fix_hint=FixHint.EDIT_FIELD,
         )
     # (code, invoiced, "where", doc, other qty, unit)

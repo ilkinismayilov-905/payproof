@@ -23,7 +23,7 @@ def derive_status(
         return PackageStatus.NEEDS_REVIEW
     if any(c.outcome is CheckOutcome.FAIL for c in checks):
         return PackageStatus.NEEDS_FIX
-    if blockers(checks):  # UNKNOWN is never READY_FOR_APPROVAL
+    if not checks or blockers(checks):  # UNKNOWN or no run yet is never READY_FOR_APPROVAL
         return PackageStatus.NEEDS_REVIEW
     if approved:
         return PackageStatus.EXPORTED if exported else PackageStatus.APPROVED_READY
