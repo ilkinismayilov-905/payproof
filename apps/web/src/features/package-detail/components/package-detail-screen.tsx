@@ -16,6 +16,7 @@ import { usePackage } from "../queries";
 import { detailText as t } from "../texts";
 import { CreateTaskDialog } from "@/features/tasks";
 import { ActivityPanel } from "./activity-panel";
+import { useApprovalFlow } from "./approval-flow";
 import { ChecksPanel, type Fixable } from "./checks-panel";
 import { ComparisonPanel } from "./comparison-panel";
 import { CorrectFieldDialog } from "./correct-field-dialog";
@@ -36,6 +37,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
     signature?: boolean;
   } | null>(null);
   const [matching, setMatching] = useState(false);
+  const approval = useApprovalFlow(pkg.data);
   const [uploading, setUploading] = useState<"invoice" | "delivery" | null>(null);
   const [tasking, setTasking] = useState<Schemas["CheckResult"] | null>(null);
   const [correcting, setCorrecting] = useState<string | null>(null); // field id
@@ -107,6 +109,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
         actions={
           <PackageActions
             status={pkg.data.status}
+            approval={approval.actions}
             onUpload={
               canEdit
                 ? () =>
@@ -180,6 +183,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
         }
       />
       {matching && <MatchDialog pkg={pkg.data} open onOpenChange={setMatching} />}
+      {approval.dialogs}
       {tasking && (
         <CreateTaskDialog
           pkg={pkg.data}
