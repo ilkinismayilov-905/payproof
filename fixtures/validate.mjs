@@ -2,6 +2,7 @@
 // Run: pnpm fixtures:check
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
@@ -73,6 +74,9 @@ for (const [k, n] of Object.entries(expected.counts))
 
 // Referential integrity
 const ids = (arr, key) => new Set(arr.map((x) => x[key]));
+const userById = new Map(users.map((u) => [u.id, u]));
+const customerById = new Map(customers.map((c) => [c.id, c]));
+const sha = (s) => crypto.createHash("sha256").update(s).digest("hex");
 const userIds = ids(users, "id"),
   customerIds = ids(customers, "id"),
   codes = ids(products, "code"),
@@ -123,15 +127,37 @@ for (const p of packages) {
       if (v.version_no !== i + 1) fail(`${w} ${d.type}: version_no must be 1..n`);
       ref(userIds, v.uploaded_by, w);
     });
-  const validApprovals = p.approvals.filter((a) => a.valid);
-  if (validApprovals.some((a) => a.package_version !== p.version))
-    fail(`${w}: a valid approval must be for the current version`);
-  for (const a of p.approvals)
-    if (a.valid === (a.invalidated_reason !== null))
-      fail(`${w}: invalidated_reason must be set iff approval is invalid`);
-  for (const e of p.exports)
-    if (!p.approvals.some((a) => a.valid && a.package_version === e.package_version))
-      fail(`${w}: export without a valid approval for v${e.package_version}`);
+  for (const d of p.documents)
+    for (const v of d.versions)
+      if (v.sha256 !== sha(v.file_name))
+        fail(`${w} ${v.file_name}: sha256 must be sha256(file_name)`);
+  const ruleVersions = new Set(
+    customerById.get(p.customer_id)?.requirement_sets.map((r) => r.version),
+  );
+  for (const a of p.approvals) {
+    ref(userIds, a.approver_id, `${w} approval`);
+    if (userById.get(a.approver_id)?.role !== "approver")
+      fail(`${w}: approval by non-approver ${a.approver_id}`);
+    if (!ruleVersions.has(a.requirement_set_version))
+      fail(`${w}: approval for unknown requirement set v${a.requirement_set_version}`);
+    if (a.valid && a.package_version !== p.version)
+      fail(`${w}: a valid approval must be for the current version`);
+    if (a.valid === (a.invalidated_reason !== null) || a.valid === (a.invalidated_at !== null))
+      fail(`${w}: invalidated_reason/at must be set iff approval is invalid`);
+  }
+  for (const e of p.exports) {
+    ref(userIds, e.created_by, `${w} export`);
+    const ok = p.approvals.some(
+      (a) =>
+        a.valid &&
+        a.package_version === e.package_version &&
+        a.requirement_set_version === e.requirement_set_version,
+    );
+    if (!ok)
+      fail(
+        `${w}: export without a valid approval for v${e.package_version}/rules v${e.requirement_set_version}`,
+      );
+  }
 }
 for (const t of tasks) {
   ref(pkgIds, t.package_id, t.number);
@@ -145,6 +171,7 @@ for (const n of notifications) {
 for (const s of samples) {
   ref(pkgIds, s.package_id, s.id);
   if (s.extraction.line) ref(codes, s.extraction.line.product_code, s.id);
+  if (s.sha256 !== sha(s.file_name)) fail(`${s.id}: sha256 must be sha256(file_name)`);
 }
 for (const n of newsets) {
   ref(customerIds, n.customer_id, n.id);
@@ -164,6 +191,27 @@ for (const [inv, e] of Object.entries(expected.packages)) {
   for (const b of e.blockers)
     if (e.checks[b.rule_id] !== b.outcome)
       fail(`${inv}: blocker ${b.rule_id} disagrees with checks`);
+  // R-005 price difference: Σ (invoice − order) × qty, in cents
+  const order = orders.find((o) => o.po_number === p.order_link.po_number);
+  const diff = order
+    ? p.invoice.lines.reduce((a, l) => {
+        const ol = order.lines.find((x) => x.product_code === l.product_code);
+        return ol ? a + (cents(l.unit_price) - cents(ol.unit_price)) * BigInt(l.qty) : a;
+      }, 0n)
+    : 0n;
+  const wantDiff = e.checks["R-005"] === "FAIL" ? fromCents(diff) : undefined;
+  if (e.r005_diff !== wantDiff) fail(`${inv}: r005_diff ${e.r005_diff} != recomputed ${wantDiff}`);
+}
+
+// Duplicate uploads in flows must hit an existing version hash of that package
+for (const [inv, steps] of Object.entries(expected.flows)) {
+  const p = byInv.get(inv);
+  const hashes = new Set(p?.documents.flatMap((d) => d.versions.map((v) => v.sha256)));
+  for (const s of steps.filter((x) => x.duplicate)) {
+    const sample = samples.find((x) => x.id === s.sample_id);
+    if (!sample || !hashes.has(sample.sha256))
+      fail(`${inv} ${s.step}: duplicate sample does not match an existing version`);
+  }
 }
 
 // Dashboard: open problem amounts per currency (never mixed)
@@ -174,13 +222,36 @@ for (const [inv, e] of Object.entries(expected.packages)) {
   const cur = open.get(p.currency) ?? { amount: 0n, packages: 0 };
   open.set(p.currency, { amount: cur.amount + cents(p.invoice.total), packages: cur.packages + 1 });
 }
-for (const x of expected.dashboard.open_problem_amounts) {
+const dash = expected.dashboard;
+if (dash.open_problem_amounts.length !== open.size)
+  fail(`dashboard: ${dash.open_problem_amounts.length} currencies listed, ${open.size} recomputed`);
+for (const x of dash.open_problem_amounts) {
   const got = open.get(x.currency);
   if (!got || fromCents(got.amount) !== x.amount || got.packages !== x.packages)
     fail(
       `dashboard ${x.currency}: expected ${x.amount}/${x.packages}, recomputed ${got && fromCents(got.amount)}/${got?.packages}`,
     );
 }
+const counts = {};
+for (const e of Object.values(expected.packages)) counts[e.status] = (counts[e.status] ?? 0) + 1;
+if (
+  JSON.stringify(Object.entries(counts).sort()) !==
+  JSON.stringify(Object.entries(dash.status_counts).sort())
+)
+  fail(
+    `dashboard.status_counts ${JSON.stringify(dash.status_counts)} != recomputed ${JSON.stringify(counts)}`,
+  );
+// Problem age in whole days: package creation date → demo "today" (prototype: problemSince = created date)
+const day = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5;
+const ages = Object.entries(expected.packages)
+  .filter(([, e]) => e.status === "NEEDS_FIX" || e.status === "NEEDS_REVIEW")
+  .map(([inv]) => ({ inv, d: day(expected.demo_now) - day(byInv.get(inv).created_at) }));
+const longest = ages.reduce((a, x) => (x.d > a.d ? x : a), { inv: null, d: -1 });
+const avg = (ages.reduce((a, x) => a + x.d, 0) / ages.length).toFixed(1);
+if (dash.avg_problem_days !== avg)
+  fail(`dashboard.avg_problem_days ${dash.avg_problem_days} != recomputed ${avg}`);
+if (dash.longest_problem.invoice_number !== longest.inv || dash.longest_problem.days !== longest.d)
+  fail(`dashboard.longest_problem != recomputed ${longest.inv}/${longest.d}`);
 
 // expected.json ↔ docs/product/demo-dataset.md package table
 const md = fs.readFileSync(path.join(dir, "../docs/product/demo-dataset.md"), "utf8");
