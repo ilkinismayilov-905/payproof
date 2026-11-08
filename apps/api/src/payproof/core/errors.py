@@ -46,7 +46,7 @@ class DomainError(Exception):
 class Unauthenticated(DomainError):
     status_code = 401
     code = ErrorCode.UNAUTHENTICATED
-    message = "Daxil olmaq tələb olunur."
+    message = "Sessiya bitib. Yenidən daxil olun."  # openapi Unauthenticated example
 
 
 class Forbidden(DomainError):
