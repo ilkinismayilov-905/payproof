@@ -3,6 +3,7 @@ import { http } from "msw";
 import { approvePackage, exportPackage } from "../domain/approval";
 import { MockError } from "../domain/audit";
 import { rulesFor } from "../engine";
+import { currentApproval, info } from "../engine/status";
 import { id } from "../ids";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
@@ -45,6 +46,9 @@ export const approvalHandlers = (ctx: Ctx) => [
       return idempotent(db, request, `approve:${p.id}:${JSON.stringify(b)}`, async () => {
         expectVersion(p, b.expected_version);
         expectRuleSet(db, p, b.expected_requirement_set_version);
+        // state-machines.md: an existing approval of this version is returned before body validation
+        const existing = currentApproval(db, p);
+        if (existing) return json(approval(db, p, existing));
         if (b.documents_reviewed !== true)
           throw new MockError("VALIDATION_ERROR", "Təsdiqdən əvvəl bütün sənədlərə baxın.", 422, {
             fields: { documents_reviewed: "true olmalıdır." },
@@ -63,10 +67,26 @@ export const approvalHandlers = (ctx: Ctx) => [
       return idempotent(db, request, `export:${p.id}:${JSON.stringify(b)}`, async () => {
         expectVersion(p, b.expected_version);
         expectRuleSet(db, p, b.expected_requirement_set_version);
+        // order: existing export → 200, not approved → 409, only then the selected documents
+        const done = p.exports.find((e) => e.package_version === p.version);
+        const respond = (rec: Parameters<typeof exportRecord>[2]) => {
+          const record = exportRecord(db, p, rec);
+          return json({ export: record, download: signedLink(db, request, `${record.id}.zip`) });
+        };
+        if (done) return respond(done);
+        if (info(db, p).status !== "APPROVED_READY")
+          throw new MockError(
+            "PACKAGE_NOT_READY",
+            "İxrac üçün cari versiyanın təsdiqi tələb olunur.",
+            409,
+            {
+              status: info(db, p).status,
+            },
+          );
         const ids = Array.isArray(b.document_version_ids) ? b.document_version_ids : [];
-        if (!ids.length)
-          throw new MockError("VALIDATION_ERROR", "Ən azı bir sənəd seçin.", 422, {
-            fields: { document_version_ids: "Boş ola bilməz." },
+        if (!ids.length || new Set(ids).size !== ids.length)
+          throw new MockError("VALIDATION_ERROR", "Hər sənədi bir dəfə seçin.", 422, {
+            fields: { document_version_ids: "Boş və ya təkrarlanan ola bilməz." },
           });
         const files = ids.map((vid) => {
           const d = p.documents.find(
@@ -81,9 +101,7 @@ export const approvalHandlers = (ctx: Ctx) => [
             );
           return { type: d.type, file_name: d.versions.at(-1)!.file_name };
         });
-        const r = exportPackage(db, p, user.id, files);
-        const record = exportRecord(db, p, r.export);
-        return json({ export: record, download: signedLink(db, request, `${record.id}.zip`) });
+        return respond(exportPackage(db, p, user.id, files).export);
       });
     }),
   ),

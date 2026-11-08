@@ -83,4 +83,62 @@ describe("approval handlers (state-machines.md order)", () => {
       code: "PACKAGE_NOT_READY",
     });
   });
+
+  it("check order: existing record before body validation, not-ready before document ids", async () => {
+    const approver = await as("u2");
+    const p1033 = { path: { package_id: pkgId(1033) } };
+    // INV-1035 is already approved: a retry without documents_reviewed still returns the approval
+    const again = await unwrap(
+      approver.POST("/v1/packages/{package_id}/approve", {
+        params: { path: { package_id: pkgId(1035) }, header: { "Idempotency-Key": KEY("20") } },
+        body: {
+          expected_version: 1,
+          expected_requirement_set_version: 1,
+          documents_reviewed: false as never,
+        },
+      }),
+    );
+    expect(again).toMatchObject({ package_version: 1, valid: true });
+    // INV-1033 is exported: a retry with a stale/empty id list returns the existing export
+    const ex = await unwrap(
+      approver.POST("/v1/packages/{package_id}/export", {
+        params: { ...p1033, header: { "Idempotency-Key": KEY("21") } },
+        body: {
+          expected_version: 1,
+          expected_requirement_set_version: 2,
+          document_version_ids: [],
+        },
+      }),
+    );
+    expect(ex.export.package_version).toBe(1);
+    // INV-1038 is not approved: 409 even with an empty list
+    await expect(
+      approver.POST("/v1/packages/{package_id}/export", {
+        params: { path: { package_id: pkgId(1038) }, header: { "Idempotency-Key": KEY("22") } },
+        body: {
+          expected_version: 1,
+          expected_requirement_set_version: 2,
+          document_version_ids: [],
+        },
+      }),
+    ).rejects.toMatchObject({ code: "PACKAGE_NOT_READY" });
+  });
+
+  it("rejects duplicated document ids (422)", async () => {
+    const api = await as("u1");
+    const d = await unwrap(
+      api.GET("/v1/packages/{package_id}", { params: { path: { package_id: pkgId(1035) } } }),
+    );
+    const inv = d.documents[0]!.current.id;
+    await expect(
+      api.POST("/v1/packages/{package_id}/export", {
+        params: { path: { package_id: pkgId(1035) }, header: { "Idempotency-Key": KEY("23") } },
+        body: {
+          expected_version: 1,
+          expected_requirement_set_version: 1,
+          document_version_ids: [inv, inv],
+        },
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR", status: 422 });
+  });
 });
