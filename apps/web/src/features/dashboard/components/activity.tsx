@@ -20,7 +20,7 @@ type Approval = Schemas["Dashboard"]["recent_approvals"][number];
 const More = ({ href, children }: { href: string; children: ReactNode }) => (
   <Link
     href={href}
-    className="text-brand inline-flex items-center gap-1 text-sm font-semibold hover:underline"
+    className="text-brand inline-flex items-center gap-1 text-sm font-semibold hover:underline pointer-coarse:min-h-11"
   >
     {children}
     <ArrowRight aria-hidden className="size-4" />
