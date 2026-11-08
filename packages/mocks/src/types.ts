@@ -110,6 +110,9 @@ export interface Pkg {
   exports: ExportRec[];
   problem_since: string | null;
   last_status: string | null;
+  /** Manual extraction corrections by field path (`invoice.po_ref`, `invoice.lines[KY-10].qty`). */
+  corrections?: Record<string, { from: string; to: string; reason: string; by: string }>;
+  deleted?: boolean;
 }
 export interface Task {
   number: string;
