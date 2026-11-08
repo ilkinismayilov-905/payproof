@@ -12,11 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, ErrorCode, NotFound, PackageNotReady
 from payproof.core.ids import uuid7
-from payproof.repositories.models import Document, DocumentVersion, InvoicePackage, Job
+from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
 from payproof.services import files, idempotency
 from payproof.services.audit import record
 from payproof.services.versioning import bump
 from payproof.storage.s3 import Storage
+from payproof.worker.queue import PostgresQueue
 
 LABEL = {"invoice": "Faktura", "order": "Sifariş", "delivery": "Təhvil sənədi"}
 REASON = {  # why the package version went up (approval invalidation text)
@@ -180,13 +181,14 @@ async def _store(
         uploaded_by=actor_id,
         package_version_at_upload=pkg.version,
     )
-    job = Job(
+    session.add(version)
+    await session.flush()
+    job = await PostgresQueue().enqueue(
+        session,
         company_id=pkg.company_id,
         kind="extract_document",
         payload={"document_version_id": str(version_id), "package_id": str(pkg.id)},
     )
-    session.add_all([version, job])
-    await session.flush()
     await record(
         session,
         actor_id=actor_id,
