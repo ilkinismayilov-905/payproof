@@ -11,7 +11,8 @@ import { onLiveEvent } from "./live";
 /**
  * While a dialog works on `version` of a package (approve, export, edit — W-11/W-13): the newer
  * version someone else has made since, or null. The server would answer 409 anyway; this says so
- * before the user tries. Own changes don't count (the dialog's own upload bumps the version too).
+ * before the user tries. Own changes don't count (the dialog's own upload bumps the version too) —
+ * so the viewer's own second tab doesn't show the banner either: W-11/W-13 must still handle 409.
  */
 export function usePackageChangedSince(packageId: string, version: number): number | null {
   const me = useMe().data?.id;

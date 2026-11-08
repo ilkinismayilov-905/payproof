@@ -38,7 +38,11 @@ export function liveToastText(
   return null; // notifications have their own UI (W-16); unknown types only refetch
 }
 
-/** The invoice number from whatever package list or detail is cached; events carry IDs only. */
+/**
+ * The invoice number from whatever package list or detail is cached; events carry IDs only.
+ * Knows the two package cache shapes in use: a page (`{ items }`) and a detail (the package itself).
+ * An infinite query (`{ pages }`) would need a branch here; without a hit the toast says "paketi".
+ */
 function cachedInvoice(client: QueryClient, packageId: string): string | undefined {
   for (const [, data] of client.getQueriesData<unknown>({ queryKey: packageKeys.all })) {
     const items = (data as { items?: { id: string; invoice_number: string | null }[] })?.items ?? [
