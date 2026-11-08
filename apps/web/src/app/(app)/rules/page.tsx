@@ -1,4 +1,5 @@
-// Placeholder until W-15 builds this screen.
+import { RulesScreen } from "@/features/customers";
+
 export default function RulesPage() {
-  return <h1 className="text-2xl font-semibold">Müştəri qaydaları</h1>;
+  return <RulesScreen />;
 }
