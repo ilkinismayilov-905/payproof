@@ -44,6 +44,8 @@ describe("Banner", () => {
     // the icon only decorates: title and text carry the message
     expect(banner.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     expect(banner).toHaveTextContent("Başlıqizah");
+    // not a section: no heading, so the page outline stays h1 → h2
+    expect(screen.queryByRole("heading")).toBeNull();
   });
 
   test("urgent banners can be announced", () => {
@@ -63,6 +65,17 @@ test("EmptyState: heading, text and an optional action", () => {
       action={<button>Filtrləri təmizlə</button>}
     />,
   );
-  expect(screen.getByRole("heading", { name: "Filtrə uyğun nəticə yoxdur" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { level: 2, name: "Filtrə uyğun nəticə yoxdur" }),
+  ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Filtrləri təmizlə" })).toBeInTheDocument();
+});
+
+test("EmptyState inside a Panel uses h3", () => {
+  render(
+    <Panel title="Sənədlər">
+      <EmptyState headingLevel={3} title="Sənəd yoxdur" />
+    </Panel>,
+  );
+  expect(screen.getByRole("heading", { level: 3, name: "Sənəd yoxdur" })).toBeInTheDocument();
 });

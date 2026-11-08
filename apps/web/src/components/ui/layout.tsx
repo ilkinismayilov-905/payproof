@@ -84,7 +84,7 @@ export function Banner({
     <div className={cn("flex items-start gap-3 rounded-lg border p-4", box, className)} {...props}>
       <Glyph aria-hidden className={cn("mt-px size-[22px] shrink-0", iconColor)} />
       <div className="min-w-0">
-        <h3 className="text-md font-bold">{title}</h3>
+        <p className="text-md font-bold">{title}</p>
         {children && <div className="text-text-2 mt-0.5 text-sm">{children}</div>}
       </div>
       {actions && <div className="ml-auto flex flex-wrap gap-2">{actions}</div>}
@@ -98,16 +98,20 @@ export function EmptyState({
   description,
   action,
   icon: Icon = SearchX,
+  headingLevel = 2,
 }: {
   title: string;
   description?: ReactNode;
   action?: ReactNode;
   icon?: LucideIcon;
+  /** 2 directly under the page h1, 3 inside a Panel. */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <div className="text-text-2 flex flex-col items-center gap-2 px-6 py-10 text-center">
       <Icon aria-hidden className="text-text-3 size-10" strokeWidth={1.6} />
-      <h3 className="text-text text-lg font-semibold">{title}</h3>
+      <Heading className="text-text text-lg font-semibold">{title}</Heading>
       {description && <p className="max-w-[360px] text-sm">{description}</p>}
       {action}
     </div>
