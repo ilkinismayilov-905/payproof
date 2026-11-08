@@ -12,6 +12,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | W-03 | i18n və status komponentləri | ✅ | `feat/W-03-status-ui` | 2026-11-08 | `components/status` (4 badge: ikon + mətn + ton; test glossary.md-ni parse edir), `components/format` (`Money` — valyuta məcburi, `DateTime`); Tailwind `@source` design-tokens. `t` helper yoxdur — tipli map-lar birbaşa. Açıq: `documentStatusTone`-da `UPLOADED` yoxdur (web-də lokal info); login mətnləri i18n-də deyil (shared) |
 | W-04 | Tətbiq çərçivəsi (shell) | ⬜ | | | |
 | W-05 | Ümumi UI dəsti | ⬜ | | | |
+| W-05b | Canlı yeniləmələr | ⬜ | | | ADR-0010 |
 | W-06 | İcmal (dashboard) | ⬜ | | | |
 | W-07 | Paketlər siyahısı | ⬜ | | | |
 | W-08 | Paket detalı I — başlıq, banner-lər, sənədlər, tarixçə | ⬜ | | | |

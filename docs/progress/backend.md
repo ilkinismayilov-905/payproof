@@ -19,6 +19,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | B-10 | Auth, tenant, səlahiyyət | ⬜ | | | |
 | B-11 | Oxuma API-ləri | ⬜ | | | |
 | B-12 | Audit servisi | ⬜ | | | |
+| B-12b | SSE canlı hadisələr | ⬜ | | | ADR-0010 |
 | B-13 | Storage və yükləmə | ⬜ | | | |
 | B-14 | Job növbəsi və worker | ⬜ | | | |
 | B-15 | Çıxarış pipeline-ı | ⬜ | | | |
