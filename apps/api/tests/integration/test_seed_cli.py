@@ -28,7 +28,11 @@ async def test_reset_truncates_despite_immutable_and_append_only_triggers(
     db: AsyncSession,
 ) -> None:
     await seed(db)
-    db.add(AuditEvent(company_id=COMPANY_ID, action="package.created", object_type="package"))
+    db.add(
+        AuditEvent(
+            company_id=COMPANY_ID, action="package.created", object_type="package", message="x"
+        )
+    )
     await db.flush()
     before = await _counts(db)
     await reset(db)  # DELETE would hit the requirement_sets / audit_events triggers

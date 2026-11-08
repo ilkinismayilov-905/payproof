@@ -9,7 +9,11 @@ from tests.integration.factories import Tenant, add, add_fails, package
 
 
 def _event(t: Tenant, **over: object) -> AuditEvent:
-    fields: dict[str, object] = {"action": "package.approved", "object_type": "approval"}
+    fields: dict[str, object] = {
+        "action": "package.approved",
+        "object_type": "approval",
+        "message": "v1 · qayda dəsti v2",
+    }
     fields.update(over)
     return AuditEvent(company_id=t.company.id, **fields)
 
@@ -40,6 +44,10 @@ async def test_bulk_change_is_rejected(db: AsyncSession, a: Tenant, bulk: str) -
     stmt = update(AuditEvent).values(action="x.y") if bulk == "update" else delete(AuditEvent)
     with pytest.raises(IntegrityError):
         await db.execute(stmt)
+
+
+async def test_message_is_required(db: AsyncSession, a: Tenant) -> None:
+    await add_fails(db, _event(a, message=""))
 
 
 @pytest.mark.parametrize("action", ["approved", "Package.Approved", "package.approved!"])

@@ -18,6 +18,7 @@ class AuditEvent(IdMixin, TenantMixin, Base):
         same_tenant_fk("package_id", "invoice_packages"),
         CheckConstraint("action ~ '^[a-z_]+\\.[a-z_]+$'", name="action_format"),
         CheckConstraint("jsonb_typeof(detail) = 'object'", name="detail_is_object"),
+        CheckConstraint("length(message) > 0", name="message_present"),
         Index("ix_audit_events_package_id", "package_id"),  # package audit tab
     )
 
@@ -26,6 +27,7 @@ class AuditEvent(IdMixin, TenantMixin, Base):
     )
     actor_id: Mapped[uuid.UUID | None] = mapped_column()  # NULL = system
     action: Mapped[str] = mapped_column(Text)  # "package.approved"
+    message: Mapped[str] = mapped_column(Text)  # Azerbaijani summary for the UI, no document text
     object_type: Mapped[str] = mapped_column(Text)
     object_id: Mapped[uuid.UUID | None] = mapped_column()
     package_id: Mapped[uuid.UUID | None] = mapped_column()
