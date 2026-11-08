@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.repositories.models import Company, Customer, RequirementSet, User
+from payproof.repositories.models import Company, Customer, Membership, RequirementSet, User
 
 
 @dataclass
@@ -21,6 +21,8 @@ async def ctx(db: AsyncSession) -> Ctx:
     a, b = Company(name="A", voen="1700123451"), Company(name="B", voen="1700123452")
     approver = User(email="rashad@a.test", full_name="Rəşad Əliyev", title="Maliyyə direktoru")
     db.add_all([a, b, approver])
+    await db.flush()
+    db.add(Membership(user_id=approver.id, company_id=a.id, role="approver"))
     await db.flush()
     return Ctx(a, b, approver)
 
@@ -74,6 +76,15 @@ async def test_requirement_set_customer_must_be_same_tenant(db: AsyncSession, ct
     rules = _rules(customer, ctx.approver)
     rules.company_id = ctx.b.id
     await _fails(db, rules)
+
+
+async def test_approver_must_be_member_of_the_tenant(db: AsyncSession, ctx: Ctx) -> None:
+    outsider = User(email="other@b.test", full_name="Başqa", title="Direktor")
+    await _add(db, outsider)
+    await _add(db, Membership(user_id=outsider.id, company_id=ctx.b.id, role="approver"))
+    customer = _customer(ctx.a)
+    await _add(db, customer)
+    await _fails(db, _rules(customer, outsider))
 
 
 @pytest.mark.parametrize("tolerance", ["-0.01", "1.01"])

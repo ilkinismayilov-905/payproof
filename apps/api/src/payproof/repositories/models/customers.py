@@ -6,7 +6,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
-    ForeignKey,
     ForeignKeyConstraint,
     Integer,
     Numeric,
@@ -42,6 +41,10 @@ class RequirementSet(TenantEntity, Base):
         ForeignKeyConstraint(
             ["customer_id", "company_id"], ["customers.id", "customers.company_id"]
         ),
+        # approver must be a member of the same company (users are global)
+        ForeignKeyConstraint(
+            ["approved_by", "company_id"], ["memberships.user_id", "memberships.company_id"]
+        ),
         CheckConstraint("version >= 1", name="version_positive"),
         CheckConstraint("tolerance BETWEEN 0 AND 1", name="tolerance_range"),
         CheckConstraint("length(reason) > 0", name="reason_present"),
@@ -54,5 +57,5 @@ class RequirementSet(TenantEntity, Base):
     require_signature: Mapped[bool] = mapped_column(Boolean)
     tolerance: Mapped[Decimal] = mapped_column(Numeric(3, 2))
     effective_from: Mapped[dt.date] = mapped_column(Date)
-    approved_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    approved_by: Mapped[uuid.UUID] = mapped_column()
     reason: Mapped[str] = mapped_column(Text)

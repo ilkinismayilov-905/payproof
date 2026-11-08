@@ -44,7 +44,12 @@ async def world(db: AsyncSession) -> World:
     a_customer = Customer(company_id=a.id, name="BMS", external_id="BMS-001", voen="1402375611")
     b_customer = Customer(company_id=b.id, name="X", external_id="X-001", voen="1402375612")
     db.add_all(
-        [a_customer, b_customer, Membership(user_id=user.id, company_id=a.id, role="operator")]
+        [
+            a_customer,
+            b_customer,
+            Membership(user_id=user.id, company_id=a.id, role="operator"),
+            Membership(user_id=user.id, company_id=b.id, role="approver", active=False),
+        ]
     )
     await db.flush()
     db.add_all(

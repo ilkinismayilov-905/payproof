@@ -82,7 +82,9 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("version >= 1", name=op.f("ck_requirement_sets_version_positive")),
         sa.ForeignKeyConstraint(
-            ["approved_by"], ["users.id"], name=op.f("fk_requirement_sets_approved_by_users")
+            ["approved_by", "company_id"],
+            ["memberships.user_id", "memberships.company_id"],
+            name=op.f("fk_requirement_sets_approved_by_memberships"),
         ),
         sa.ForeignKeyConstraint(
             ["company_id"], ["companies.id"], name=op.f("fk_requirement_sets_company_id_companies")
