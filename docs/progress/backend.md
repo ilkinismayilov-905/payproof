@@ -19,7 +19,7 @@ Bu faylı yalnız bu track-in sessiyası yeniləyir (`/step` başlayanda 🟡, `
 | B-10 | Auth, tenant, səlahiyyət | ✅ | `feat/B-10-auth` | 2026-11-08 | HS256 dev token (sub/exp/iat/aud/iss, alg pinned), `current_member` (üzvlük DB-dən, `bind_tenant`), `require()`, `/me`, `/users`, dev-users/dev-login yalnız `ENV=dev`; fail-closed: `ENV` məcburi, prod-da dev token yoxdur (JWKS gələnə qədər 500) və zəif `JWT_SECRET` ilə qalxmır; dev-users = assignee olmayan bütün üzvlər |
 | B-11 | Oxuma API-ləri | ✅ | `feat/B-11-read-api` | 2026-11-08 | `GET /v1/dashboard`, `/v1/packages` (filtr/sort/cursor, yaddaşda), `/v1/packages/{id}`; status cari versiyanın son run-ından, sabit sorğu sayı; openapi jsonschema testi (14 detal); öz access log-u; `check_results.fix_hint` (0015); DB → snapshot builder (B-17 üçün); candidates (B-16) və evidence (B-15) hələ boş |
 | B-12 | Audit servisi | ✅ | `feat/B-12-audit` | 2026-11-08 | `services/audit.record()` (tenant, paket versiyası, correlation id; `message` NOT NULL — 0016); `GET /v1/packages/{id}/audit`, `GET /v1/audit` (q/actor_id=system\|uuid/package_id/from/to, cursor; `format=csv` — BOM, CRLF, hər xana dırnaqda, formula injection qorunması); seed demo tarixçəni fixtures-dən yazır, `packages.updated_at` = son hadisə; ortaq cursor `core/paging.py`; "hər yazma servisi audit çağırır" — B-13…B-24-də |
-| B-12b | SSE canlı hadisələr | ⬜ | | | ADR-0010 |
+| B-12b | SSE canlı hadisələr | 🟡 | `feat/B-12b-live-events` | 2026-11-08 | ADR-0010 |
 | B-13 | Storage və yükləmə | ⬜ | | | |
 | B-14 | Job növbəsi və worker | ⬜ | | | |
 | B-15 | Çıxarış pipeline-ı | ⬜ | | | |
