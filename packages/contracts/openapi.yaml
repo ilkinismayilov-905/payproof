@@ -297,9 +297,14 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [customer_id, invoice]
+              required: [customer_id, owner_id, invoice]
               properties:
                 customer_id: { $ref: "#/components/schemas/Uuid" }
+                owner_id:
+                  {
+                    $ref: "#/components/schemas/Uuid",
+                    description: Responsible person (see GET /v1/users?assignable=true),
+                  }
                 invoice: { type: string, contentEncoding: binary }
                 order: { type: string, contentEncoding: binary }
                 delivery: { type: string, contentEncoding: binary }
@@ -318,15 +323,19 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "409":
-          description: DUPLICATE_INVOICE (same customer + invoice number exists) or IDEMPOTENCY_IN_PROGRESS
+          description: IDEMPOTENCY_IN_PROGRESS. A duplicate invoice is only known after extraction and is reported as `Job.error.code = DUPLICATE_INVOICE`.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                error:
-                  code: DUPLICATE_INVOICE
-                  message: "INV-1051 bu müştəri üçün artıq mövcuddur."
-                  details: { package_id: 0193a000-0000-7000-8002-000000001051 }
+                {
+                  error:
+                    {
+                      code: IDEMPOTENCY_IN_PROGRESS,
+                      message: "Eyni sorğu hələ emal olunur.",
+                      details: {},
+                    },
+                }
         "413": { $ref: "#/components/responses/FileTooLarge" }
         "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
@@ -1965,12 +1974,17 @@ components:
         ]
       properties:
         id: { $ref: "#/components/schemas/Uuid" }
-        invoice_number: { type: string }
+        invoice_number:
+          { type: ["string", "null"], description: null while PROCESSING (not extracted yet) }
         version: { type: integer, minimum: 1 }
         status: { $ref: "#/components/schemas/PackageStatus" }
         customer: { $ref: "#/components/schemas/CustomerRef" }
-        invoice_date: { type: string, format: date }
-        total: { $ref: "#/components/schemas/Money" }
+        invoice_date: { type: ["string", "null"], format: date, description: null while PROCESSING }
+        total:
+          {
+            description: null while PROCESSING,
+            oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Money" }],
+          }
         po_ref:
           {
             type: ["string", "null"],
@@ -2297,17 +2311,22 @@ components:
         ]
       properties:
         id: { $ref: "#/components/schemas/Uuid" }
-        invoice_number: { type: string }
+        invoice_number:
+          { type: ["string", "null"], description: null while PROCESSING (not extracted yet) }
         version:
           { type: integer, minimum: 1, description: Send as `expected_version` in every change }
         status: { $ref: "#/components/schemas/PackageStatus" }
         processing: { type: boolean }
         customer: { $ref: "#/components/schemas/CustomerRef" }
-        invoice_date: { type: string, format: date }
+        invoice_date: { type: ["string", "null"], format: date, description: null while PROCESSING }
         owner: { $ref: "#/components/schemas/UserRef" }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
-        total: { $ref: "#/components/schemas/Money" }
+        total:
+          {
+            description: null while PROCESSING,
+            oneOf: [{ type: "null" }, { $ref: "#/components/schemas/Money" }],
+          }
         requirement_set: { $ref: "#/components/schemas/RequirementSet" }
         link: { $ref: "#/components/schemas/OrderLink" }
         documents: { type: array, items: { $ref: "#/components/schemas/Document" } }
@@ -2368,7 +2387,7 @@ components:
               additionalProperties: false
               required: [code, message]
               properties:
-                code: { type: string }
+                code: { $ref: "#/components/schemas/ErrorCode" }
                 message: { type: string }
     SignedUrl:
       type: object
