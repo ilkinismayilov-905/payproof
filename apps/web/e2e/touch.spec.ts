@@ -1,13 +1,11 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 const INTERACTIVE =
   "button:visible, a:visible, input:visible, [role=menuitem]:visible, [role=menuitemradio]:visible";
 
 async function heights(page: Page) {
-  await page.goto("/login");
-  await page.evaluate((token) => sessionStorage.setItem("payproof.token", token), AYGUN);
-  await page.goto("/overview");
+  await signIn(page, AYGUN, "/overview");
   await expect(page.getByRole("heading", { name: "İcmal" })).toBeVisible();
   await page.getByRole("button", { name: /Aygün Məmmədova/ }).click(); // menu items too
   await expect(page.getByRole("menu")).toBeVisible();

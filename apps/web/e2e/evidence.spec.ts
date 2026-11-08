@@ -1,12 +1,10 @@
-import { expect, test } from "./fixtures";
+import { expect, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
-const INV_1044 = "0193a000-0000-7000-8002-000000001044";
+const AYGUN = USERS.aygun;
+const INV_1044 = "INV-1044";
 
 test("INV-1044: the price cell is highlighted and its evidence opens", async ({ page }) => {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(`/packages/${INV_1044}`);
+  await signIn(page, AYGUN, `/packages/${INV_1044}`);
 
   const table = page.getByRole("table", { name: "Müqayisə: faktura · sifariş · təhvil" });
   const price = table.getByRole("cell", { name: /^110,00 AZN.*uyğunsuz/ });

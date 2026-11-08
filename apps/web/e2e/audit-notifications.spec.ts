@@ -1,15 +1,13 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 
-async function signIn(page: Page, path: string) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(path);
+async function enter(page: Page, path: string) {
+  await signIn(page, AYGUN, path);
 }
 
 test("audit: search narrows the log, the URL keeps it, CSV downloads", async ({ page }) => {
-  await signIn(page, "/audit");
+  await enter(page, "/audit");
   const table = page.getByRole("table", { name: "Audit hadisələri" });
   await expect(table).toBeVisible();
   await page.getByRole("searchbox", { name: "Auditdə axtar" }).fill("INV-1036");
@@ -21,7 +19,7 @@ test("audit: search narrows the log, the URL keeps it, CSV downloads", async ({ 
 });
 
 test("notifications: unread count, a click opens the package and reads it", async ({ page }) => {
-  await signIn(page, "/overview");
+  await enter(page, "/overview");
   const bell = page.getByRole("button", { name: /^Bildirişlər, [1-9]\d* oxunmamış$/ });
   const before = Number((await bell.getAttribute("aria-label"))!.match(/\d+/)![0]);
   await bell.click();

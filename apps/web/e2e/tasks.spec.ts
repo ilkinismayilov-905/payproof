@@ -1,17 +1,15 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 
-async function signIn(page: Page, path: string) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), AYGUN);
-  await page.goto(path);
+async function enter(page: Page, path: string) {
+  await signIn(page, AYGUN, path);
 }
 
 test("a task from a failing check: created, taken, sent back by the rule — never resolved by hand", async ({
   page,
 }) => {
-  await signIn(page, "/packages/0193a000-0000-7000-8002-000000001042");
+  await enter(page, "/packages/INV-1042");
   const checks = page.getByRole("region", { name: "Yoxlamalar" });
   const card = checks.getByRole("article", { name: /^R-001/ });
   await card.getByRole("button", { name: "Tapşırıq yarat" }).click();

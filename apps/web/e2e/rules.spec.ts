@@ -1,17 +1,15 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, type Page, signIn, test, type User, USERS } from "./fixtures";
 
-const RESAD = "mock.0193a000-0000-7000-8000-000000000002";
+const RESAD = USERS.resad;
 
-async function signIn(page: Page, token: string) {
-  await page.goto("/login");
-  await page.evaluate((t) => sessionStorage.setItem("payproof.token", t), token);
-  await page.goto("/rules");
+async function enter(page: Page, token: User) {
+  await signIn(page, token, "/rules");
 }
 
 test("approver saves a new rule set: history grows, approved packages are re-checked", async ({
   page,
 }) => {
-  await signIn(page, RESAD);
+  await enter(page, RESAD);
   const card = page.getByRole("region", { name: "C Restoran Qrupu" });
   await expect(card.getByText("Qayda dəsti v1")).toBeVisible();
   await card.getByRole("switch", { name: /imza tələb olunur/ }).check();

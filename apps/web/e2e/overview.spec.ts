@@ -1,11 +1,9 @@
-import { expect, test } from "./fixtures";
+import { expect, signIn, test, USERS } from "./fixtures";
 
-const AYGUN = "mock.0193a000-0000-7000-8000-000000000001";
+const AYGUN = USERS.aygun;
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/login");
-  await page.evaluate((token) => sessionStorage.setItem("payproof.token", token), AYGUN);
-  await page.goto("/overview");
+  await signIn(page, AYGUN, "/overview");
 });
 
 test("acceptance values from the mock API", async ({ page }) => {
