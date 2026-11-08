@@ -30,6 +30,17 @@ def test_rejects_float_and_non_numbers(bad: object) -> None:
         Money(bad, AZN)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("huge", ["1e30", Decimal("1e30"), "1e16", "-10000000000000000"])
+def test_rejects_amounts_beyond_numeric_18_2(huge: object) -> None:
+    # parser / manual correction input must fail as ValueError (422), not 500
+    with pytest.raises(ValueError, match="range"):
+        Money(huge, AZN)  # type: ignore[arg-type]
+
+
+def test_largest_storable_amount() -> None:
+    assert str(azn("9999999999999999.99")) == "9999999999999999.99"
+
+
 def test_currency_is_required_and_known() -> None:
     with pytest.raises(ValueError):
         Money("1.00", "EUR")  # type: ignore[arg-type]

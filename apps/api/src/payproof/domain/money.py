@@ -8,10 +8,16 @@ from payproof.domain.enums import Currency
 
 # minor-unit precision per currency (both 2 today; a new currency must declare its own)
 _QUANTUM = {Currency.AZN: Decimal("0.01"), Currency.USD: Decimal("0.01")}
+_LIMIT = Decimal(10) ** 16  # DB column NUMERIC(18,2): 16 integer digits
 
 
 class MixedCurrencyError(ValueError):
     """AZN and USD are never summed, compared or converted."""
+
+
+def _check_range(value: Decimal, raw: object) -> None:
+    if abs(value) >= _LIMIT:
+        raise ValueError(f"money amount out of range (NUMERIC(18,2)): {raw!r}")
 
 
 class Money:
@@ -31,8 +37,11 @@ class Money:
         if not value.is_finite():
             raise ValueError(f"not a money amount: {amount!r}")
         currency = Currency(currency)  # ValueError for unknown codes
+        _check_range(value, amount)  # before quantize: a huge exponent overflows the context
+        value = value.quantize(_QUANTUM[currency], ROUND_HALF_UP)
+        _check_range(value, amount)  # after: 9999999999999999.995 rounds up to the limit
         object.__setattr__(self, "currency", currency)
-        object.__setattr__(self, "amount", value.quantize(_QUANTUM[currency], ROUND_HALF_UP))
+        object.__setattr__(self, "amount", value)
 
     def __setattr__(self, name: str, value: object) -> None:
         raise AttributeError("Money is immutable")
