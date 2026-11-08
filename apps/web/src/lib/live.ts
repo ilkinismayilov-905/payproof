@@ -41,6 +41,8 @@ export function liveInvalidation(event: LiveEvent): QueryKey[] | "all" {
   }
 }
 
+const POLL_MS = 30_000;
+
 const listeners = new Set<(event: LiveEvent) => void>();
 
 /** Listen to live events (toasts, stale banners). Returns the unsubscribe function. */
@@ -58,10 +60,17 @@ export function useLiveUpdates() {
   const queryClient = useQueryClient();
   useEffect(() => {
     let connectedBefore = false;
-    return subscribeEvents({
+    // Fallback while the stream is down: active queries every 30 s (ADR-0010).
+    let polling: ReturnType<typeof setInterval> | undefined;
+    const stopPolling = () => {
+      clearInterval(polling);
+      polling = undefined;
+    };
+    const stop = subscribeEvents({
       baseUrl: API_BASE,
       getToken,
       onOpen: () => {
+        stopPolling();
         if (connectedBefore) void queryClient.invalidateQueries();
         connectedBefore = true;
       },
@@ -71,6 +80,15 @@ export function useLiveUpdates() {
         else for (const queryKey of keys) void queryClient.invalidateQueries({ queryKey });
         listeners.forEach((listener) => listener(event));
       },
+      onError: (error) => {
+        // 401: the stream has stopped for good and the app is signing out — nothing to poll
+        if (error.status === 401 || polling) return;
+        polling = setInterval(() => void queryClient.refetchQueries({ type: "active" }), POLL_MS);
+      },
     });
+    return () => {
+      stop();
+      stopPolling();
+    };
   }, [queryClient]);
 }

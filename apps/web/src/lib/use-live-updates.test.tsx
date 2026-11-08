@@ -1,6 +1,6 @@
-import type { Schemas, SubscribeEventsOptions } from "@payproof/api-client";
+import { ApiError, type Schemas, type SubscribeEventsOptions } from "@payproof/api-client";
 import { act } from "@testing-library/react";
-import { beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { packageKeys } from "@/features/packages";
 import { renderHookWithQuery, testQueryClient } from "@/test/render";
 import { onLiveEvent, useLiveUpdates } from "./live";
@@ -69,4 +69,53 @@ test("unmount (sign-out, 401 → login) stops the stream", () => {
   const { view } = setup();
   view.unmount();
   expect(sub.stop).toHaveBeenCalledOnce();
+});
+
+describe("fallback polling while the stream is down", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const lost = new ApiError("NETWORK_ERROR", "x", 0);
+
+  test("polls active queries every 30 s, stops once the stream is back (which refetches all)", () => {
+    const client = testQueryClient();
+    const refetch = vi.spyOn(client, "refetchQueries");
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    renderHookWithQuery(() => useLiveUpdates(), client);
+    act(() => sub.options!.onOpen!());
+
+    act(() => sub.options!.onError!(lost));
+    act(() => sub.options!.onError!(lost)); // retries report again: still one timer
+    vi.advanceTimersByTime(29_999);
+    expect(refetch).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(refetch).toHaveBeenCalledWith({ type: "active" });
+    vi.advanceTimersByTime(30_000);
+    expect(refetch).toHaveBeenCalledTimes(2);
+
+    act(() => sub.options!.onOpen!());
+    expect(invalidate).toHaveBeenCalledWith(); // reconnect: full refetch (itself a refetchQueries call)
+    const afterReconnect = refetch.mock.calls.length;
+    vi.advanceTimersByTime(90_000);
+    expect(refetch).toHaveBeenCalledTimes(afterReconnect); // polling stopped
+  });
+
+  test("a 401 does not start polling (the app signs out instead)", () => {
+    const client = testQueryClient();
+    const refetch = vi.spyOn(client, "refetchQueries");
+    renderHookWithQuery(() => useLiveUpdates(), client);
+    act(() => sub.options!.onError!(new ApiError("UNAUTHENTICATED", "x", 401)));
+    vi.advanceTimersByTime(60_000);
+    expect(refetch).not.toHaveBeenCalled();
+  });
+
+  test("unmount clears the polling timer", () => {
+    const client = testQueryClient();
+    const refetch = vi.spyOn(client, "refetchQueries");
+    const view = renderHookWithQuery(() => useLiveUpdates(), client);
+    act(() => sub.options!.onError!(lost));
+    view.unmount();
+    vi.advanceTimersByTime(60_000);
+    expect(refetch).not.toHaveBeenCalled();
+  });
 });
