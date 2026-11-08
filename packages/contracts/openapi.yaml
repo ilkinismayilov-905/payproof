@@ -23,6 +23,8 @@ tags:
     description: Document upload, versions and processing jobs
   - name: review
     description: Order link, field corrections, signature review and re-validation
+  - name: tasks
+    description: Resolution tasks routed to the responsible person
 paths:
   /v1/auth/dev-users:
     get:
@@ -752,6 +754,151 @@ paths:
       summary: Re-run the deterministic rule engine for the current version
       requestBody: *versioned_body
       responses: *package_mutation_responses
+  /v1/tasks:
+    get:
+      tags: [tasks]
+      operationId: listTasks
+      summary: List tasks (default — all open ones)
+      parameters:
+        - name: status
+          in: query
+          description: "`active` = every status except RESOLVED."
+          schema:
+            {
+              type: string,
+              enum: [active, OPEN, IN_PROGRESS, SUBMITTED_FOR_RECHECK, RESOLVED],
+              default: active,
+            }
+        - { name: assignee_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: package_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of tasks (open first, then by due date)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items, next_cursor]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Task" } }
+                  next_cursor: { type: ["string", "null"] }
+              example:
+                items:
+                  - id: 0193a000-0000-7000-8006-000000000118
+                    number: T-118
+                    package: { id: 0193a000-0000-7000-8002-000000001044, invoice_number: INV-1044 }
+                    rule_id: R-005
+                    assignee:
+                      {
+                        id: 0193a000-0000-7000-8000-000000000004,
+                        full_name: Nigar Hüseynova,
+                        role: sales,
+                      }
+                    step: "KY-10 üçün aktual qiymət razılaşmasını yoxlayın: fakturada 110,00 AZN, sifarişdə 100,00 AZN. Düzgün qiyməti təsdiqləyin."
+                    due_date: "2026-11-10"
+                    status: IN_PROGRESS
+                    comment: Müştəri ilə oktyabr qiymət əlavəsi müzakirə olunub.
+                    created_at: "2026-11-04T11:00:00Z"
+                    created_by:
+                      {
+                        id: 0193a000-0000-7000-8000-000000000001,
+                        full_name: Aygün Məmmədova,
+                        role: operator,
+                      }
+                    resolved_at: null
+                next_cursor: null
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /v1/packages/{package_id}/tasks:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [tasks]
+      operationId: createTask
+      summary: Create a task for a failing or unknown check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [rule_id, assignee_id, step, due_date]
+              properties:
+                rule_id: { $ref: "#/components/schemas/RuleId" }
+                assignee_id: { $ref: "#/components/schemas/Uuid" }
+                step: { type: string, minLength: 3, maxLength: 1000 }
+                due_date: { type: string, format: date }
+                comment: { type: string, maxLength: 1000 }
+            example:
+              rule_id: R-001
+              assignee_id: 0193a000-0000-7000-8000-000000000006
+              step: Fakturaya PO-381 sifariş nömrəsini mənbə sistemində əlavə edin və yeni versiyanı yükləyin.
+              due_date: "2026-11-09"
+      responses:
+        "201":
+          description: Created (the assignee is notified)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+              examples: { t118: { $ref: "#/components/examples/TaskT118" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/tasks/{task_id}:
+    parameters:
+      - { name: task_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    patch:
+      tags: [tasks]
+      operationId: updateTask
+      summary: Move a task forward or change its assignee/due date (RESOLVED is set only by the system)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                status: { type: string, enum: [OPEN, IN_PROGRESS, SUBMITTED_FOR_RECHECK] }
+                assignee_id: { $ref: "#/components/schemas/Uuid" }
+                step: { type: string, minLength: 3, maxLength: 1000 }
+                due_date: { type: string, format: date }
+                comment: { type: ["string", "null"], maxLength: 1000 }
+            example: { status: IN_PROGRESS }
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+              examples: { t118: { $ref: "#/components/examples/TaskT118" } }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: VALIDATION_ERROR or TASK_STATUS_NOT_ALLOWED (e.g. RESOLVED, or a skipped transition)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error:
+                  code: TASK_STATUS_NOT_ALLOWED
+                  message: "Tapşırığı yalnız sistem həll edilmiş kimi bağlayır — uyğun qayda keçəndə."
+                  details: { requested: RESOLVED }
+    delete:
+      tags: [tasks]
+      operationId: cancelTask
+      summary: Cancel (soft-delete) an open task; the check result does not change
+      responses:
+        "204": { description: Cancelled (audited) }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   securitySchemes:
@@ -872,6 +1019,23 @@ components:
               details: { fields: { reason: "Səbəb məcburidir." } }
 
   examples:
+    TaskT118:
+      summary: Price task for INV-1044 (R-005)
+      value:
+        id: 0193a000-0000-7000-8006-000000000118
+        number: T-118
+        package: { id: 0193a000-0000-7000-8002-000000001044, invoice_number: INV-1044 }
+        rule_id: R-005
+        assignee:
+          { id: 0193a000-0000-7000-8000-000000000004, full_name: Nigar Hüseynova, role: sales }
+        step: "KY-10 üçün aktual qiymət razılaşmasını yoxlayın: fakturada 110,00 AZN, sifarişdə 100,00 AZN. Düzgün qiyməti təsdiqləyin."
+        due_date: "2026-11-10"
+        status: IN_PROGRESS
+        comment: Müştəri ilə oktyabr qiymət əlavəsi müzakirə olunub.
+        created_at: "2026-11-04T11:00:00Z"
+        created_by:
+          { id: 0193a000-0000-7000-8000-000000000001, full_name: Aygün Məmmədova, role: operator }
+        resolved_at: null
     PackageDetailInv1042Linked:
       summary: INV-1042 after the PO-381 link was confirmed — v2, NEEDS_FIX (R-001, R-007)
       value:
