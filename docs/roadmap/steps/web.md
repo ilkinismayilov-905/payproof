@@ -10,6 +10,7 @@ Backend hazır olana qədər `NEXT_PUBLIC_API_MOCK=1` — `@payproof/mocks`.
 
 ### W-01 · Next.js skeleti
 **Branch:** `feat/W-01-web-skeleton` · **Asılılıq:** S-08
+Əvvəl packages/*/README.md fayllarını oxu — @payproof paketlərini qoşmaq üçün transpilePackages və Tailwind @config qeydləri oradadır.
 **Daxildir:** Next.js app (`create-next-app` boş olmayan qovluqda işləmir — müvəqqəti qovluqda yaradıb köçür, `CLAUDE.md` saxlanılsın), TS strict, Tailwind + tokens preset, `tokens.css` import, sistem şrift stack-i, shadcn/ui init (Radix), ESLint + Prettier, Vitest + RTL, Playwright config, `src/{app,features,components/ui,lib}` quruluşu, `lang="az"`.
 **Qəbul:** [ ] `pnpm --filter web dev|build|lint|typecheck|test` işləyir [ ] light/dark tokenlər tətbiq olunur
 **Commit-lər:** 1) next app 2) tailwind + tokens 3) shadcn init 4) eslint/prettier 5) vitest + playwright
