@@ -1,4 +1,4 @@
-import { expect, type Page, REAL, signIn, test, type User, USERS } from "./fixtures";
+import { expect, type Page, signIn, test, type User, USERS } from "./fixtures";
 
 const AYGUN = USERS.aygun;
 const RESAD = USERS.resad;
@@ -40,8 +40,6 @@ test("approver: approve → ready to send; export → manifest; re-download crea
   expect((await zip).suggestedFilename()).toMatch(/^PayProof_INV-1038_v\d+\.zip$/);
   await expect(page.getByText(/INV-1038 v\d+ ixrac edildi\. Manifest yükləndi\./)).toBeVisible();
 
-  // shortcut: main has no GET /v1/exports/{id}/download yet (404); drop the skip once it lands
-  if (REAL) return;
   const again = page.waitForEvent("download");
   await page.getByRole("button", { name: "Manifesti yenidən yüklə" }).click();
   await again;
