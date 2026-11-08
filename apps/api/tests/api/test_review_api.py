@@ -1,9 +1,13 @@
+import uuid
 from collections.abc import Callable
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.repositories.base import bind_tenant
+from payproof.repositories.models import InvoicePackage
 from payproof.seed.fixtures import EXPECTED, uid
+from payproof.seed.identity import COMPANY_ID
 from tests.api.test_contract import assert_matches
 from tests.integration.factories import make_tenant, package
 
@@ -80,3 +84,48 @@ async def test_stale_version_and_foreign_order_are_refused(
         json={"order_id": str(uid("PO-390")), "expected_version": 1},  # customer c2
     )
     assert r.status_code == 422
+
+
+async def test_signature_review_is_recorded_and_reset_by_a_new_delivery(
+    client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
+) -> None:
+    path = f"/v1/packages/{uid('pkg_1046')}"
+    version = (await client.get(path, headers=auth("u1"))).json()["version"]
+    r = await client.post(
+        f"{path}/signature-review", headers=auth("u1"), json={"expected_version": version}
+    )
+    assert r.status_code == 200, r.text
+    assert_matches("PackageDetail", r.json())
+    assert r.json()["version"] == version  # no bump: no document or field changed
+    bind_tenant(seeded, COMPANY_ID)
+    pkg = await seeded.get_one(InvoicePackage, uid("pkg_1046"))
+    assert pkg.signature_reviewed_by == uid("u1")
+    again = await client.post(
+        f"{path}/signature-review", headers=auth("u1"), json={"expected_version": version}
+    )
+    assert again.status_code == 200
+
+    delivery = next(d for d in r.json()["documents"] if d["type"] == "delivery")
+    up = await client.post(
+        f"/v1/documents/{delivery['id']}/versions",
+        headers={**auth("u1"), "Idempotency-Key": str(uuid.uuid4())},
+        data={"expected_version": str(version)},
+        files={"file": ("TS-new.pdf", b"%PDF-1.7 " + uuid.uuid4().bytes, "application/pdf")},
+    )
+    assert up.status_code == 202, up.text
+    await seeded.refresh(pkg)
+    assert pkg.signature_reviewed_by is None
+
+
+async def test_manual_validation_needs_the_current_version(
+    client: httpx.AsyncClient, seeded: AsyncSession, auth: Auth
+) -> None:
+    path = f"/v1/packages/{uid('pkg_1044')}"
+    stale = await client.post(f"{path}/validate", headers=auth("u1"), json={"expected_version": 9})
+    assert stale.status_code == 409
+    ok = await client.post(f"{path}/validate", headers=auth("u1"), json={"expected_version": 1})
+    assert ok.status_code == 200 and ok.json()["status"] == "NEEDS_FIX"
+    readonly = await client.post(
+        f"{path}/validate", headers=auth("u5"), json={"expected_version": 1}
+    )
+    assert readonly.status_code == 403

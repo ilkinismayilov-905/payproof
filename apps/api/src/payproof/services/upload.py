@@ -166,6 +166,8 @@ async def _store(
     # never a version without its file — sweep orphans when storage cleanup is needed
     await storage.put(storage_key, data, info.mime)
     await bump(session, pkg, REASON[doc_type])
+    if doc_type == "delivery":
+        pkg.signature_reviewed_by = None  # the review was of the previous note's signature
     version = DocumentVersion(
         id=version_id,
         company_id=pkg.company_id,
