@@ -33,7 +33,8 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <MockGate>{children}</MockGate>
-      <Toaster position="top-right" richColors closeButton />
+      {/* prototype #toasts: bottom right; follows the OS light/dark like the tokens */}
+      <Toaster position="bottom-right" theme="system" richColors closeButton />
     </QueryClientProvider>
   );
 }
