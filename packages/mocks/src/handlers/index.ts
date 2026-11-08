@@ -4,6 +4,7 @@ import type { MockDb, MockDbOptions } from "../store";
 import { auditHandlers } from "./audit";
 import { authHandlers } from "./auth";
 import { documentHandlers } from "./documents";
+import { jobHandlers } from "./jobs";
 import type { Ctx } from "./http";
 import { listHandlers } from "./lists";
 import { readHandlers } from "./read";
@@ -25,6 +26,7 @@ export function createMockApi(options: MockApiOptions = {}) {
     ...auditHandlers(ctx),
     ...reviewHandlers(ctx),
     ...documentHandlers(ctx),
+    ...jobHandlers(ctx),
   ];
   return {
     handlers,
