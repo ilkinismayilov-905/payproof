@@ -1,7 +1,14 @@
 export default function Home() {
   return (
-    <main>
-      <h1>PayProof</h1>
+    <main className="p-8">
+      <h1 className="text-2xl font-semibold">PayProof</h1>
+      <p className="text-text-2 mt-2">Paket göndərilməyə hazırdır</p>
+      <div className="mt-4 flex gap-2">
+        <span className="bg-brand text-brand-foreground rounded-md px-3 py-1">Brand</span>
+        <span className="bg-success-bg text-success rounded-md px-3 py-1">Uğurlu</span>
+        <span className="bg-danger-bg text-danger rounded-md px-3 py-1">Xəta</span>
+        <span className="bg-surface border-border rounded-md border px-3 py-1">Səth</span>
+      </div>
     </main>
   );
 }
