@@ -21,6 +21,8 @@ tags:
     description: Invoice packages (invoice + order + delivery documents)
   - name: documents
     description: Document upload, versions and processing jobs
+  - name: review
+    description: Order link, field corrections, signature review and re-validation
 paths:
   /v1/auth/dev-users:
     get:
@@ -637,6 +639,119 @@ paths:
         "413": { $ref: "#/components/responses/FileTooLarge" }
         "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/packages/{package_id}/match-candidates:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [review]
+      operationId: listMatchCandidates
+      summary: Order candidates with the reason (AI suggestion — a human confirms)
+      responses:
+        "200":
+          description: Candidates
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/MatchCandidate" } }
+              example:
+                items:
+                  - order_id: 0193a000-0000-7000-8003-000000000383
+                    po_number: PO-383
+                    order_date: "2026-10-29"
+                    total: { amount: "1872.00", currency: AZN }
+                    reason: "Alıcı, məhsul kodu KY-200 və miqdar (520) uyğundur. Sifariş tarixi: 29.10.2026."
+                  - order_id: 0193a000-0000-7000-8003-000000000384
+                    po_number: PO-384
+                    order_date: "2026-11-01"
+                    total: { amount: "1872.00", currency: AZN }
+                    reason: "Alıcı, məhsul kodu KY-200 və miqdar (520) uyğundur. Sifariş tarixi: 01.11.2026. TS-5541 təhvil aktı bu sifarişə istinad edir."
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /v1/packages/{package_id}/matches:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [review]
+      operationId: confirmMatch
+      summary: Confirm the order link (human decision; bumps version and re-validates)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [order_id, expected_version]
+              properties:
+                order_id: { $ref: "#/components/schemas/Uuid" }
+                expected_version: { type: integer, minimum: 1 }
+            example: { order_id: 0193a000-0000-7000-8003-000000000381, expected_version: 1 }
+      responses: &package_mutation_responses
+        "200":
+          description: Updated package (re-validated)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PackageDetail" }
+              examples:
+                inv1042_linked: { $ref: "#/components/examples/PackageDetailInv1042Linked" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /v1/fields/{field_id}:
+    parameters:
+      - { name: field_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    patch:
+      tags: [review]
+      operationId: correctField
+      summary: Correct an extracted field from the source (reason required; the document itself does not change)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [value, reason, expected_version]
+              properties:
+                value:
+                  {
+                    type: string,
+                    description: New normalised value (decimal string for money/quantity),
+                  }
+                reason: { type: string, minLength: 3, maxLength: 500 }
+                expected_version: { type: integer, minimum: 1, description: Package version }
+            example:
+              { value: PO-397, reason: Skanda PO mənbəyə baxaraq təsdiqləndi, expected_version: 1 }
+      responses: *package_mutation_responses
+  /v1/packages/{package_id}/signature-review:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [review]
+      operationId: reviewSignature
+      summary: Record that a person saw the signature (visual presence only — not legal authentication)
+      requestBody: &versioned_body
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VersionedRequest" }
+            example: { expected_version: 4 }
+      responses: *package_mutation_responses
+  /v1/packages/{package_id}/validate:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [review]
+      operationId: validatePackage
+      summary: Re-run the deterministic rule engine for the current version
+      requestBody: *versioned_body
+      responses: *package_mutation_responses
 
 components:
   securitySchemes:
