@@ -1,4 +1,4 @@
-import { expect, signIn, test, USERS } from "./fixtures";
+import { expect, REAL, signIn, test, USERS } from "./fixtures";
 
 const AYGUN = USERS.aygun;
 
@@ -6,12 +6,12 @@ test.beforeEach(async ({ page }) => {
   await signIn(page, AYGUN, "/overview");
 });
 
-test("acceptance values from the mock API", async ({ page }) => {
+test("acceptance values of the demo data", async ({ page }) => {
   const amounts = page.getByRole("region", { name: "Açıq problemli faktura məbləği" });
   await expect(amounts).toContainText("29.706,00 AZN");
   await expect(amounts).toContainText("1.800,00 USD");
   await expect(page.getByRole("region", { name: "Problemdə qalma müddəti" })).toContainText(
-    "3,0 gün",
+    REAL ? /\d+,\d gün/ : "3,0 gün", // the mock clock is fixed; the real one moves on
   );
   await expect(page.getByRole("img", { name: /^Status bölgüsü, 14 paket/ })).toBeVisible();
 });
