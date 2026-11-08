@@ -7,6 +7,7 @@ import { Dialog } from "radix-ui";
 import { useRef } from "react";
 import { Banner } from "@/components/ui/layout";
 import { PaperPage } from "./paper-page";
+import { SourceFile } from "./source-file";
 
 type Pkg = Schemas["PackageDetail"];
 
@@ -83,12 +84,19 @@ export function EvidenceViewer({ pkg, evidence, label, onClose }: Props) {
                     {evidence.quote}
                   </blockquote>
                 </figure>
-                {process.env.NEXT_PUBLIC_API_MOCK === "1" && (
+                {process.env.NEXT_PUBLIC_API_MOCK === "1" ? (
                   <PaperPage
                     pkg={pkg}
                     version={source.version}
                     docType={source.doc.type}
                     evidence={evidence}
+                  />
+                ) : (
+                  <SourceFile
+                    versionId={source.version.id}
+                    fileName={source.version.file_name}
+                    page={evidence.page}
+                    bbox={evidence.bbox}
                   />
                 )}
               </div>
