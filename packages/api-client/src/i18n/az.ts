@@ -157,6 +157,7 @@ export const errorFallback = {
   IDEMPOTENCY_IN_PROGRESS: "Eyni sorğu hələ emal olunur.",
   FILE_TOO_LARGE: "Fayl 20 MB-dan böyükdür.",
   UNSUPPORTED_FILE_TYPE: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+  RATE_LIMITED: "Çox sorğu göndərildi — bir az sonra yenidən cəhd edin.",
   INTERNAL_ERROR: "Gözlənilməz xəta baş verdi. Bir az sonra yenidən cəhd edin.",
   NETWORK_ERROR: "Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayın.",
 } as const satisfies Record<S["ErrorCode"] | "NETWORK_ERROR", string>;

@@ -24,6 +24,7 @@ Həqiqət mənbəyi: `packages/contracts/openapi.yaml` (S-04). Bu sənəd onun q
 | 404 | `NOT_FOUND` (başqa tenant-ın obyekti də 404 qaytarır, 403 yox) |
 | 409 | `VERSION_CONFLICT`, `PACKAGE_NOT_READY`, `PACKAGE_NOT_DELETABLE`, `TASK_ALREADY_OPEN`, `DUPLICATE_FILE`, `DUPLICATE_INVOICE`, `IDEMPOTENCY_IN_PROGRESS` |
 | 413/415 | `FILE_TOO_LARGE`, `UNSUPPORTED_FILE_TYPE` |
+| 429 | `RATE_LIMITED` (yükləmə, paket yaratma, dev-login; `Retry-After` header-i, `details.retry_after` saniyə) |
 
 `message` Azərbaycan dilindədir və UI-də göstərilə bilər.
 

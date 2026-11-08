@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PayProof API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     PayProof P0 API contract — the single source of truth (docs/architecture/api-contract.md).
     Conventions: `snake_case` fields; money is a decimal **string** with its currency, never a float;
@@ -121,6 +121,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/me:
     get:
       tags: [auth]
@@ -358,6 +359,7 @@ paths:
         "413": { $ref: "#/components/responses/FileTooLarge" }
         "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/packages/{package_id}:
     parameters:
       - $ref: "#/components/parameters/PackageId"
@@ -669,6 +671,7 @@ paths:
         "413": { $ref: "#/components/responses/FileTooLarge" }
         "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/documents/{document_id}/versions:
     parameters:
       - {
@@ -704,6 +707,7 @@ paths:
         "413": { $ref: "#/components/responses/FileTooLarge" }
         "415": { $ref: "#/components/responses/UnsupportedFileType" }
         "422": { $ref: "#/components/responses/ValidationError" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/packages/{package_id}/match-candidates:
     parameters:
       - $ref: "#/components/parameters/PackageId"
@@ -1629,6 +1633,22 @@ components:
                   details: { max_mb: 20 },
                 },
             }
+    TooManyRequests:
+      description: RATE_LIMITED — too many requests from this user (or address) in a short time
+      headers:
+        Retry-After: { description: Seconds to wait before retrying, schema: { type: integer } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            {
+              error:
+                {
+                  code: RATE_LIMITED,
+                  message: "Çox sorğu göndərildi — bir az sonra yenidən cəhd edin.",
+                  details: { retry_after: 30 },
+                },
+            }
     UnsupportedFileType:
       description: UNSUPPORTED_FILE_TYPE (checked by file content, not extension)
       content:
@@ -1984,6 +2004,7 @@ components:
         - IDEMPOTENCY_IN_PROGRESS
         - FILE_TOO_LARGE
         - UNSUPPORTED_FILE_TYPE
+        - RATE_LIMITED
         - INTERNAL_ERROR
     Error:
       type: object
