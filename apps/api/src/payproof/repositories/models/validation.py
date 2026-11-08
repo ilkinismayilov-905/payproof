@@ -5,6 +5,7 @@ from sqlalchemy import (
     ARRAY,
     Boolean,
     CheckConstraint,
+    ForeignKeyConstraint,
     Integer,
     Text,
     UniqueConstraint,
@@ -22,17 +23,26 @@ OUTCOMES = ("PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE")
 RULE_ID_CHECK = "rule_id ~ '^R-0(0[1-9]|10)$'"
 
 
+def _customer_fk(column: str, target: str) -> ForeignKeyConstraint:
+    return ForeignKeyConstraint(
+        [column, "customer_id", "company_id"],
+        [f"{target}.id", f"{target}.customer_id", f"{target}.company_id"],
+    )
+
+
 class ValidationRun(TenantEntity, Base):
     """One deterministic rule-engine run for a package version and a rule set version."""
 
     __tablename__ = "validation_runs"
     __table_args__ = (
         tenant_key(),
-        same_tenant_fk("package_id", "invoice_packages"),
-        same_tenant_fk("requirement_set_id", "requirement_sets"),
+        # package and rule set must share the tenant *and* the customer
+        _customer_fk("package_id", "invoice_packages"),
+        _customer_fk("requirement_set_id", "requirement_sets"),
         CheckConstraint("package_version >= 1", name="package_version_positive"),
     )
 
+    customer_id: Mapped[uuid.UUID] = mapped_column()
     package_id: Mapped[uuid.UUID] = mapped_column()
     package_version: Mapped[int] = mapped_column(Integer)
     requirement_set_id: Mapped[uuid.UUID] = mapped_column()
@@ -55,6 +65,8 @@ class CheckResult(TenantEntity, Base):
     cascade: Mapped[bool] = mapped_column(Boolean, server_default=false())
     message: Mapped[str] = mapped_column(Text)
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    # shortcut: no FK on array items; B-17 writes only evidence ids of the run's own document
+    # versions. Upgrade to a check_result_evidence join table if results are ever written elsewhere.
     evidence_ids: Mapped[list[uuid.UUID]] = mapped_column(
         ARRAY(Uuid), server_default=text("'{}'::uuid[]")
     )

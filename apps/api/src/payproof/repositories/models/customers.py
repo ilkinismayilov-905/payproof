@@ -15,7 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from payproof.repositories.models.identity import VOEN_CHECK
-from payproof.repositories.orm import Base, TenantEntity, tenant_key
+from payproof.repositories.orm import Base, TenantEntity
 
 
 class Customer(TenantEntity, Base):
@@ -37,7 +37,8 @@ class RequirementSet(TenantEntity, Base):
     __tablename__ = "requirement_sets"
     __table_args__ = (
         UniqueConstraint("customer_id", "version"),
-        tenant_key(),  # validation runs reference the rule set within the tenant
+        # validation runs reference the rule set of the package's own customer
+        UniqueConstraint("id", "customer_id", "company_id"),
         # customer must belong to the same company as the rule set
         ForeignKeyConstraint(
             ["customer_id", "company_id"], ["customers.id", "customers.company_id"]

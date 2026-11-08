@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.repositories.models import (
     CheckResult,
+    Customer,
     Membership,
     RequirementSet,
     ValidationRun,
@@ -35,6 +36,7 @@ async def _run(db: AsyncSession, t: Tenant) -> ValidationRun:
     await add(db, pkg)
     run = ValidationRun(
         company_id=t.company.id,
+        customer_id=t.customer.id,
         package_id=pkg.id,
         package_version=1,
         requirement_set_id=(await _rules(db, t)).id,
@@ -76,6 +78,23 @@ async def test_check_result_checks(
     await add_fails(db, _check(await _run(db, a), rule_id, **over))
 
 
+async def test_run_rules_must_belong_to_package_customer(db: AsyncSession, a: Tenant) -> None:
+    other = Customer(company_id=a.company.id, name="C2", external_id="C2", voen="1305884421")
+    await add(db, other)
+    pkg = package(a)
+    await add(db, pkg)
+    other_rules = await _rules(db, Tenant(a.company, a.user, other))
+    run = ValidationRun(
+        company_id=a.company.id,
+        customer_id=a.customer.id,
+        package_id=pkg.id,
+        package_version=1,
+        requirement_set_id=other_rules.id,
+        engine_version="1",
+    )
+    await add_fails(db, run)
+
+
 async def test_run_rules_must_be_same_tenant(db: AsyncSession, a: Tenant, b: Tenant) -> None:
     await add(db, Membership(user_id=a.user.id, company_id=b.company.id, role="approver"))
     pkg = package(a)
@@ -83,6 +102,7 @@ async def test_run_rules_must_be_same_tenant(db: AsyncSession, a: Tenant, b: Ten
     other_rules = await _rules(db, Tenant(b.company, a.user, b.customer))
     run = ValidationRun(
         company_id=a.company.id,
+        customer_id=a.customer.id,
         package_id=pkg.id,
         package_version=1,
         requirement_set_id=other_rules.id,
