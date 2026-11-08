@@ -3,6 +3,7 @@
 import datetime as dt
 import itertools
 from dataclasses import dataclass
+from decimal import Decimal
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -15,7 +16,9 @@ from payproof.repositories.models import (
     DocumentVersion,
     InvoicePackage,
     Membership,
+    RequirementSet,
     User,
+    ValidationRun,
 )
 
 _seq = itertools.count(1)
@@ -94,3 +97,36 @@ async def make_version(db: AsyncSession, t: Tenant, type_: str = "invoice") -> D
     v = version(doc, t)
     await add(db, v)
     return v
+
+
+async def make_rules(db: AsyncSession, t: Tenant) -> RequirementSet:
+    rules = RequirementSet(
+        company_id=t.company.id,
+        customer_id=t.customer.id,
+        version=next(_seq),  # unique per customer, so several rule sets can coexist
+        require_po=True,
+        require_delivery=True,
+        require_signature=False,
+        tolerance=Decimal("0.01"),
+        effective_from=dt.date(2026, 6, 1),
+        approved_by=t.user.id,
+        reason="İlk qayda dəsti",
+    )
+    await add(db, rules)
+    return rules
+
+
+async def make_run(db: AsyncSession, t: Tenant) -> ValidationRun:
+    """A fresh package (v1) of `t.customer` with one validation run under a new rule set."""
+    pkg = package(t, f"INV-{next(_seq)}")
+    await add(db, pkg)
+    run = ValidationRun(
+        company_id=t.company.id,
+        customer_id=t.customer.id,
+        package_id=pkg.id,
+        package_version=1,
+        requirement_set_id=(await make_rules(db, t)).id,
+        engine_version="1",
+    )
+    await add(db, run)
+    return run

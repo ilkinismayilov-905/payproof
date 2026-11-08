@@ -54,7 +54,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-09 · Seed əmri
 **Branch:** `feat/B-09-seed` · **Asılılıq:** B-05, S-03
 **Daxildir:** `uv run payproof-seed [--reset]` — fixtures → DB (bir tranzaksiya, idempotent), fayl nümunələri üçün storage-a placeholder PDF-lər (B-13-dən sonra real), `make seed`.
-**Qəbul:** [ ] iki dəfə işlədəndə dublikat yoxdur [ ] say yoxlaması testlə [ ] `seed --reset` `requirement_sets` üçün DELETE yox, TRUNCATE istifadə edir (immutable trigger DELETE-i bloklayır)
+**Qəbul:** [ ] iki dəfə işlədəndə dublikat yoxdur [ ] say yoxlaması testlə [ ] `seed --reset` `requirement_sets` və `audit_events` üçün DELETE yox, TRUNCATE istifadə edir (immutable/append-only trigger DELETE-i bloklayır) [ ] fixture təsdiqləri (pkg_1036 v2, pkg_1033, pkg_1031) üçün həmin versiya + qayda dəstinə uyğun köhnə `validation_runs` yaradılır (`approval_records` 5 sütunlu FK ilə run-a bağlıdır) [ ] fixture ixraclarının fayl adları `{document_version_id, type, file_name}` obyektlərinə çevrilir
 
 ### B-10 · Auth, tenant, səlahiyyət
 **Branch:** `feat/B-10-auth` · **Asılılıq:** B-09 · **Skills:** `security-and-hardening`
@@ -96,7 +96,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-14 · Job növbəsi və worker
 **Branch:** `feat/B-14-jobs` · **Asılılıq:** B-13
 **Daxildir:** `worker/queue.py` (`JobQueue` interfeysi + Postgres impl, SKIP LOCKED), `uv run payproof-worker`, retry (3, backoff), `GET /v1/jobs/{id}`, sənəd statusu keçidləri (`UPLOADED→PROCESSING→EXTRACTED|REVIEW_REQUIRED|FAILED`).
-**Qəbul:** [ ] iki worker eyni job-u götürmür (test) [ ] uğursuz job `FAILED`, biznes nəticəsi `PASS` olmur
+**Qəbul:** [ ] iki worker eyni job-u götürmür (test) [ ] uğursuz job `FAILED`, biznes nəticəsi `PASS` olmur [ ] `GET /v1/jobs/{id}` `company_id`-ni açıq filtrləyir — `jobs` tenant qoruyucusundan kənardadır (B-05), başqa tenant-ın job-u → 404 (test)
 
 ### B-15 · Çıxarış pipeline-ı
 **Branch:** `feat/B-15-extraction` · **Asılılıq:** B-14 · **Skills:** ADR-0007
@@ -131,7 +131,7 @@ Hər endpoint `packages/contracts/openapi.yaml`-a uyğun olmalıdır; uyğunsuzl
 ### B-21 · İxrac və daxili hesabat
 **Branch:** `feat/B-21-export` · **Asılılıq:** B-20
 **Daxildir:** `POST /v1/packages/{id}/export` (seçilmiş sənəd versiyaları; faktura məcburi; manifest JSON + zip storage-a; imzalı link qaytarılır; idempotent), `GET /v1/packages/{id}/internal-report` (yoxlamalar + mənbələr + audit — xarici paketə daxil deyil).
-**Qəbul:** [ ] manifestdə yalnız seçilmiş fayllar [ ] AI izahı/şərh/audit xarici paketdə yoxdur [ ] təkrar ixrac → yeni hadisə yox
+**Qəbul:** [ ] manifestdə yalnız seçilmiş fayllar [ ] AI izahı/şərh/audit xarici paketdə yoxdur [ ] təkrar ixrac → yeni hadisə yox [ ] `export_records.files` `{document_version_id, type, file_name}` obyektləridir [ ] idempotent təkrar cavabda imzalı link yenidən imzalanır (vaxtı keçmiş link qaytarılmır)
 
 ### B-22 · Müştəri qaydaları API
 **Branch:** `feat/B-22-requirements` · **Asılılıq:** B-20

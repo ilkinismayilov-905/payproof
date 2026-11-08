@@ -1,49 +1,10 @@
-import datetime as dt
-from decimal import Decimal
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.repositories.models import (
-    CheckResult,
-    Customer,
-    Membership,
-    RequirementSet,
-    ValidationRun,
-)
+from payproof.repositories.models import CheckResult, Customer, Membership, ValidationRun
 from tests.integration.factories import Tenant, add, add_fails, package
-
-
-async def _rules(db: AsyncSession, t: Tenant) -> RequirementSet:
-    rules = RequirementSet(
-        company_id=t.company.id,
-        customer_id=t.customer.id,
-        version=1,
-        require_po=True,
-        require_delivery=True,
-        require_signature=False,
-        tolerance=Decimal("0.01"),
-        effective_from=dt.date(2026, 6, 1),
-        approved_by=t.user.id,
-        reason="İlk qayda dəsti",
-    )
-    await add(db, rules)
-    return rules
-
-
-async def _run(db: AsyncSession, t: Tenant) -> ValidationRun:
-    pkg = package(t)
-    await add(db, pkg)
-    run = ValidationRun(
-        company_id=t.company.id,
-        customer_id=t.customer.id,
-        package_id=pkg.id,
-        package_version=1,
-        requirement_set_id=(await _rules(db, t)).id,
-        engine_version="1",
-    )
-    await add(db, run)
-    return run
+from tests.integration.factories import make_rules as _rules
+from tests.integration.factories import make_run as _run
 
 
 def _check(run: ValidationRun, rule_id: str = "R-001", **over: object) -> CheckResult:
