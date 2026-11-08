@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "pnpm --filter @payproof/mocks exec msw init ../../apps/web/public --no-save",
+    "msw:worker": "pnpm --filter @payproof/mocks exec msw init ../../apps/web/public --no-save",
+    "predev": "pnpm msw:worker",
     "dev": "next dev -p 3000",
+    "prebuild": "pnpm msw:worker",
     "build": "next build",
     "start": "next start -p 3000",
     "typecheck": "next typegen && tsc --noEmit",
