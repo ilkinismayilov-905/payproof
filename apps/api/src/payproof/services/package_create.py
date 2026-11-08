@@ -59,7 +59,11 @@ async def create_package(
     if customer is None:
         raise NotFound
     owner = await session.scalar(
-        select(Membership.id).where(Membership.user_id == owner_id, Membership.active.is_(True))
+        select(Membership.id).where(
+            Membership.user_id == owner_id,
+            Membership.company_id == customer.company_id,  # memberships are not tenant-guarded
+            Membership.active.is_(True),
+        )
     )
     if owner is None:
         raise InvalidInput("Məsul şəxs şirkətin üzvü deyil.", {"fields": {"owner_id": "?"}})
