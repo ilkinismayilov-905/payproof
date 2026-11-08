@@ -7,6 +7,13 @@ const BAKU = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Baku" });
 /** "YYYY-MM-DD" on the Baku clock — due dates are company calendar days. */
 export const bakuToday = (now = new Date()) => BAKU.format(now);
 
+/** Calendar arithmetic on "YYYY-MM-DD" (UTC noon: no DST or offset can shift the day). */
+export function addDays(day: string, n: number) {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Shown next to the due date; a resolved task is never late. */
 export function dueState(
   due: string,

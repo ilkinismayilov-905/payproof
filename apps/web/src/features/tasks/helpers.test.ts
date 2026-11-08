@@ -1,9 +1,14 @@
 import { expect, test } from "vitest";
-import { bakuToday, defaultAssignee, dueState, stepTemplate } from "./helpers";
+import { addDays, bakuToday, defaultAssignee, dueState, stepTemplate } from "./helpers";
 
 test("today is the Baku calendar day (UTC+4), not the browser's", () => {
   expect(bakuToday(new Date("2026-11-08T19:59:00Z"))).toBe("2026-11-08");
   expect(bakuToday(new Date("2026-11-08T20:00:00Z"))).toBe("2026-11-09");
+});
+
+test("addDays crosses month and year ends", () => {
+  expect(addDays("2026-11-30", 2)).toBe("2026-12-02");
+  expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
 });
 
 test("due state: overdue before today, today on the day; resolved tasks are never late", () => {
