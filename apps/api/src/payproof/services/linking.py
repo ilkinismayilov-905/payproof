@@ -7,7 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, InvalidInput, NotFound, PackageNotReady
+from payproof.repositories import package_reads as reads
 from payproof.repositories.models import InvoicePackage, Order
+from payproof.services import matching
 from payproof.services.audit import record
 from payproof.services.validation import revalidate
 from payproof.services.versioning import bump
@@ -24,6 +26,26 @@ async def locked_package(session: AsyncSession, package_id: uuid.UUID) -> Invoic
     if pkg is None:
         raise NotFound  # also another company's package
     return pkg
+
+
+async def after_extraction(session: AsyncSession, pkg: InvoicePackage) -> None:
+    """New fields are in: link the exact PO if there is one, then re-validate. Part of the
+    upload that already bumped the version, so no second bump here."""
+    if pkg.order_id is None:
+        invoices, _ = await reads.invoices(session, [pkg.id])
+        inv = invoices.get(pkg.id)
+        if order := await matching.exact_order(session, pkg, inv.po_ref if inv else None):
+            pkg.order_id, pkg.link_method = order.id, "exact_id"
+            await record(
+                session,
+                actor_id=None,
+                action="link.exact_match",
+                message=f"{order.po_number} · üsul: dəqiq PO uyğunluğu · paket v{pkg.version}",
+                object_type="order_link",
+                object_id=order.id,
+                package=pkg,
+            )
+    await revalidate(session, pkg)
 
 
 async def confirm_link(
