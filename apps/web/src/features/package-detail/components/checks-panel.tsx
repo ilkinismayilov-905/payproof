@@ -1,5 +1,10 @@
 import type { Schemas } from "@payproof/api-client";
-import { checkOutcomeLabel, taskStatusLabel } from "@payproof/api-client/i18n";
+import {
+  checkOutcomeLabel,
+  checksText as ct,
+  detailText as t,
+  taskStatusLabel,
+} from "@payproof/api-client/i18n";
 import { checkOutcomeTone } from "@payproof/design-tokens";
 import {
   ChevronRight,
@@ -18,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import { Banner, Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
 import { fieldForCheck } from "../correction";
-import { detailText as t } from "../texts";
 import { Inert } from "./package-actions";
 
 type Pkg = Schemas["PackageDetail"];
@@ -66,7 +70,7 @@ function Fix({ check, pkg, onFix, canEdit }: { check: Check } & Omit<Props, "onE
         size="sm"
         icon={Icon}
         label={label}
-        reason={canEdit ? "Düzəldiləcək sahə tapılmadı — yeni versiya yükləyin" : t.noEdit}
+        reason={canEdit ? ct.noFieldToFix : t.noEdit}
       />
     );
   switch (check.fix_hint) {
@@ -74,22 +78,22 @@ function Fix({ check, pkg, onFix, canEdit }: { check: Check } & Omit<Props, "onE
       return (
         <Button size="sm" onClick={() => onFix("link_order", check)}>
           <Link2 aria-hidden />
-          Sifarişi seç
+          {ct.pickOrder}
         </Button>
       );
     case "review_signature":
       return (
         <Button size="sm" onClick={() => onFix("review_signature", check)}>
           <PenLine aria-hidden />
-          İmzaya bax və təsdiqlə
+          {ct.reviewSignature}
         </Button>
       );
     case "edit_field":
-      return editing("edit_field", "Mənbəyə bax, sahəni düzəlt", Pencil, true);
+      return editing("edit_field", ct.editField, Pencil, true);
     case "upload_delivery":
-      return editing("upload_delivery", "Təhvil sənədi yüklə", Upload);
+      return editing("upload_delivery", ct.uploadDelivery, Upload);
     case "upload_invoice":
-      return editing("upload_invoice", "Yeni faktura versiyası", Upload);
+      return editing("upload_invoice", ct.uploadInvoice, Upload);
     default:
       return null;
   }
@@ -112,10 +116,10 @@ function TaskAction({ check, pkg, onTask }: { check: Check; pkg: Pkg; onTask: Pr
   return onTask ? (
     <Button size="sm" variant="ghost" onClick={() => onTask(check)}>
       <Plus aria-hidden />
-      Tapşırıq yarat
+      {ct.createTask}
     </Button>
   ) : (
-    <Inert size="sm" icon={Plus} label="Tapşırıq yarat" reason={t.noTasks} />
+    <Inert size="sm" icon={Plus} label={ct.createTask} reason={t.noTasks} />
   );
 }
 
@@ -145,7 +149,7 @@ function CheckCard({
         <button
           key={i}
           type="button"
-          aria-label={`Mənbə: ${e.quote}`}
+          aria-label={ct.evidence(e.quote)}
           onClick={() => onEvidence(e, c.title)}
           className="bg-surface-2 hover:bg-surface-3 focus-visible:ring-ring mt-2 flex w-full items-start gap-2 rounded-sm p-2 text-left text-xs outline-none focus-visible:ring-2"
         >
@@ -187,10 +191,12 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit, onTask }: Props) 
       title={t.checks}
       className="flex flex-col gap-3 [grid-area:checks]"
       actions={
-        <span className="text-text-3 text-xs">{`qayda dəsti v${pkg.requirement_set.version} · ${pkg.checks.length} qayda`}</span>
+        <span className="text-text-3 text-xs">
+          {ct.ruleSet(pkg.requirement_set.version, pkg.checks.length)}
+        </span>
       }
     >
-      <ul aria-label="Yoxlama xülasəsi" className="flex flex-wrap gap-1.5">
+      <ul aria-label={ct.summary} className="flex flex-wrap gap-1.5">
         {OUTCOMES.map((o) => (
           <li key={o}>
             <StatusBadge
@@ -204,7 +210,7 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit, onTask }: Props) 
       {primary.length ? (
         <>
           <h3 id="blocking" className="text-text-3 text-xs font-bold uppercase">
-            Bloklayan problemlər
+            {ct.blocking}
           </h3>
           <ul aria-labelledby="blocking" className="flex flex-col gap-2">
             {primary.map((c) => (
@@ -222,16 +228,14 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit, onTask }: Props) 
           </ul>
         </>
       ) : (
-        <Banner tone="success" icon={CircleCheck} title="Bloklayan problem yoxdur">
-          Problem uydurulmur: bütün məcburi qaydalar cari versiyada keçib.
+        <Banner tone="success" icon={CircleCheck} title={ct.noBlockingTitle}>
+          {ct.noBlockingBody}
         </Banner>
       )}
       {cascade.length > 0 && (
         <>
-          <h3 className="text-text-3 text-xs font-bold uppercase">{`Asılı yoxlamalar (${cascade.length})`}</h3>
-          <p className="text-text-3 text-xs">
-            Yuxarıdakı problem həll edilənə qədər aparılmır və paketi bloklayır.
-          </p>
+          <h3 className="text-text-3 text-xs font-bold uppercase">{ct.cascade(cascade.length)}</h3>
+          <p className="text-text-3 text-xs">{ct.cascadeBody}</p>
           <ul>
             {cascade.map((c) => (
               <Compact key={c.rule_id} check={c} />
@@ -242,7 +246,7 @@ export function ChecksPanel({ pkg, onFix, onEvidence, canEdit, onTask }: Props) 
       <details open={!primary.length} className="group">
         <summary className="text-text-2 flex cursor-pointer list-none items-center gap-1 text-sm font-semibold">
           <ChevronRight aria-hidden className="size-4 transition-transform group-open:rotate-90" />
-          {`Keçən və tətbiq olunmayan yoxlamalar (${rest.length})`}
+          {ct.rest(rest.length)}
         </summary>
         <ul className="mt-1.5">
           {rest.map((c) => (

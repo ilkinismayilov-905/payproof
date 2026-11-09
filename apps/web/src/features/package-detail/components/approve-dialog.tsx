@@ -2,7 +2,12 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { formatMoney } from "@payproof/api-client/format";
-import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
+import {
+  actionLabel,
+  approvalText as t,
+  detailText,
+  documentTypeLabel,
+} from "@payproof/api-client/i18n";
 import { Check, Info } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState, type FormEvent } from "react";
@@ -16,7 +21,7 @@ import { useApprove, useBoundVersion } from "../approval";
 type Pkg = Schemas["PackageDetail"];
 
 const summaryText = ({ pass, fail, unknown, not_applicable }: Pkg["summary"]) =>
-  `${pass} keçdi · ${fail} uyğunsuz · ${unknown} naməlum · ${not_applicable} tətbiq olunmur`;
+  t.summary(pass, fail, unknown, not_applicable);
 
 const Row = ({ label, value }: { label: string; value: string }) => (
   <div className="border-border flex justify-between gap-4 border-b py-2 text-sm last:border-b-0">
@@ -58,7 +63,7 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
         onSuccess: () => {
           onOpenChange(false);
           toast.success(
-            `${pkg.total ? `${formatMoney(pkg.total)}-lik faktura paketi` : "Faktura paketi"} göndərilməyə hazırdır.`,
+            `${detailText.readyToSend(pkg.total ? formatMoney(pkg.total) : undefined)}.`,
           );
         },
         onError: (error) => error.code === "VERSION_CONFLICT" && onConflict(),
@@ -76,7 +81,9 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number} paketini təsdiqlə`}</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">
+                {t.approveTitle(pkg.invoice_number)}
+              </Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
                 {`${pkg.customer.name}${pkg.total ? ` · ${formatMoney(pkg.total)}` : ""}`}
               </Dialog.Description>
@@ -92,18 +99,18 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                 />
               )}
               {blocked && (
-                <Banner tone="danger" role="alert" title="Təsdiq mümkün deyil">
+                <Banner tone="danger" role="alert" title={t.cannotApprove}>
                   {pkg.summary.blocking.length
-                    ? `Bloklayan yoxlamalar: ${pkg.summary.blocking.map((b) => b.rule_id).join(", ")}.`
-                    : "Paket təsdiq gözləyən vəziyyətdə deyil."}
+                    ? t.blockingChecks(pkg.summary.blocking.map((b) => b.rule_id).join(", "))
+                    : t.notAwaiting}
                 </Banner>
               )}
               <div className="border-border rounded-md border px-4 py-1">
-                <Row label="Cari versiya" value={`v${pkg.version}`} />
-                <Row label="Qayda dəsti" value={`v${pkg.requirement_set.version}`} />
-                <Row label="Yoxlamalar" value={summaryText(pkg.summary)} />
+                <Row label={t.currentVersion} value={`v${pkg.version}`} />
+                <Row label={detailText.ruleSet} value={`v${pkg.requirement_set.version}`} />
+                <Row label={detailText.checks} value={summaryText(pkg.summary)} />
                 <Row
-                  label="Sənədlər"
+                  label={t.documents}
                   value={pkg.documents
                     .map((d) => `${documentTypeLabel[d.type]} v${d.current.version_no}`)
                     .join(" · ")}
@@ -121,16 +128,16 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                   aria-describedby={missing ? "approve-ack-error" : undefined}
                   className="accent-brand mt-0.5 size-4 shrink-0 pointer-coarse:size-6"
                 />
-                Cari versiyanın sənədlərinə, mənbə sübutlarına və əvvəlki düzəlişlərə baxdım.
+                {t.reviewedAck}
               </label>
               {missing && (
                 <p id="approve-ack-error" role="alert" className="text-danger text-sm">
-                  Təsdiqdən əvvəl bu qeydi işarələyin.
+                  {t.ackMissing}
                 </p>
               )}
               <p className="text-text-3 flex gap-1.5 text-xs">
                 <Info aria-hidden className="size-4 shrink-0" />
-                Bu təsdiq bank ödənişinə səlahiyyət vermir — yalnız sənəd paketinin hazırlığıdır.
+                {t.notPayment}
               </p>
             </div>
             <div className="border-border flex flex-wrap justify-end gap-2 border-t px-6 py-4">
@@ -141,7 +148,7 @@ export function ApproveDialog({ pkg, open, onOpenChange, onConflict }: Props) {
               </Dialog.Close>
               <Button type="submit" size="lg" aria-disabled={approve.isPending || locked}>
                 <Check aria-hidden />
-                {approve.isPending ? "Təsdiqlənir…" : actionLabel.confirm}
+                {approve.isPending ? t.approving : actionLabel.confirm}
               </Button>
             </div>
           </form>

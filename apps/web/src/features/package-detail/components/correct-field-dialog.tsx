@@ -1,7 +1,12 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { actionLabel, packageStatusLabel } from "@payproof/api-client/i18n";
+import {
+  actionLabel,
+  correctionText as t,
+  detailText,
+  packageStatusLabel,
+} from "@payproof/api-client/i18n";
 import { Upload } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "radix-ui";
@@ -20,11 +25,9 @@ type Field = Schemas["ExtractedField"];
 
 /** What a valid new value looks like for this field (money and quantities stay decimal strings). */
 function invalidValue(path: string, value: string): string | null {
-  if (!value.trim()) return "Yeni dəyəri yazın.";
-  if (path.endsWith(".unit_price") && !/^\d+(\.\d{1,2})?$/.test(value))
-    return "Məbləği nöqtə ilə yazın, məsələn 9.10.";
-  if (path.endsWith(".qty") && !/^\d+(\.\d{1,3})?$/.test(value))
-    return "Miqdarı rəqəmlə yazın, məsələn 300.";
+  if (!value.trim()) return t.valueRequired;
+  if (path.endsWith(".unit_price") && !/^\d+(\.\d{1,2})?$/.test(value)) return t.amountFormat;
+  if (path.endsWith(".qty") && !/^\d+(\.\d{1,3})?$/.test(value)) return t.qtyFormat;
   return null;
 }
 
@@ -48,7 +51,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
   const changed = usePackageChangedSince(pkg.id, pkg.version);
   const ids = { value: useId(), reason: useId() };
   const valueError = invalidValue(field.field_path, value);
-  const reasonError = reason.trim().length < 3 ? "Səbəb ən azı 3 simvol olmalıdır." : null;
+  const reasonError = reason.trim().length < 3 ? t.reasonShort : null;
   const evidence = field.evidence;
   const version = pkg.documents
     .flatMap((d) => [d.current, ...d.history])
@@ -72,7 +75,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
         onSuccess: (next) => {
           onOpenChange(false);
           toast.success(
-            `${field.label} düzəldildi. Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`,
+            `${t.corrected(field.label)} ${detailText.rechecked(next.version, packageStatusLabel[next.status])}`,
           );
         },
       },
@@ -91,9 +94,9 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">{`Çıxarışı düzəlt: ${field.label}`}</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">{t.title(field.label)}</Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
-                Sənəd dəyişmir — dəyəri mənbəyə baxaraq düzəldirsiniz, səbəb auditə yazılır.
+                {t.description}
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
@@ -105,7 +108,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                   }
                 />
               )}
-              <p className="text-sm">{`Oxunan dəyər: ${field.raw_value ?? "oxunmadı"}`}</p>
+              <p className="text-sm">{t.readValue(field.raw_value ?? detailText.notRead)}</p>
               {evidence &&
                 version &&
                 docType &&
@@ -120,7 +123,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                   />
                 ))}
               <label htmlFor={ids.value} className="text-sm font-semibold">
-                Yeni dəyər
+                {t.newValue}
               </label>
               <input
                 id={ids.value}
@@ -137,7 +140,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                 </p>
               )}
               <label htmlFor={ids.reason} className="text-sm font-semibold">
-                Səbəb
+                {t.reason}
               </label>
               <textarea
                 id={ids.reason}
@@ -155,8 +158,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                 </p>
               )}
               <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">
-                Fakturanın özündə səhv varsa, onu mənbə sistemində düzəldib yeni versiya yükləyin —
-                düzəliş yalnız çıxarış səhvi üçündür.{" "}
+                {t.invoiceWrong}{" "}
                 <Button
                   type="button"
                   variant="link"
@@ -164,7 +166,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                   onClick={onUploadInstead}
                 >
                   <Upload aria-hidden />
-                  Bunun əvəzinə yeni versiya yükləyin
+                  {t.uploadInstead}
                 </Button>
               </p>
             </div>
@@ -175,7 +177,7 @@ export function CorrectFieldDialog({ pkg, field, open, onOpenChange, onUploadIns
                 </Button>
               </Dialog.Close>
               <Button type="submit" size="lg" aria-disabled={correct.isPending}>
-                Düzəlişi yadda saxla
+                {t.save}
               </Button>
             </div>
           </form>
