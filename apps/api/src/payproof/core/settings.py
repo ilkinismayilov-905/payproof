@@ -13,7 +13,9 @@ _PUBLIC_SECRETS = {"dev-only-change-me", "ci-only-not-a-secret"}  # committed in
 class Settings(BaseSettings):
     # .env lives at the repo root (scripts/setup.sh); apps/api/.env overrides it. CWD-independent.
     model_config = SettingsConfigDict(
-        env_file=(_API_DIR.parents[1] / ".env", _API_DIR / ".env"), extra="ignore"
+        env_file=(_API_DIR.parents[1] / ".env", _API_DIR / ".env"),
+        extra="ignore",
+        env_ignore_empty=True,  # `AI_API_KEY=` / `AI_MODEL=` (.env.example) mean "unset"
     )
 
     env: Literal["dev", "test", "prod"]  # no default: a forgotten ENV must not mean "dev"
@@ -25,6 +27,9 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr
     s3_bucket: str
     ai_provider: Literal["mock", "pdf", "llm"] = "mock"
+    ai_api_key: SecretStr | None = None  # llm: Claude; empty/unset → fields UNKNOWN (fallback)
+    ai_model: str = "claude-opus-5-5"
+    ai_timeout_s: float = 60.0  # per attempt; the SDK retries twice (429/5xx/connection)
     # signed links must use an address the browser reaches; in compose the API itself talks to
     # http://minio:9000, the browser to http://localhost:9000. Unset: same as s3_endpoint_url
     s3_public_endpoint_url: str | None = None
