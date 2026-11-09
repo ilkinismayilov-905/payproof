@@ -23,9 +23,9 @@ services:
     plan: free
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
-    # the image's last stage is the worker; the API runs the same image with its own command.
-    # payproof-seed is a no-op once the demo data exists.
-    dockerCommand: sh -c "alembic upgrade head && payproof-seed && exec payproof-api"
+    # the image's last stage is the worker; the API runs the same image with its own command
+    # (migrate, seed once, serve — see the script; no quotes here, Render keeps them literally)
+    dockerCommand: sh scripts/start-api.sh
     healthCheckPath: /v1/health
     envVars:
       - fromGroup: payproof-shared
