@@ -1,7 +1,7 @@
 // Package list items and the dashboard — amounts per currency, never converted or summed across.
 import type { Schemas } from "@payproof/api-client";
 import { bakuDaysBetween } from "@payproof/api-client/format";
-import { ruleCategory } from "@payproof/api-client/i18n";
+import { ruleCategoryOf } from "../engine/catalog";
 import { info } from "../engine/status";
 import { cents, decimal } from "../money";
 import type { MockDb } from "../store";
@@ -64,7 +64,7 @@ export function dashboard(db: MockDb): Schemas["Dashboard"] {
       const r = rules.get(c.rule_id) ?? { fail: 0, unknown: 0 };
       r[c.outcome === "FAIL" ? "fail" : "unknown"]++;
       rules.set(c.rule_id, r);
-      const name = ruleCategory[c.rule_id as keyof typeof ruleCategory];
+      const name = ruleCategoryOf(c.rule_id);
       const cat = categories.get(name) ?? { rule_ids: new Set(), invoices: new Set() };
       cat.rule_ids.add(c.rule_id);
       cat.invoices.add(x.p.invoice_number);

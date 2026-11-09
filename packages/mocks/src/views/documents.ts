@@ -1,7 +1,8 @@
 // Documents (current + history), extracted fields with evidence, and check results.
 import type { Schemas } from "@payproof/api-client";
-import { ruleTitle } from "@payproof/api-client/i18n";
+import { ruleTitleOf } from "../engine/catalog";
 import { ev, type Ev } from "../engine/evidence";
+import { locale } from "../i18n";
 import { evaluate, type Check } from "../engine";
 import { id, type DocType } from "../ids";
 import type { MockDb } from "../store";
@@ -111,10 +112,10 @@ export function fieldById(db: MockDb, uuid: string): { pkg: Pkg; path: string } 
 
 export const checkResult = (p: Pkg, c: Check): Schemas["CheckResult"] => ({
   rule_id: c.rule_id,
-  title: ruleTitle[c.rule_id as keyof typeof ruleTitle],
+  title: ruleTitleOf(c.rule_id),
   outcome: c.outcome,
   cascade: c.cascade,
-  message: c.message,
+  message: locale() === "en" ? c.message_en : c.message,
   evidence: c.evidence.map((e) => evidence(p, e)),
   fix_hint: c.fix_hint,
   data: c.data,
