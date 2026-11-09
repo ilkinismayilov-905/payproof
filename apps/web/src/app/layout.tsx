@@ -5,7 +5,9 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Prefly",
   applicationName: "Prefly",
-  description: "Fakturanı sifariş və təhvil sənədləri ilə tutuşdurun",
+  // static server metadata (always rendered before the client picks a language): both languages
+  description:
+    "Fakturanı sifariş və təhvil sənədləri ilə tutuşdurun · Match invoices with orders and delivery notes",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

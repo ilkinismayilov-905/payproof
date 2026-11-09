@@ -1,12 +1,13 @@
 "use client";
 
 import { formatDate } from "@payproof/api-client/format";
+import { customersText as t } from "@payproof/api-client/i18n";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { SkeletonText } from "@/components/ui/skeleton";
 import { useRequirementHistory } from "../queries";
 
-const yesNo = (v: boolean) => (v ? "bəli" : "xeyr");
+const yesNo = (v: boolean) => (v ? t.yes : t.no);
 
 /** Immutable rule set versions, newest first; fetched when opened. */
 export function RuleHistory({ customerId, count }: { customerId: string; count: number }) {
@@ -16,7 +17,7 @@ export function RuleHistory({ customerId, count }: { customerId: string; count: 
     <details className="group" onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary className="text-text-2 flex cursor-pointer list-none items-center gap-1 py-1 text-sm font-semibold">
         <ChevronRight aria-hidden className="size-4 transition-transform group-open:rotate-90" />
-        {`Versiya tarixçəsi (${count})`}
+        {t.history(count)}
       </summary>
       {history.isPending && open && <SkeletonText lines={2} />}
       {history.isError && (
@@ -33,7 +34,12 @@ export function RuleHistory({ customerId, count }: { customerId: string; count: 
               {` · ${r.approved_by.full_name}`}
               <div className="text-text-3 text-xs">{r.reason}</div>
               <div className="text-text-3 text-xs">
-                {`PO: ${yesNo(r.require_po)} · Təhvil: ${yesNo(r.require_delivery)} · İmza: ${yesNo(r.require_signature)} · Tolerans: ${r.tolerance.replace(".", ",")}`}
+                {t.historyRow(
+                  yesNo(r.require_po),
+                  yesNo(r.require_delivery),
+                  yesNo(r.require_signature),
+                  r.tolerance.replace(".", ","),
+                )}
               </div>
             </div>
           </li>
