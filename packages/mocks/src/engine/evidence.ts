@@ -14,6 +14,10 @@ export interface Ev {
 const PRODUCT = Object.fromEntries(products.map((p) => [p.code, p]));
 export const money = (c: number, currency?: string) => formatMoney(decimal(c), currency);
 export const qty = (n: number) => formatQuantity(String(n));
+// en-GB grouping (`12,000.00 AZN`, `12.5`) = the az text with `.` and `,` swapped (API format.py en=True)
+const swap = (s: string) => s.replace(/[.,]/g, (c) => (c === "." ? "," : "."));
+export const moneyEn = (c: number, currency?: string) => swap(money(c, currency));
+export const qtyEn = (n: number) => swap(qty(n));
 const UNREAD = "oxunmur";
 /** Unit as read; a line without its own unit uses the product's. */
 export const unitOf = (l: { product_code: string; unit?: string | null }) =>
