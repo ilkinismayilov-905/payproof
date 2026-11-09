@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { packageStatusLabel, ui } from "@payproof/api-client/i18n";
+import { detailText as t, packageStatusLabel, ui } from "@payproof/api-client/i18n";
 import { PackageX } from "lucide-react";
 import { useIsMutating } from "@tanstack/react-query";
 import Link from "next/link";
@@ -19,7 +19,6 @@ import {
   useValidate,
 } from "../mutations";
 import { usePackage } from "../queries";
-import { detailText as t } from "../texts";
 import { CreateTaskDialog } from "@/features/tasks";
 import { ActivityPanel } from "./activity-panel";
 import { useApprovalFlow } from "./approval-flow";
@@ -59,7 +58,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
     const evidence =
       check?.evidence[0] ??
       (delivery && { document_version_id: delivery.id, page: 1, quote: "", bbox: null });
-    if (evidence) setViewing({ evidence, label: "İmza", signature: true });
+    if (evidence) setViewing({ evidence, label: t.signature, signature: true });
   };
 
   const fix = (p: Schemas["PackageDetail"], hint: Fixable, check: Schemas["CheckResult"]) => {
@@ -135,9 +134,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
                   { expected_version: pkg.data.version },
                   {
                     onSuccess: (next) =>
-                      toast.success(
-                        `Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`,
-                      ),
+                      toast.success(t.rechecked(next.version, packageStatusLabel[next.status])),
                   },
                 ),
             }}
@@ -180,9 +177,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
                     {
                       onSuccess: (next) => {
                         setViewing(null);
-                        toast.success(
-                          `İmzanın mövcudluğu qeyd edildi. Paket: ${packageStatusLabel[next.status]}.`,
-                        );
+                        toast.success(t.signatureNoted(packageStatusLabel[next.status]));
                       },
                     },
                   ),
@@ -222,7 +217,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
       )}
       <ActivityPanel
         packageId={id}
-        invoiceNumber={pkg.data.invoice_number ?? "Paket"}
+        invoiceNumber={pkg.data.invoice_number ?? t.packageFallback}
         report={{ onClick: approval.actions.onReport, pending: approval.actions.pending }}
         // can_delete = role AND state (never approved or exported); the server checks again
         onDelete={
@@ -230,9 +225,7 @@ export function PackageDetailScreen({ id }: { id: string }) {
             ? () =>
                 remove.mutateAsync({ expected_version: pkg.data.version }).then(() => {
                   router.push("/packages");
-                  toast.success(
-                    `${pkg.data.invoice_number ?? "Paket"} silindi. Audit qeydi saxlanıldı.`,
-                  );
+                  toast.success(t.deleted(pkg.data.invoice_number ?? t.packageFallback));
                 })
             : undefined
         }

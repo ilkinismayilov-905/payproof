@@ -1,7 +1,7 @@
 import type { Schemas } from "@payproof/api-client";
+import { detailText as t } from "@payproof/api-client/i18n";
 import { Link2 } from "lucide-react";
 import { Banner } from "@/components/ui/layout";
-import { detailText as t } from "../texts";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -19,8 +19,8 @@ export function MatchBanner({
   if (confirmed || pkg.status === "PROCESSING") return null;
   const title =
     candidates.length > 1
-      ? `${candidates.length} mümkün sifariş tapıldı — seçim tələb olunur`
-      : `Sifariş uyğunlaşdırması təsdiq gözləyir${candidates[0] ? `: ${candidates[0].po_number} namizəddir` : ""}`;
+      ? t.matchMany(candidates.length)
+      : t.matchPending(candidates[0]?.po_number);
   return (
     <Banner
       role="region"
@@ -35,7 +35,7 @@ export function MatchBanner({
         </Button>
       }
     >
-      {`${candidates.map((c) => `${c.po_number}: ${c.reason}`).join(" · ")} Semantik oxşarlıq sübut deyil — əlaqəni insan təsdiqləyir.`.trim()}
+      {`${candidates.map((c) => `${c.po_number}: ${c.reason}`).join(" · ")} ${t.matchDisclaimer}`.trim()}
     </Banner>
   );
 }

@@ -1,6 +1,6 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatDateTime } from "@payproof/api-client/format";
-import { documentTypeLabel } from "@payproof/api-client/i18n";
+import { detailText as t, documentsText as d, documentTypeLabel } from "@payproof/api-client/i18n";
 import {
   ChevronRight,
   Info,
@@ -17,7 +17,6 @@ import { DocumentStatusBadge, StatusBadge } from "@/components/status/status-bad
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
-import { detailText as t } from "../texts";
 import { Inert } from "./package-actions";
 
 type Pkg = Schemas["PackageDetail"];
@@ -40,12 +39,6 @@ const ICON: Record<DocType, LucideIcon> = {
   invoice: FileText,
   order: ShoppingCart,
   delivery: Truck,
-};
-// shortcut: source labels here until shared i18n has them
-const SOURCE: Record<Schemas["DocumentVersion"]["source_kind"], string> = {
-  pdf: "PDF",
-  scan: "Skan",
-  spreadsheet: "Cədvəl",
 };
 const provenance = (v: Schemas["DocumentVersion"]) =>
   `${v.uploaded_by.full_name} · ${formatDateTime(v.uploaded_at)}`;
@@ -71,17 +64,15 @@ function Missing({ type, pkg, onUpload }: { type: DocType; pkg: Pkg; onUpload: O
       <div className="flex gap-2">
         <Icon aria-hidden className="text-brand mt-px size-5 shrink-0" />
         <div>
-          <div className="text-sm font-semibold">{`${label} yoxdur`}</div>
+          <div className="text-sm font-semibold">{d.missing(label)}</div>
           <div className="text-text-3 text-xs">
-            {required
-              ? `Müştəri qaydası (v${pkg.requirement_set.version}) bu sənədi tələb edir. “Sənəd yoxdur” — “sənəd oxunmadı” deyil.`
-              : "Bu müştəri üçün tələb olunmur."}
+            {required ? d.required(pkg.requirement_set.version) : d.notRequired}
           </div>
         </div>
       </div>
       {required && (
         <div className="mt-2">
-          <UploadButton label="Yüklə" onClick={onUpload && (() => onUpload("delivery"))} />
+          <UploadButton label={d.upload} onClick={onUpload && (() => onUpload("delivery"))} />
         </div>
       )}
     </article>
@@ -113,20 +104,20 @@ function DocumentCard({
           <div className="text-sm font-semibold break-all">{v.file_name}</div>
           <div className="my-1 flex flex-wrap items-center gap-1.5">
             {awaitingLink ? (
-              <StatusBadge tone="warning" icon={Link2} label="Uyğunlaşdırma gözləyir" />
+              <StatusBadge tone="warning" icon={Link2} label={d.awaitingLink} />
             ) : (
               <DocumentStatusBadge status={v.status} />
             )}
-            <Tag>{SOURCE[v.source_kind]}</Tag>
+            <Tag>{d.source[v.source_kind]}</Tag>
           </div>
           <div className="text-text-3 text-xs">{`${provenance(v)} · hash ${v.sha256.slice(0, 8)}`}</div>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Inert size="sm" icon={Eye} label="Bax" reason={t.soon} />
+        <Inert size="sm" icon={Eye} label={d.view} reason={t.soon} />
         {doc.type !== "order" && (
           <UploadButton
-            label="Yeni versiya"
+            label={d.newVersion}
             onClick={onUpload && (() => onUpload(doc.type as "invoice" | "delivery"))}
           />
         )}
@@ -138,7 +129,7 @@ function DocumentCard({
               aria-hidden
               className="size-3.5 transition-transform group-open:rotate-90"
             />
-            {`Əvvəlki versiyalar (${doc.history.length}) — audit üçün saxlanılır`}
+            {d.history(doc.history.length)}
           </summary>
           <ul>
             {doc.history.map((old) => (
@@ -162,7 +153,7 @@ export function DocumentsPanel({ pkg, onUpload }: { pkg: Pkg; onUpload?: OnUploa
   return (
     <Panel title={t.documents} className="flex flex-col gap-3 [grid-area:docs]">
       {TYPES.map((type) => {
-        const doc = pkg.documents.find((d) => d.type === type);
+        const doc = pkg.documents.find((x) => x.type === type);
         return doc ? (
           <DocumentCard key={type} doc={doc} pkg={pkg} onUpload={onUpload} />
         ) : (
