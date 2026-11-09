@@ -1,0 +1,497 @@
+{
+  "INV-1031": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-368.",
+      "en": "The invoice has an order number: PO-368."
+    },
+    "R-002": {
+      "az": "PO-368 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-368 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1305884421) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1305884421) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5497 paketdədir və PO-368 sifarişinə bağlıdır.",
+      "en": "TS-5497 is in the package and linked to order PO-368."
+    },
+    "R-008": {
+      "az": "Müştəri qaydası imza tələb etmir.",
+      "en": "The customer rule does not require a signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 3.240,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 3,240.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1033": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-371.",
+      "en": "The invoice has an order number: PO-371."
+    },
+    "R-002": {
+      "az": "PO-371 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-371 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1402375611) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1402375611) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5502 paketdədir və PO-371 sifarişinə bağlıdır.",
+      "en": "TS-5502 is in the package and linked to order PO-371."
+    },
+    "R-008": {
+      "az": "Əməkdaş imzanın vizual mövcudluğunu təsdiqləyib. Bu, imzanın hüquqi autentifikasiyası deyil.",
+      "en": "A staff member confirmed the signature is visually present. This is not legal authentication of the signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 4.500,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 4,500.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1035": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-375.",
+      "en": "The invoice has an order number: PO-375."
+    },
+    "R-002": {
+      "az": "PO-375 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-375 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1305884421) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1305884421) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5515 paketdədir və PO-375 sifarişinə bağlıdır.",
+      "en": "TS-5515 is in the package and linked to order PO-375."
+    },
+    "R-008": {
+      "az": "Müştəri qaydası imza tələb etmir.",
+      "en": "The customer rule does not require a signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 3.100,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 3,100.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1036": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-336.",
+      "en": "The invoice has an order number: PO-336."
+    },
+    "R-002": {
+      "az": "PO-336 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-336 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1402375611) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1402375611) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "2 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 2 lines."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5518 paketdədir və PO-336 sifarişinə bağlıdır.",
+      "en": "TS-5518 is in the package and linked to order PO-336."
+    },
+    "R-008": {
+      "az": "Əməkdaş imzanın vizual mövcudluğunu təsdiqləyib. Bu, imzanın hüquqi autentifikasiyası deyil.",
+      "en": "A staff member confirmed the signature is visually present. This is not legal authentication of the signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 6.200,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 6,200.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1038": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-377.",
+      "en": "The invoice has an order number: PO-377."
+    },
+    "R-002": {
+      "az": "PO-377 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-377 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1402375611) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1402375611) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "2 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 2 lines."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5524 paketdədir və PO-377 sifarişinə bağlıdır.",
+      "en": "TS-5524 is in the package and linked to order PO-377."
+    },
+    "R-008": {
+      "az": "Əməkdaş imzanın vizual mövcudluğunu təsdiqləyib. Bu, imzanın hüquqi autentifikasiyası deyil.",
+      "en": "A staff member confirmed the signature is visually present. This is not legal authentication of the signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 4.860,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 4,860.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1042": {
+    "R-001": {
+      "az": "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, fakturada isə PO göstərilməyib.",
+      "en": "The customer rule requires an order number on the invoice, but the invoice shows no PO."
+    },
+    "R-002": {
+      "az": "Təklif olunan sifariş əlaqəsi hələ insan tərəfindən təsdiqlənməyib.",
+      "en": "The suggested order link has not been confirmed by a person yet."
+    },
+    "R-003": {
+      "az": "Sifariş təsdiqlənmədən tərəflər müqayisə olunmur.",
+      "en": "The parties are not compared until the order is confirmed."
+    },
+    "R-004": {
+      "az": "Sifariş təsdiqlənmədən valyuta və vahid müqayisə olunmur.",
+      "en": "Currency and units are not compared until the order is confirmed."
+    },
+    "R-005": {
+      "az": "Valyuta və vahid uyğunluğu təsdiqlənmədən qiymət müqayisə edilmir.",
+      "en": "Prices are not compared until currency and units are confirmed."
+    },
+    "R-006": {
+      "az": "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
+      "en": "Quantities are compared once the order and units are confirmed."
+    },
+    "R-007": {
+      "az": "Müştəri qaydası imzalanmış təhvil sənədi tələb edir; paketdə təhvil sənədi yoxdur.",
+      "en": "The customer rule requires a signed delivery note; the package has no delivery note."
+    },
+    "R-008": {
+      "az": "Təhvil sənədi olmadan imza yoxlanmır — R-007-yə baxın.",
+      "en": "The signature is not checked without a delivery note — see R-007."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 12.000,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 12,000.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1043": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-328.",
+      "en": "The invoice has an order number: PO-328."
+    },
+    "R-002": {
+      "az": "Fakturadakı PO-328 təsdiqlənmiş sifarişə (PO-382) uyğun deyil.",
+      "en": "PO-328 on the invoice does not match the confirmed order (PO-382)."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1402375611) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1402375611) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5533 paketdədir və PO-382 sifarişinə bağlıdır.",
+      "en": "TS-5533 is in the package and linked to order PO-382."
+    },
+    "R-008": {
+      "az": "Əməkdaş imzanın vizual mövcudluğunu təsdiqləyib. Bu, imzanın hüquqi autentifikasiyası deyil.",
+      "en": "A staff member confirmed the signature is visually present. This is not legal authentication of the signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 1.920,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 1,920.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1044": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-388.",
+      "en": "The invoice has an order number: PO-388."
+    },
+    "R-002": {
+      "az": "PO-388 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-388 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1402375611) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1402375611) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "KY-10: fakturada 110,00 AZN, sifarişdə 100,00 AZN × 50 = 500,00 AZN fərq. Aktual qiymət əlavəsini yoxlayın. Fərq itki və ya gəlir sayılmır.",
+      "en": "KY-10: 110.00 AZN on the invoice, 100.00 AZN on the order × 50 = 500.00 AZN difference. Check the current price addendum. The difference is not counted as a loss or a gain."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5536 paketdədir və PO-388 sifarişinə bağlıdır.",
+      "en": "TS-5536 is in the package and linked to order PO-388."
+    },
+    "R-008": {
+      "az": "Əməkdaş imzanın vizual mövcudluğunu təsdiqləyib. Bu, imzanın hüquqi autentifikasiyası deyil.",
+      "en": "A staff member confirmed the signature is visually present. This is not legal authentication of the signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 6.900,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 6,900.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1045": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-390.",
+      "en": "The invoice has an order number: PO-390."
+    },
+    "R-002": {
+      "az": "PO-390 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-390 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1305884421) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1305884421) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "2 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 2 lines."
+    },
+    "R-006": {
+      "az": "MS-05: fakturada 120, təhvil aktında 100 qutu. Qismən çatdırılma P0-da avtomatik uyğun sayılmır.",
+      "en": "MS-05: invoice 120, delivery note 100 qutu. Partial delivery is not accepted automatically in P0."
+    },
+    "R-007": {
+      "az": "TS-5538 paketdədir və PO-390 sifarişinə bağlıdır.",
+      "en": "TS-5538 is in the package and linked to order PO-390."
+    },
+    "R-008": {
+      "az": "Müştəri qaydası imza tələb etmir.",
+      "en": "The customer rule does not require a signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 2.484,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 2,484.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1046": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-386.",
+      "en": "The invoice has an order number: PO-386."
+    },
+    "R-002": {
+      "az": "PO-386 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-386 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Təhvil sənədi başqa alıcıya — C Restoran Qrupu — aid ola bilər. Faktura alıcısı: B Mağazalar Şəbəkəsi.",
+      "en": "The delivery note may belong to another buyer — C Restoran Qrupu. Invoice buyer: B Mağazalar Şəbəkəsi."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Faktura və sifariş miqdarları uyğundur; uyğun təhvil sənədi olmadığı üçün təhvil miqdarı müqayisə edilmədi.",
+      "en": "Invoice and order quantities match; there is no matching delivery note, so delivered quantities were not compared."
+    },
+    "R-007": {
+      "az": "TS-5529 sənədində sifariş: PO-391; təsdiqlənmiş sifariş: PO-386. Uyğunluq təsdiqlənməyib.",
+      "en": "Order on TS-5529: PO-391; confirmed order: PO-386. The match is not confirmed."
+    },
+    "R-008": {
+      "az": "Təhvil sənədinin uyğunluğu təsdiqlənmədən imza yoxlanmır.",
+      "en": "The signature is not checked until the delivery note is confirmed."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 1.800,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 1,800.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1047": {
+    "R-001": {
+      "az": "PO sahəsi skanda oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin və ya müştəridən aydın nüsxə istəyin.",
+      "en": "The PO field was not read on the scan. Check the source and confirm the field or ask the customer for a clear copy."
+    },
+    "R-002": {
+      "az": "Fakturadakı PO oxunmadığı üçün müqayisə aparılmır.",
+      "en": "The invoice PO was not read, so no comparison is made."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1305884421) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1305884421) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Valyuta (AZN) və ölçü vahidləri uyğundur.",
+      "en": "Currency (AZN) and units of measure match."
+    },
+    "R-005": {
+      "az": "1 sətirdə vahid qiymət sifarişlə eynidir.",
+      "en": "Unit prices match the order on 1 line."
+    },
+    "R-006": {
+      "az": "Sifariş, faktura və təhvil miqdarları uyğundur.",
+      "en": "Order, invoice and delivery quantities match."
+    },
+    "R-007": {
+      "az": "TS-5540 paketdədir və PO-397 sifarişinə bağlıdır.",
+      "en": "TS-5540 is in the package and linked to order PO-397."
+    },
+    "R-008": {
+      "az": "Müştəri qaydası imza tələb etmir.",
+      "en": "The customer rule does not require a signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 2.730,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 2,730.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1048": {
+    "R-001": {
+      "az": "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, fakturada isə PO göstərilməyib.",
+      "en": "The customer rule requires an order number on the invoice, but the invoice shows no PO."
+    },
+    "R-002": {
+      "az": "2 mümkün sifariş tapıldı — düzgün sifarişi insan seçməlidir.",
+      "en": "2 possible orders found — a person must choose the right one."
+    },
+    "R-003": {
+      "az": "Sifariş təsdiqlənmədən tərəflər müqayisə olunmur.",
+      "en": "The parties are not compared until the order is confirmed."
+    },
+    "R-004": {
+      "az": "Sifariş təsdiqlənmədən valyuta və vahid müqayisə olunmur.",
+      "en": "Currency and units are not compared until the order is confirmed."
+    },
+    "R-005": {
+      "az": "Valyuta və vahid uyğunluğu təsdiqlənmədən qiymət müqayisə edilmir.",
+      "en": "Prices are not compared until currency and units are confirmed."
+    },
+    "R-006": {
+      "az": "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
+      "en": "Quantities are compared once the order and units are confirmed."
+    },
+    "R-007": {
+      "az": "Sifariş təsdiqlənmədən təhvil sənədinin bağlılığı yoxlanmır.",
+      "en": "The delivery note link is not checked until the order is confirmed."
+    },
+    "R-008": {
+      "az": "Təhvil sənədinin uyğunluğu təsdiqlənmədən imza yoxlanmır.",
+      "en": "The signature is not checked until the delivery note is confirmed."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 1.872,00 AZN yekun məbləğə uyğundur.",
+      "en": "The line sum 1,872.00 AZN matches the invoice total."
+    }
+  },
+  "INV-1049": {
+    "R-001": {
+      "az": "Fakturada sifariş nömrəsi var: PO-393.",
+      "en": "The invoice has an order number: PO-393."
+    },
+    "R-002": {
+      "az": "PO-393 təsdiqlənmiş sifarişə uyğundur.",
+      "en": "PO-393 matches the confirmed order."
+    },
+    "R-003": {
+      "az": "Alıcı (VÖEN 1305884421) bütün sənədlərdə eynidir.",
+      "en": "The buyer (TIN 1305884421) is the same on all documents."
+    },
+    "R-004": {
+      "az": "Faktura USD, sifariş AZN ilə tərtib olunub. Valyuta avtomatik çevrilmir — qiymət müqayisəsi dayandırıldı.",
+      "en": "The invoice is in USD, the order in AZN. Currency is not converted automatically — price comparison stopped."
+    },
+    "R-005": {
+      "az": "Valyuta və vahid uyğunluğu təsdiqlənmədən qiymət müqayisə edilmir.",
+      "en": "Prices are not compared until currency and units are confirmed."
+    },
+    "R-006": {
+      "az": "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
+      "en": "Quantities are compared once the order and units are confirmed."
+    },
+    "R-007": {
+      "az": "TS-5543 paketdədir və PO-393 sifarişinə bağlıdır.",
+      "en": "TS-5543 is in the package and linked to order PO-393."
+    },
+    "R-008": {
+      "az": "Müştəri qaydası imza tələb etmir.",
+      "en": "The customer rule does not require a signature."
+    },
+    "R-009": {
+      "az": "Sətirlərin cəmi 1.800,00 USD yekun məbləğə uyğundur.",
+      "en": "The line sum 1,800.00 USD matches the invoice total."
+    }
+  },
+  "INV-1050": {}
+}
