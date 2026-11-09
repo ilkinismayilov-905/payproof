@@ -4,6 +4,7 @@ from payproof.domain.enums import CheckOutcome
 from payproof.domain.rules.paths import INVOICE_PO
 from payproof.domain.rules.result import CheckResult, FixHint, evidence_for
 from payproof.domain.snapshot import PackageSnapshot
+from payproof.domain.text import Msg
 
 RULE = "R-001"
 
@@ -17,14 +18,23 @@ def r001(s: PackageSnapshot) -> CheckResult:
     ev = evidence_for(s, INVOICE_PO)
     if not s.rules.require_po:
         return CheckResult(
-            RULE, CheckOutcome.NOT_APPLICABLE, "Müştəri qaydası sifariş nömrəsini tələb etmir."
+            RULE,
+            CheckOutcome.NOT_APPLICABLE,
+            Msg(
+                "Müştəri qaydası sifariş nömrəsini tələb etmir.",
+                "The customer rule does not require an order number.",
+            ),
         )
     if po_unread(s):
         return CheckResult(
             RULE,
             CheckOutcome.UNKNOWN,
-            "PO sahəsi skanda oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin "
-            "və ya müştəridən aydın nüsxə istəyin.",
+            Msg(
+                "PO sahəsi skanda oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin "
+                "və ya müştəridən aydın nüsxə istəyin.",
+                "The PO field was not read on the scan. Check the source and confirm the field "
+                "or ask the customer for a clear copy.",
+            ),
             ev,
             fix_hint=FixHint.EDIT_FIELD,
         )
@@ -32,8 +42,18 @@ def r001(s: PackageSnapshot) -> CheckResult:
         return CheckResult(
             RULE,
             CheckOutcome.FAIL,
-            "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, fakturada isə PO göstərilməyib.",
+            Msg(
+                "Müştəri qaydası fakturada sifariş nömrəsi tələb edir, "
+                "fakturada isə PO göstərilməyib.",
+                "The customer rule requires an order number on the invoice, "
+                "but the invoice shows no PO.",
+            ),
             ev,
             fix_hint=FixHint.UPLOAD_INVOICE,
         )
-    return CheckResult(RULE, CheckOutcome.PASS, f"Fakturada sifariş nömrəsi var: {po}.", ev)
+    return CheckResult(
+        RULE,
+        CheckOutcome.PASS,
+        Msg(f"Fakturada sifariş nömrəsi var: {po}.", f"The invoice has an order number: {po}."),
+        ev,
+    )

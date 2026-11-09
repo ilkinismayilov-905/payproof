@@ -24,6 +24,7 @@ from payproof.api import (
 )
 from payproof.api.ratelimit import body_limit_middleware
 from payproof.core.errors import register_error_handlers
+from payproof.core.i18n import locale_middleware
 from payproof.core.logging import configure_logging, correlation_id_middleware
 from payproof.core.settings import Settings, get_settings
 from payproof.realtime.hub import Hub
@@ -44,13 +45,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.hub = Hub(settings.database_url)
     app.middleware("http")(body_limit_middleware)  # inner: still gets a correlation id
     app.middleware("http")(correlation_id_middleware)
+    app.middleware("http")(locale_middleware)  # outside: the 500 body is localized too
     # added last = outermost: preflights are answered before auth and logging
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
         allow_credentials=False,  # the token travels in Authorization, never in a cookie
         allow_methods=["GET", "POST", "PATCH", "DELETE"],
-        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "Last-Event-ID"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "Idempotency-Key",
+            "Last-Event-ID",
+            "Accept-Language",
+        ],
     )
     register_error_handlers(app)
     app.include_router(health.router, prefix="/v1")

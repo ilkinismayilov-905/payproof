@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 
 from payproof.api.deps import CurrentMember, Session
 from payproof.core.errors import NotFound
+from payproof.core.i18n import pick
 from payproof.core.paging import decode_cursor, encode_cursor
 from payproof.repositories.models import InvoicePackage, Notification
 from payproof.schemas.packages import PackageRef
@@ -57,7 +58,7 @@ async def list_notifications(
         items=[
             NotificationOut(
                 id=n.id,
-                text=n.text,
+                text=pick(n.text, n.text_en),
                 package=PackageRef(id=n.package_id, invoice_number=number or "")
                 if n.package_id
                 else None,

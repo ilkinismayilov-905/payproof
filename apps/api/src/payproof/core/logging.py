@@ -11,7 +11,9 @@ from datetime import UTC, datetime
 from fastapi import Request, Response
 
 from payproof.core.errors import ErrorCode, error_response
+from payproof.core.i18n import Msg
 
+_UNEXPECTED = Msg("Gözlənilməz xəta baş verdi.", "An unexpected error occurred.")
 CORRELATION_HEADER = "X-Correlation-ID"
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 correlation_id: ContextVar[str | None] = ContextVar("correlation_id", default=None)
@@ -74,7 +76,7 @@ async def correlation_id_middleware(
     except Exception:
         # handled here, not in an app exception handler, so the correlation id is still set
         log.exception("unhandled error")
-        response = error_response(500, ErrorCode.INTERNAL_ERROR, "Gözlənilməz xəta baş verdi.")
+        response = error_response(500, ErrorCode.INTERNAL_ERROR, _UNEXPECTED)
     finally:
         # our access log replaces uvicorn's: path only, the query string may hold search
         # terms or document text; logged while the correlation id is still set

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.api.deps import Member, Session, require
 from payproof.core.errors import InvalidInput
+from payproof.core.i18n import Msg
 from payproof.core.paging import decode_cursor, encode_cursor
 from payproof.domain.enums import TaskStatus
 from payproof.domain.permissions import Permission
@@ -63,7 +64,7 @@ async def update_task(
     task_id: uuid.UUID, body: UpdateTask, session: Session, member: Manager
 ) -> Task:
     if not body.model_fields_set:
-        raise InvalidInput("Dəyişiklik göndərilməyib.")
+        raise InvalidInput(Msg("Dəyişiklik göndərilməyib.", "No changes were sent."))
     data = body.model_dump(exclude={"status"})
     patch = task_moves.TaskPatch(
         status=TaskStatus(body.status) if body.status else None,

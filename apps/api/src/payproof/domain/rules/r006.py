@@ -8,6 +8,7 @@ from payproof.domain.format import format_qty
 from payproof.domain.rules.paths import line
 from payproof.domain.rules.result import CheckResult, FixHint, evidence_for, no_lines
 from payproof.domain.snapshot import PackageSnapshot
+from payproof.domain.text import Msg
 
 RULE = "R-006"
 
@@ -19,7 +20,10 @@ def r006(s: PackageSnapshot, *, comparable: bool) -> CheckResult:
         return CheckResult(
             RULE,
             CheckOutcome.UNKNOWN,
-            "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
+            Msg(
+                "Miqdar müqayisəsi sifariş və vahid uyğunluğu təsdiqləndikdən sonra aparılır.",
+                "Quantities are compared once the order and units are confirmed.",
+            ),
             cascade=True,
         )
     if empty := no_lines(RULE, s):
@@ -36,38 +40,52 @@ def r006(s: PackageSnapshot, *, comparable: bool) -> CheckResult:
         ]
     if unread:
         # not in the rules table: an unread quantity is never "quantities match"
-        codes = dict.fromkeys(code for code, _ in unread)
+        codes = ", ".join(dict.fromkeys(code for code, _ in unread))
         return CheckResult(
             RULE,
             CheckOutcome.UNKNOWN,
-            f"Miqdar oxunmadı: {', '.join(codes)}. Mənbəyə baxıb sahəni təsdiqləyin.",
+            Msg(
+                f"Miqdar oxunmadı: {codes}. Mənbəyə baxıb sahəni təsdiqləyin.",
+                f"Quantity not read: {codes}. Check the source and confirm the field.",
+            ),
             evidence_for(s, *(line(doc, code, "qty") for code, doc in unread)),
             fix_hint=FixHint.EDIT_FIELD,
         )
-    # (code, invoiced, "where", doc, other qty, unit)
-    found: list[tuple[str, Decimal, str, str, Decimal, str | None]] = []
+    # (code, invoiced, doc, other qty, unit)
+    found: list[tuple[str, Decimal, str, Decimal, str | None]] = []
     for li in s.invoice.lines:
         qty, ol = li.qty or Decimal(0), ordered.get(li.code)
         unit = li.unit or (ol.unit if ol else None)
         if ol is not None and ol.qty != qty:
-            found.append((li.code, qty, "sifarişdə", "order", ol.qty, unit))
+            found.append((li.code, qty, "order", ol.qty, unit))
         got = delivered.get(li.code) or Decimal(0)  # a missing delivery line counts as 0
         if linked and got != qty:
-            found.append((li.code, qty, "təhvil aktında", "delivery", got, unit))
-    problems = [
-        f"{code}: fakturada {format_qty(q)}, {where} {format_qty(other)}" + (f" {u}" if u else "")
-        for code, q, where, _, other, u in found
-    ]
+            found.append((li.code, qty, "delivery", got, unit))
+    where = {"order": "sifarişdə", "delivery": "təhvil aktında"}
+    where_en = {"order": "order", "delivery": "delivery note"}
+    problems = "; ".join(
+        f"{code}: fakturada {format_qty(q)}, {where[doc]} {format_qty(other)}"
+        + (f" {u}" if u else "")
+        for code, q, doc, other, u in found
+    )
+    problems_en = "; ".join(
+        f"{code}: invoice {format_qty(q, en=True)}, {where_en[doc]} {format_qty(other, en=True)}"
+        + (f" {u}" if u else "")
+        for code, q, doc, other, u in found
+    )
     paths = [
         p
-        for code, _, _, doc, _, _ in found
+        for code, _, doc, _, _ in found
         for p in (line("invoice", code, "qty"), line(doc, code, "qty"))
     ]
     if problems:
         return CheckResult(
             RULE,
             CheckOutcome.FAIL,
-            f"{'; '.join(problems)}. Qismən çatdırılma P0-da avtomatik uyğun sayılmır.",
+            Msg(
+                f"{problems}. Qismən çatdırılma P0-da avtomatik uyğun sayılmır.",
+                f"{problems_en}. Partial delivery is not accepted automatically in P0.",
+            ),
             evidence_for(s, *paths),
             fix_hint=FixHint.UPLOAD_INVOICE,
         )
@@ -75,10 +93,17 @@ def r006(s: PackageSnapshot, *, comparable: bool) -> CheckResult:
     return CheckResult(
         RULE,
         CheckOutcome.PASS,
-        "Sifariş, faktura və təhvil miqdarları uyğundur."
+        Msg(
+            "Sifariş, faktura və təhvil miqdarları uyğundur.",
+            "Order, invoice and delivery quantities match.",
+        )
         if linked
-        else "Faktura və sifariş miqdarları uyğundur; uyğun təhvil sənədi olmadığı üçün "
-        "təhvil miqdarı müqayisə edilmədi.",
+        else Msg(
+            "Faktura və sifariş miqdarları uyğundur; uyğun təhvil sənədi olmadığı üçün "
+            "təhvil miqdarı müqayisə edilmədi.",
+            "Invoice and order quantities match; there is no matching delivery note, "
+            "so delivered quantities were not compared.",
+        ),
         evidence_for(
             s, line("invoice", first, "qty"), *([line("delivery", first, "qty")] if linked else [])
         ),

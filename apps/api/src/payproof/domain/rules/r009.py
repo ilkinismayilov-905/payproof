@@ -6,6 +6,7 @@ from payproof.domain.money import Money
 from payproof.domain.rules.paths import INVOICE_TOTAL
 from payproof.domain.rules.result import CheckResult, FixHint, evidence_for, no_lines
 from payproof.domain.snapshot import PackageSnapshot
+from payproof.domain.text import Msg
 
 RULE = "R-009"
 
@@ -24,7 +25,11 @@ def r009(s: PackageSnapshot) -> CheckResult:
         return CheckResult(
             RULE,
             CheckOutcome.UNKNOWN,
-            "Sətirlərin cəmi və ya yekun məbləğ oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+            Msg(
+                "Sətirlərin cəmi və ya yekun məbləğ oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+                "The line sum or the invoice total was not read. "
+                "Check the source and confirm the field.",
+            ),
             ev,
             fix_hint=FixHint.EDIT_FIELD,
         )
@@ -34,14 +39,21 @@ def r009(s: PackageSnapshot) -> CheckResult:
         return CheckResult(
             RULE,
             CheckOutcome.PASS,
-            f"Sətirlərin cəmi {format_money(lines_sum)} yekun məbləğə uyğundur.",
+            Msg(
+                f"Sətirlərin cəmi {format_money(lines_sum)} yekun məbləğə uyğundur.",
+                f"The line sum {format_money(lines_sum, en=True)} matches the invoice total.",
+            ),
             ev,
         )
     return CheckResult(
         RULE,
         CheckOutcome.FAIL,
-        f"Sətirlərin cəmi {format_money(lines_sum)}, fakturadakı yekun "
-        f"{format_money(inv.total)}. Fərq: {format_money(diff)}.",
+        Msg(
+            f"Sətirlərin cəmi {format_money(lines_sum)}, fakturadakı yekun "
+            f"{format_money(inv.total)}. Fərq: {format_money(diff)}.",
+            f"The line sum is {format_money(lines_sum, en=True)}, the invoice total is "
+            f"{format_money(inv.total, en=True)}. Difference: {format_money(diff, en=True)}.",
+        ),
         ev,
         fix_hint=FixHint.UPLOAD_INVOICE,
     )

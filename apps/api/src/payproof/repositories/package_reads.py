@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.domain.enums import CheckOutcome, Role
 from payproof.domain.rules.result import CheckResult, FixHint
+from payproof.domain.text import Msg
 from payproof.repositories.base import TENANT_KEY
 from payproof.repositories.models import (
     ApprovalRecord,
@@ -121,7 +122,7 @@ async def current_runs(
             CheckResult(
                 c.rule_id,
                 CheckOutcome(c.outcome),
-                c.message,
+                Msg(c.message, c.message_en or c.message),  # old rows: az only
                 cascade=c.cascade,
                 fix_hint=FixHint(c.fix_hint) if c.fix_hint else None,
                 data=c.data,

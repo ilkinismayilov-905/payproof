@@ -8,7 +8,8 @@ from decimal import Decimal, InvalidOperation
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, InvalidInput, NotFound, PackageNotReady
+from payproof.core.errors import Conflict, InvalidInput, NotFound, PackageNotReady, stale_package
+from payproof.core.i18n import Msg, tr
 from payproof.domain.enums import DocumentStatus
 from payproof.domain.rules.paths import INVOICE_PO
 from payproof.repositories import package_reads as reads
@@ -28,11 +29,11 @@ _PO = re.compile(r"^PO-\d+$")
 _LINE = re.compile(r"^invoice\.lines\[([^\]]+)\]\.(qty|unit_price)$")
 
 
-def _bad(message: str, field: str = "value") -> InvalidInput:
-    return InvalidInput(message, {"fields": {field: message}})
+def _bad(message: Msg, field: str = "value") -> InvalidInput:
+    return InvalidInput(message, {"fields": {field: tr(message)}})
 
 
-def _amount(value: str, places: int, message: str) -> Decimal:
+def _amount(value: str, places: int, message: Msg) -> Decimal:
     try:
         number = Decimal(value)
     except InvalidOperation:
@@ -62,22 +63,38 @@ async def correct_field(
     invoices, _ = await reads.invoices(session, [pkg.id])
     inv = invoices.get(pkg.id)
     if inv is None or inv.document_version_id != version.id:
-        raise Conflict("Bu sahə faktura sənədinin köhnə versiyasına aiddir; səhifəni yeniləyin.")
+        raise Conflict(
+            Msg(
+                "Bu sahə faktura sənədinin köhnə versiyasına aiddir; səhifəni yeniləyin.",
+                "This field belongs to an old version of the invoice; refresh the page.",
+            )
+        )
     if pkg.processing:
         raise PackageNotReady(details={"status": "PROCESSING"})
     if expected_version != pkg.version:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {"current_version": pkg.version, "expected_version": expected_version},
         )
     if len(reason.strip()) < MIN_REASON:
-        raise _bad(f"Səbəb ən azı {MIN_REASON} simvol olmalıdır.", "reason")
+        raise _bad(
+            Msg(
+                f"Səbəb ən azı {MIN_REASON} simvol olmalıdır.",
+                f"The reason must be at least {MIN_REASON} characters.",
+            ),
+            "reason",
+        )
     value = value.strip()
     unread = field.review_status == "REVIEW_REQUIRED"
     before = f"{field.raw_value or '?'} (oxunmur)" if unread else (field.normalized_value or "—")
     if field.field_path == INVOICE_PO:
         if not _PO.match(value):
-            raise _bad("Sifariş nömrəsi PO-123 formatında olmalıdır.")
+            raise _bad(
+                Msg(
+                    "Sifariş nömrəsi PO-123 formatında olmalıdır.",
+                    "The order number must look like PO-123.",
+                )
+            )
         inv.po_ref, inv.po_raw = value, None
     elif m := _LINE.match(field.field_path):
         line = await session.scalar(
@@ -89,11 +106,22 @@ async def correct_field(
         if line is None:
             raise NotFound
         if m.group(2) == "qty":
-            line.qty = _amount(value, 3, "Miqdar müsbət ədəd olmalıdır.")
+            line.qty = _amount(
+                value,
+                3,
+                Msg("Miqdar müsbət ədəd olmalıdır.", "The quantity must be a positive number."),
+            )
         else:
-            line.unit_price = _amount(value, 2, "Vahid qiymət 100.00 formatında olmalıdır.")
+            line.unit_price = _amount(
+                value,
+                2,
+                Msg(
+                    "Vahid qiymət 100.00 formatında olmalıdır.",
+                    "The unit price must look like 100.00.",
+                ),
+            )
     else:
-        raise _bad("Bu sahə düzəldilə bilməz.", "field")
+        raise _bad(Msg("Bu sahə düzəldilə bilməz.", "This field cannot be corrected."), "field")
     field.normalized_value, field.review_status = value, "CORRECTED"
     field.corrected_by, field.correction_reason = actor_id, reason.strip()
     await session.flush()
@@ -101,7 +129,9 @@ async def correct_field(
         session, version
     ):
         version.status = DocumentStatus.EXTRACTED
-    await bump(session, pkg, "kritik sahə əl ilə düzəldildi")
+    await bump(
+        session, pkg, Msg("kritik sahə əl ilə düzəldildi", "a critical field was corrected by hand")
+    )
     await record(
         session,
         actor_id=actor_id,

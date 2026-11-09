@@ -7,6 +7,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 
+from payproof.core.i18n import Msg, tr
+
+BAD_REQUEST = Msg("Sorğu yanlışdır.", "The request is invalid.")
+NOT_A_MEMBER = Msg(
+    "Məsul şəxs şirkətin üzvü deyil.", "The responsible person is not a company member."
+)
+
 
 class ErrorCode(StrEnum):
     """Mirror of `ErrorCode` in packages/contracts/openapi.yaml (checked by a test)."""
@@ -32,16 +39,16 @@ class ErrorCode(StrEnum):
 
 
 class DomainError(Exception):
-    """Base for expected errors; subclasses set status, code and an Azerbaijani UI message."""
+    """Base for expected errors; subclasses set status, code and an az/en UI message."""
 
     status_code: ClassVar[int] = 400
     code: ClassVar[ErrorCode] = ErrorCode.VALIDATION_ERROR
-    message: str = "Sorğu yanlışdır."
+    message: str | Msg = BAD_REQUEST
 
-    def __init__(self, message: str | None = None, details: dict[str, Any] | None = None):
+    def __init__(self, message: str | Msg | None = None, details: dict[str, Any] | None = None):
         self.message = message or self.message
         self.details = details or {}
-        super().__init__(self.message)
+        super().__init__(str(self.message))
 
 
 class InvalidInput(DomainError):
@@ -49,25 +56,28 @@ class InvalidInput(DomainError):
 
     status_code = 422
     code = ErrorCode.VALIDATION_ERROR
-    message = "Daxil edilən məlumat yanlışdır."
+    message = Msg("Daxil edilən məlumat yanlışdır.", "The entered data is invalid.")
 
 
 class Unauthenticated(DomainError):
     status_code = 401
     code = ErrorCode.UNAUTHENTICATED
-    message = "Sessiya bitib. Yenidən daxil olun."  # openapi Unauthenticated example
+    # openapi Unauthenticated example
+    message = Msg("Sessiya bitib. Yenidən daxil olun.", "Your session has expired. Sign in again.")
 
 
 class Forbidden(DomainError):
     status_code = 403
     code = ErrorCode.FORBIDDEN
-    message = "Bu əməliyyat üçün icazəniz yoxdur."
+    message = Msg(
+        "Bu əməliyyat üçün icazəniz yoxdur.", "You do not have permission for this action."
+    )
 
 
 class NotFound(DomainError):
     status_code = 404
     code = ErrorCode.NOT_FOUND
-    message = "Tapılmadı."
+    message = Msg("Tapılmadı.", "Not found.")
 
 
 class Conflict(DomainError):
@@ -75,7 +85,16 @@ class Conflict(DomainError):
 
     status_code = 409
     code = ErrorCode.VERSION_CONFLICT
-    message = "Paket yenilənib; səhifəni yeniləyin."
+    message = Msg(
+        "Paket yenilənib; səhifəni yeniləyin.", "The package has been updated; refresh the page."
+    )
+
+
+def stale_package(version: int) -> Msg:
+    return Msg(
+        f"Paket v{version}-ə yenilənib; səhifəni yeniləyin.",
+        f"The package has been updated to v{version}; refresh the page.",
+    )
 
 
 class DuplicateFile(Conflict):
@@ -84,25 +103,34 @@ class DuplicateFile(Conflict):
 
 class PackageNotReady(Conflict):
     code = ErrorCode.PACKAGE_NOT_READY
-    message = "Paket hələ emal olunur — bir az sonra yenidən cəhd edin."
+    message = Msg(
+        "Paket hələ emal olunur — bir az sonra yenidən cəhd edin.",
+        "The package is still being processed — try again shortly.",
+    )
 
 
 class IdempotencyKeyReused(DomainError):
     status_code = 422
     code = ErrorCode.IDEMPOTENCY_KEY_REUSED
-    message = "Eyni sorğu fərqli məlumatla təkrarlandı."
+    message = Msg(
+        "Eyni sorğu fərqli məlumatla təkrarlandı.",
+        "The same request was repeated with different data.",
+    )
 
 
 class FileTooLarge(DomainError):
     status_code = 413
     code = ErrorCode.FILE_TOO_LARGE
-    message = "Fayl 20 MB-dan böyükdür."
+    message = Msg("Fayl 20 MB-dan böyükdür.", "The file is larger than 20 MB.")
 
 
 class UnsupportedFileType(DomainError):
     status_code = 415
     code = ErrorCode.UNSUPPORTED_FILE_TYPE
-    message = "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur."
+    message = Msg(
+        "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+        "Only PDF, PNG, JPEG, CSV and XLSX are accepted.",
+    )
 
 
 _HTTP_DEFAULTS: dict[int, type[DomainError]] = {401: Unauthenticated, 403: Forbidden, 404: NotFound}
@@ -111,11 +139,11 @@ _HTTP_DEFAULTS: dict[int, type[DomainError]] = {401: Unauthenticated, 403: Forbi
 def error_response(
     status: int,
     code: ErrorCode,
-    message: str,
+    message: str | Msg,
     details: dict[str, Any] | None = None,
     headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
-    body = {"error": {"code": code, "message": message, "details": details or {}}}
+    body = {"error": {"code": code, "message": tr(message), "details": details or {}}}
     return JSONResponse(body, status_code=status, headers=headers)
 
 
@@ -129,7 +157,7 @@ async def _validation(_: Request, exc: Exception) -> JSONResponse:
     errors = cast(RequestValidationError, exc).errors()
     # only loc + type: input values may contain document text
     fields = [{"loc": list(e["loc"]), "type": e["type"]} for e in errors]
-    return error_response(400, ErrorCode.VALIDATION_ERROR, "Sorğu yanlışdır.", {"fields": fields})
+    return error_response(400, ErrorCode.VALIDATION_ERROR, BAD_REQUEST, {"fields": fields})
 
 
 async def _http(_: Request, exc: Exception) -> JSONResponse:
@@ -137,7 +165,7 @@ async def _http(_: Request, exc: Exception) -> JSONResponse:
     known = _HTTP_DEFAULTS.get(http.status_code)
     # shortcut: other framework 4xx (405...) -> VALIDATION_ERROR; new codes need /contract-change
     code, message = (
-        (known.code, known.message) if known else (ErrorCode.VALIDATION_ERROR, "Sorğu yanlışdır.")
+        (known.code, known.message) if known else (ErrorCode.VALIDATION_ERROR, BAD_REQUEST)
     )
     return error_response(http.status_code, code, message, headers=http.headers)
 

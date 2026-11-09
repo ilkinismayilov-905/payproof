@@ -56,6 +56,7 @@ def _current_run(p: Fixture) -> tuple[ValidationRun, list[CheckResult]]:
             outcome=c.outcome.value,
             cascade=c.cascade,
             message=c.message,
+            message_en=c.message_en,
             fix_hint=c.fix_hint.value if c.fix_hint else None,
             data=dict(c.data),
             evidence_ids=[],  # fixtures have no evidence refs
@@ -161,6 +162,7 @@ def _notification(i: int, n: Fixture) -> Notification:
         user_id=uid(n["user_id"]),
         package_id=uid(n["package_id"]) if n["package_id"] else None,
         text=n["text"],
+        text_en=n["text_en"],
         read_at=at if n["read"] else None,  # fixtures only say "read"
         created_at=at,
     )

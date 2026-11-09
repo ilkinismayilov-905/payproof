@@ -75,6 +75,7 @@ class CheckResult(TenantEntity, Base):
     outcome: Mapped[str] = mapped_column(Text)
     cascade: Mapped[bool] = mapped_column(Boolean, server_default=false())
     message: Mapped[str] = mapped_column(Text)
+    message_en: Mapped[str | None] = mapped_column(Text)  # None: written before English existed
     fix_hint: Mapped[str | None] = mapped_column(Text)  # which fix the UI offers
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
     # shortcut: no FK on array items; B-17 writes only evidence ids of the run's own document

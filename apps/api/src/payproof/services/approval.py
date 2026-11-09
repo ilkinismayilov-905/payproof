@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, PackageNotReady
+from payproof.core.errors import Conflict, PackageNotReady, stale_package
+from payproof.core.i18n import Msg
 from payproof.domain.enums import CheckOutcome, PackageStatus
 from payproof.repositories.models import ApprovalRecord, RequirementSet, User
 from payproof.services.audit import record
@@ -39,7 +40,7 @@ async def approve(
     current_rs = rs.version if rs else None
     if expected_version != pkg.version or expected_rule_set_version != current_rs:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {
                 "current_version": pkg.version,
                 "expected_version": expected_version,
@@ -61,7 +62,10 @@ async def approve(
     if state.status is not PackageStatus.READY_FOR_APPROVAL or state.run is None:
         blocking = [{"rule_id": b.rule_id, "outcome": b.outcome.value} for b in state.blockers]
         raise PackageNotReady(
-            "Bloklayan və ya naməlum yoxlama var — paket təsdiqlənə bilməz.",
+            Msg(
+                "Bloklayan və ya naməlum yoxlama var — paket təsdiqlənə bilməz.",
+                "There is a blocking or unknown check — the package cannot be approved.",
+            ),
             {"status": state.status.value, "blocking": blocking},
         )
     approval = ApprovalRecord(
@@ -91,8 +95,12 @@ async def approve(
             session,
             pkg,
             [pkg.owner_id],
-            f"{pkg.invoice_number} {approver.full_name} tərəfindən təsdiqləndi — "
-            "paket göndərilməyə hazırdır.",
+            Msg(
+                f"{pkg.invoice_number} {approver.full_name} tərəfindən təsdiqləndi — "
+                "paket göndərilməyə hazırdır.",
+                f"{pkg.invoice_number} was approved by {approver.full_name} — "
+                "the package is ready to send.",
+            ),
         )
     pkg.problem_since = None
     await session.flush()  # the caller commits, with its idempotency record

@@ -5,6 +5,7 @@ from collections.abc import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg, tr
 from payproof.domain.rules.paths import INVOICE_PO
 from payproof.repositories import detail_reads as dr
 from payproof.repositories import package_reads as reads
@@ -18,6 +19,7 @@ from payproof.repositories.models import (
 from payproof.schemas import detail as d
 from payproof.schemas.auth import UserRef
 from payproof.schemas.packages import PackageRef
+from payproof.services.comparison import PO_LABEL
 from payproof.services.package_query import PackageState
 
 Ref = Callable[[uuid.UUID], UserRef]
@@ -25,9 +27,11 @@ Ref = Callable[[uuid.UUID], UserRef]
 
 def _label(path: str) -> str:
     if path == INVOICE_PO:
-        return "Sifariş № (PO)"
+        return tr(PO_LABEL)
     code = path.split("[", 1)[1].split("]", 1)[0]
-    return f"{code} miqdarı" if path.endswith(".qty") else f"{code} vahid qiyməti"
+    if path.endswith(".qty"):
+        return tr(Msg(f"{code} miqdarı", f"{code} quantity"))
+    return tr(Msg(f"{code} vahid qiyməti", f"{code} unit price"))
 
 
 def _rank(path: str, line_order: dict[str, int]) -> tuple[int, int, str]:

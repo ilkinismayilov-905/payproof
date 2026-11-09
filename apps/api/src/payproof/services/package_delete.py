@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, ErrorCode
+from payproof.core.i18n import Msg
 from payproof.domain.enums import PackageStatus, TaskStatus
 from payproof.repositories.models import ApprovalRecord, Customer, ResolutionTask
 from payproof.services.audit import record
@@ -18,7 +19,10 @@ _DELETABLE = {PackageStatus.PROCESSING, PackageStatus.NEEDS_REVIEW, PackageStatu
 
 class PackageNotDeletable(Conflict):
     code = ErrorCode.PACKAGE_NOT_DELETABLE
-    message = "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz."
+    message = Msg(
+        "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+        "An approved or ready-for-approval package cannot be deleted.",
+    )
 
 
 async def delete_package(
