@@ -70,3 +70,11 @@ def test_env_files_resolve_independent_of_cwd() -> None:
     assert isinstance(files, tuple)
     assert [p.name for p in files] == [".env", ".env"]
     assert (files[0].parent / "apps/api/pyproject.toml").exists()
+
+
+def test_empty_ai_values_mean_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AI_API_KEY", "")
+    monkeypatch.setenv("AI_MODEL", "")
+    s = Settings(_env_file=None)
+    assert s.ai_api_key is None
+    assert s.ai_model == "claude-opus-5-5"
