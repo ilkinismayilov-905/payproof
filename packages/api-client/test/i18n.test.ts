@@ -109,6 +109,7 @@ describe("login, shell and action texts", () => {
     );
   // Written for the web app (a11y labels, the dev-login hint) — not in the prototype.
   const webOnly = new Set([
+    "Prefly", // product renamed after the prototype (PayProof)
     "Demo rejimində parol tələb olunmur. Real versiyada şirkət hesabı ilə giriş və server tərəfində rol yoxlaması olacaq.",
     "Məzmuna keç",
     "Menyu",
