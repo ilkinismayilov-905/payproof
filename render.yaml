@@ -11,7 +11,7 @@ envVarGroups:
       - key: JWT_SECRET
         generateValue: true
       - key: AI_PROVIDER
-        value: mock # set to llm (and AI_API_KEY on both services) for real extraction
+        value: llm # Claude reads the files; needs AI_API_KEY on api + worker (else fields UNKNOWN)
       - key: AI_MODEL
         value: claude-sonnet-5-5
 
@@ -64,7 +64,7 @@ services:
       - key: NEXT_PUBLIC_API_MOCK
         value: "0"
       - key: NEXT_PUBLIC_DEMO_FILES
-        value: "1" # demo document sets; the API runs AI_PROVIDER=mock
+        value: "0" # demo sets are placeholder PDFs the AI cannot read; upload real files
       - key: NEXT_PUBLIC_API_URL
         sync: false # https://payproof-api-<id>.onrender.com (the API's public URL)
 
