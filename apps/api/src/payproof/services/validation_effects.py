@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg
 from payproof.domain.enums import CheckOutcome, PackageStatus, Role, TaskStatus
 from payproof.domain.format import format_money
 from payproof.domain.money import Money
@@ -69,4 +70,9 @@ async def status_changed(
         )
     )
     amount = f" · {format_money(total)}" if total else ""
-    await notify(session, pkg, approvers, f"{pkg.invoice_number} təsdiqinizi gözləyir{amount}")
+    amount_en = f" · {format_money(total, en=True)}" if total else ""
+    text = Msg(
+        f"{pkg.invoice_number} təsdiqinizi gözləyir{amount}",
+        f"{pkg.invoice_number} is waiting for your approval{amount_en}",
+    )
+    await notify(session, pkg, approvers, text)

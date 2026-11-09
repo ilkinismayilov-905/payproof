@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import NotFound
+from payproof.core.i18n import Msg
 from payproof.domain.enums import TaskStatus
 from payproof.repositories.models import InvoicePackage, ResolutionTask
 from payproof.services.audit import record
@@ -42,7 +43,9 @@ async def _open(session: AsyncSession, task_id: uuid.UUID) -> tuple[ResolutionTa
         raise NotFound  # also cancelled, or another company's
     pkg = await locked_package(session, task.package_id)
     if task.status == TaskStatus.RESOLVED:
-        raise TaskStatusNotAllowed("Həll edilmiş tapşırıq dəyişdirilə bilməz.")
+        raise TaskStatusNotAllowed(
+            Msg("Həll edilmiş tapşırıq dəyişdirilə bilməz.", "A resolved task cannot be changed.")
+        )
     return task, pkg
 
 
@@ -65,7 +68,10 @@ async def update_task(
     moves = patch.status is not None and patch.status != task.status
     if moves and NEXT.get(TaskStatus(task.status)) != patch.status:
         raise TaskStatusNotAllowed(
-            f"{task.status} → {patch.status} keçidi mümkün deyil.",
+            Msg(
+                f"{task.status} → {patch.status} keçidi mümkün deyil.",
+                f"The {task.status} → {patch.status} move is not allowed.",
+            ),
             {"from": task.status, "to": patch.status},
         )
     if patch.due_date is not None:
@@ -85,7 +91,10 @@ async def update_task(
         await _audit(session, actor_id, task, pkg, "task.updated",
                      f"{task.number}: {', '.join(changed)} dəyişdi")  # fmt: skip
     if role and patch.assignee_id and "assignee_id" in changed and patch.assignee_id != actor_id:
-        await notify(session, pkg, patch.assignee_id, role, f"Tapşırıq {task.number} sizə verildi")
+        text = Msg(
+            f"Tapşırıq {task.number} sizə verildi", f"Task {task.number} was assigned to you"
+        )
+        await notify(session, pkg, patch.assignee_id, role, text)
     if moves and patch.status == TaskStatus.IN_PROGRESS:
         task.status = TaskStatus.IN_PROGRESS
         await _audit(session, actor_id, task, pkg, "task.started", task.number)
@@ -94,8 +103,11 @@ async def update_task(
         await _audit(session, actor_id, task, pkg, "task.submitted", task.number)
         if pkg.owner_id != actor_id:
             owner_role = await assignee_role(session, pkg.company_id, pkg.owner_id)
-            text = f"{task.number} yenidən yoxlamaya göndərildi ({pkg.invoice_number})."
-            await notify(session, pkg, pkg.owner_id, owner_role, text)
+            sent = Msg(
+                f"{task.number} yenidən yoxlamaya göndərildi ({pkg.invoice_number}).",
+                f"{task.number} was submitted for recheck ({pkg.invoice_number}).",
+            )
+            await notify(session, pkg, pkg.owner_id, owner_role, sent)
         await revalidate(session, pkg)  # may resolve it right away
     await session.commit()
     return task

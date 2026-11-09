@@ -162,6 +162,7 @@ def _notification(i: int, n: Fixture) -> Notification:
         user_id=uid(n["user_id"]),
         package_id=uid(n["package_id"]) if n["package_id"] else None,
         text=n["text"],
+        text_en=n["text_en"],
         read_at=at if n["read"] else None,  # fixtures only say "read"
         created_at=at,
     )

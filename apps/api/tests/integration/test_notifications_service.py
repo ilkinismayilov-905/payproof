@@ -3,6 +3,7 @@ from typing import Any
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import InvoicePackage
 from payproof.seed.cli import seed
@@ -25,8 +26,10 @@ async def test_one_row_per_person_and_a_live_event_each(
     await seed(db)
     bind_tenant(db, COMPANY_ID)
     pkg = await db.get_one(InvoicePackage, uid("pkg_1038"))
-    rows = await notify(db, pkg, [uid("u2"), uid("u2"), uid("u1")], "INV-1038 təsdiqinizi gözləyir")
+    text = Msg("INV-1038 təsdiqinizi gözləyir", "INV-1038 is waiting for your approval")
+    rows = await notify(db, pkg, [uid("u2"), uid("u2"), uid("u1")], text)
     assert [n.user_id for n in rows] == [uid("u2"), uid("u1")]
+    assert {(n.text, n.text_en) for n in rows} == {(text.az, text.en)}
     assert [p["event_id"] for p in sent] == [str(n.id) for n in rows]
     for p in sent:
         assert_matches("LiveEvent", p)
