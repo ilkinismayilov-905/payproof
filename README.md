@@ -4,7 +4,7 @@
 
 PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi ilə tutuşdurur, ödənişi ləngidə bilən sənəd problemlərini mənbə sübutu ilə göstərir, düzəlişi məsul şəxsə yönləndirir və hazır paketi insan təsdiqindən sonra ixrac edir.
 
-**Status:** MVP (P0) implementasiyası başlayır. Bütün demo məlumatları sintetikdir.
+**Status:** MVP (P0) — demo hazırdır. Bütün demo məlumatları sintetikdir.
 
 ## Komponentlər
 | | Texnologiya | İstifadəçi |
@@ -26,6 +26,14 @@ PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi 
 - Port məşğuldursa `.env`-də `POSTGRES_PORT`, `MINIO_PORT`, `MINIO_CONSOLE_PORT`-u dəyişin və `DATABASE_URL` / `S3_ENDPOINT_URL`-u uyğunlaşdırın.
 
 `make demo` bütün stack-i konteynerlərdə qaldırır (postgres, minio, api, worker, web), miqrasiya və seed edir: veb http://localhost:3000, API http://localhost:8000/docs. Mobil tətbiq ayrı repo-dadır və öz README-si ilə `:3001`-də bu API-yə qoşulur. Real stack-də e2e: `make demo`, sonra `pnpm --filter web e2e:stack`.
+
+## Demo
+1. `make demo` (bir dəfə internetlə — image-lər qurulur; sonra internetsiz işləyir, `AI_PROVIDER=mock`).
+2. http://localhost:3000 → demo istifadəçi seçin: **Aygün Məmmədova** (operator), **Rəşad Əliyev** (təsdiqçi), **Kamran Babayev** (yalnız baxış).
+3. Ssenari: [`docs/product/demo-script.md`](docs/product/demo-script.md) — 13 addım (INV-1042: sifariş əlaqəsi → düzəliş → təsdiq → ixrac → audit), hazır cavablar və **Nə real, nə simulyasiyadır** cədvəli.
+4. Sıfırlama: istifadəçi menyusu → **Demo məlumatlarını sıfırla** (yalnız `ENV=dev`, < 3 s) və ya `make seed RESET=1`.
+
+Qısa: qayda mühərriki, versiya/təsdiq/ixrac məntiqi, audit, canlı yeniləmələr realdır; məlumatlar sintetikdir, çıxarış mock-dur (real Claude çıxarışı `AI_PROVIDER=llm` ilə mövcuddur), giriş demo istifadəçi seçimidir, bank/e-poçt/ERP inteqrasiyası yoxdur.
 
 ## Sənədlər
 - Məhsul: `docs/product/` (brif, prototip, komanda bələdçisi PDF)
