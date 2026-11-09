@@ -153,3 +153,80 @@ export const errorFallback: En<"errorFallback"> = {
   INTERNAL_ERROR: "An unexpected error occurred. Please try again shortly.",
   NETWORK_ERROR: "Could not reach the server. Check your internet connection.",
 };
+
+export const ui: En<"ui"> = {
+  loading: "Loading…",
+  retry: "Try again",
+  errorTitle: "Data could not be loaded",
+  emptyFiltered: "No results match the filter",
+  clearFilters: "Clear filters",
+  versionConflictTitle: "The package has been updated",
+  versionConflictBody: "Another user changed the package. Review the latest version and try again.",
+  forbidden: "You do not have permission for this action.",
+  approvedTitle: "The package is ready to send",
+  approvedHint: "This is not a payment guarantee — only document readiness.",
+  problemAmountHint:
+    "This amount is not a loss. Each package is counted once; AZN and USD are shown separately, without conversion.",
+  aiSuggestion: "AI suggestion · human confirmation required",
+  system: "System",
+};
+
+export const loginText: En<"loginText"> = {
+  brand: "Prefly",
+  tagline: "Invoice package readiness and approval",
+  demoBadge: "Demo with synthetic data",
+  pickTitle: "Choose a demo account",
+  submit: "Sign in",
+  noPasswordHint:
+    "No password is needed in demo mode. The real version will use company accounts with server-side role checks.",
+  signedInAs: (name) => `Signed in as ${name}.`,
+};
+
+export const shellText: En<"shellText"> = {
+  skipToContent: "Skip to content",
+  menu: "Menu",
+  navLabel: "Main navigation",
+  nav: {
+    overview: "Overview",
+    packages: "Invoice packages",
+    tasks: "Tasks",
+    rules: "Customer rules",
+    audit: "Audit history",
+  },
+  withOpenCount: (label, count) => `${label}, ${count} open`,
+  soonSection: "Coming soon (P1)",
+  soon: { erp: "ERP integration", contracts: "Contract extraction" },
+  soonTitle: (label) => `${label} — coming soon`,
+  soonToast: (label) => `${label} — coming soon. Not part of the MVP.`,
+  demoNote: "Demo with synthetic data. No real bank, email or ERP operations.",
+  collapse: "Collapse menu",
+  expand: "Expand menu",
+  collapseShort: "Collapse",
+  expandShort: "Expand",
+  openMenu: "Open menu",
+  demoTag: "Synthetic demo",
+  demoTagTitle: "All data is synthetic",
+  searchLabel: "Search packages",
+  searchPlaceholder: "Search invoice, customer or PO…",
+  notifications: "Notifications",
+  notificationsSoon: "Notifications coming soon",
+  switchAccount: "Switch demo account",
+  signOut: "Sign out",
+};
+
+export const actionLabel: En<"actionLabel"> = {
+  cancel: "Cancel",
+  delete: "Delete",
+  confirm: "Confirm",
+  close: "Close",
+  save: "Save",
+  send: "Send",
+  back: "Back",
+  refresh: "Refresh",
+};
+
+export const localeText: En<"localeText"> = {
+  label: "Language",
+  az: "Azərbaycanca",
+  en: "English",
+};
