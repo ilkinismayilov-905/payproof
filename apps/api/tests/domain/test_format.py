@@ -27,3 +27,15 @@ def test_money_like_the_prototype(amount: str, text: str) -> None:
 )
 def test_quantity_like_the_prototype(qty: str, text: str) -> None:
     assert format_qty(Decimal(qty)) == text
+
+
+@pytest.mark.parametrize(
+    ("amount", "qty", "money_text", "qty_text"),
+    [
+        ("12000.00", "1200", "12,000.00 AZN", "1,200"),
+        ("-1234567.89", "12.500", "−1,234,567.89 AZN", "12.5"),
+    ],
+)
+def test_english_grouping(amount: str, qty: str, money_text: str, qty_text: str) -> None:
+    assert format_money(Money(amount, Currency.AZN), en=True) == money_text
+    assert format_qty(Decimal(qty), en=True) == qty_text

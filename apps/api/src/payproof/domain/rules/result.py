@@ -7,6 +7,7 @@ from typing import Any
 
 from payproof.domain.enums import CheckOutcome
 from payproof.domain.snapshot import EvidenceRef, PackageSnapshot
+from payproof.domain.text import Msg
 
 
 class FixHint(StrEnum):
@@ -23,11 +24,19 @@ class FixHint(StrEnum):
 class CheckResult:
     rule_id: str
     outcome: CheckOutcome
-    message: str  # Azerbaijani; shows only values the rule computed or read
+    msg: Msg | str  # az + en; shows only values the rule computed or read
     evidence: tuple[EvidenceRef, ...] = ()
     cascade: bool = False  # blocked by another problem: blocks, but is not a primary problem
     fix_hint: FixHint | None = None
     data: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def message(self) -> str:
+        return str(self.msg)
+
+    @property
+    def message_en(self) -> str:
+        return self.msg.en if isinstance(self.msg, Msg) else self.msg
 
 
 def no_lines(rule_id: str, s: PackageSnapshot) -> CheckResult | None:
@@ -38,7 +47,10 @@ def no_lines(rule_id: str, s: PackageSnapshot) -> CheckResult | None:
     return CheckResult(
         rule_id,
         CheckOutcome.UNKNOWN,
-        "Faktura sətirləri oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+        Msg(
+            "Faktura sətirləri oxunmadı. Mənbəyə baxıb sahəni təsdiqləyin.",
+            "Invoice lines were not read. Check the source and confirm the field.",
+        ),
         fix_hint=FixHint.EDIT_FIELD,
     )
 
