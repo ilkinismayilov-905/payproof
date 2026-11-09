@@ -12,7 +12,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { shellText } from "@payproof/api-client/i18n";
+import { navText, shellText } from "@payproof/api-client/i18n";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
@@ -20,14 +20,15 @@ import { useMe } from "@/features/auth";
 import { useOpenTaskCount } from "@/features/tasks";
 import { cn } from "@/lib/utils";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+// functions, not constants: labels are read at render so they follow the language
+const nav = (): { href: string; label: string; icon: LucideIcon }[] => [
   { href: "/overview", label: shellText.nav.overview, icon: LayoutGrid },
   { href: "/packages", label: shellText.nav.packages, icon: Package },
   { href: "/tasks", label: shellText.nav.tasks, icon: ListChecks },
   { href: "/rules", label: shellText.nav.rules, icon: Scale },
   { href: "/audit", label: shellText.nav.audit, icon: History },
 ];
-const SOON: { label: string; icon: LucideIcon }[] = [
+const soon = (): { label: string; icon: LucideIcon }[] => [
   { label: shellText.soon.erp, icon: Plug },
   { label: shellText.soon.contracts, icon: Sparkles },
 ];
@@ -59,7 +60,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
       aria-label={shellText.navLabel}
       className="flex h-full flex-col gap-0.5 overflow-x-hidden overflow-y-auto p-3"
     >
-      {NAV.map(({ href, label: text, icon: Icon }) => {
+      {nav().map(({ href, label: text, icon: Icon }) => {
         const current = pathname === href || pathname.startsWith(`${href}/`);
         const count = href === "/tasks" ? openTasks : undefined;
         return (
@@ -86,7 +87,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
                 >
                   {count}
                 </span>{" "}
-                <span className="sr-only">açıq</span>
+                <span className="sr-only">{navText.open}</span>
               </>
             )}
           </Link>
@@ -101,7 +102,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate }: Props) {
       >
         {shellText.soonSection}
       </div>
-      {SOON.map(({ label: text, icon: Icon }) => (
+      {soon().map(({ label: text, icon: Icon }) => (
         <button
           key={text}
           type="button"

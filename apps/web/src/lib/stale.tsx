@@ -1,6 +1,6 @@
 "use client";
 
-import { actionLabel } from "@payproof/api-client/i18n";
+import { actionLabel, liveText } from "@payproof/api-client/i18n";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,12 @@ export function usePackageChangedSince(packageId: string, version: number): numb
   return seen?.packageId === packageId && seen.version > version ? seen.version : null;
 }
 
-// shortcut: text lives here until the shared i18n package gets live-update keys
 export function StaleBanner({ version, onRefresh }: { version: number; onRefresh: () => void }) {
   return (
     <Banner
       tone="warning"
       role="alert"
-      title={`Başqa istifadəçi paketi yenilədi (v${version}).`}
+      title={liveText.staleTitle(version)}
       actions={
         <Button variant="outline" onClick={onRefresh}>
           <RefreshCw aria-hidden />
@@ -48,7 +47,7 @@ export function StaleBanner({ version, onRefresh }: { version: number; onRefresh
         </Button>
       }
     >
-      Davam etmək üçün yenidən baxın.
+      {liveText.staleBody}
     </Banner>
   );
 }

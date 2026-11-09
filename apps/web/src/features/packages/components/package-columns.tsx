@@ -1,5 +1,5 @@
 import type { Schemas } from "@payproof/api-client";
-import { ruleLabel } from "@payproof/api-client/i18n";
+import { packagesText, ruleLabel } from "@payproof/api-client/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
@@ -9,12 +9,14 @@ import { PackageStatusBadge } from "@/components/status/status-badges";
 type Item = Schemas["PackageListItem"];
 const sortable = { enableSorting: true } as const; // ids below are the API `sort` keys
 
-const poNote = (p: Item) => p.po_ref ?? (p.po_unreadable ? "PO oxunmadı" : "PO yoxdur");
+const t = () => packagesText.columns;
+const poNote = (p: Item) => p.po_ref ?? (p.po_unreadable ? t().poUnreadable : t().poMissing);
 
-export const packageColumns: ColumnDef<Item>[] = [
+/** A function, not a constant: headers are read in the current language at render. */
+export const packageColumns = (): ColumnDef<Item>[] => [
   {
     id: "invoice_number",
-    header: "Faktura №",
+    header: t().invoice,
     ...sortable,
     cell: ({ row: { original: p } }) => (
       <>
@@ -22,23 +24,28 @@ export const packageColumns: ColumnDef<Item>[] = [
           href={`/packages/${p.id}`}
           className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
         >
-          {p.invoice_number ?? "Emal olunur…"}
+          {p.invoice_number ?? t().processing}
         </Link>
         <div className="text-text-3 text-xs">{`v${p.version} · ${poNote(p)}`}</div>
       </>
     ),
   },
-  { id: "customer", header: "Müştəri", ...sortable, cell: ({ row }) => row.original.customer.name },
+  {
+    id: "customer",
+    header: t().customer,
+    ...sortable,
+    cell: ({ row }) => row.original.customer.name,
+  },
   {
     id: "invoice_date",
-    header: "Tarix",
+    header: t().date,
     ...sortable,
     cell: ({ row }) =>
       row.original.invoice_date && <DateTime value={row.original.invoice_date} format="date" />,
   },
   {
     id: "total",
-    header: "Məbləğ",
+    header: t().amount,
     ...sortable,
     meta: { align: "right" },
     cell: ({ row }) =>
@@ -46,13 +53,13 @@ export const packageColumns: ColumnDef<Item>[] = [
   },
   {
     id: "status",
-    header: "Vəziyyət",
+    header: t().status,
     ...sortable,
     cell: ({ row }) => <PackageStatusBadge status={row.original.status} />,
   },
   {
     id: "blocking",
-    header: "Bloklayan",
+    header: t().blocking,
     ...sortable,
     cell: ({ row: { original: p } }) =>
       p.blocking.length ? (
@@ -62,7 +69,9 @@ export const packageColumns: ColumnDef<Item>[] = [
         >
           <TriangleAlert aria-hidden className="size-[15px]" />
           {p.blocking.length}
-          <span className="sr-only">{` bloklayan: ${p.blocking.map((b) => b.rule_id).join(", ")}`}</span>
+          <span className="sr-only">
+            {t().blockingSr(p.blocking.map((b) => b.rule_id).join(", "))}
+          </span>
         </span>
       ) : (
         <span className="text-text-3">—</span>
@@ -70,13 +79,13 @@ export const packageColumns: ColumnDef<Item>[] = [
   },
   {
     id: "owner",
-    header: "Məsul şəxs",
+    header: t().owner,
     ...sortable,
     cell: ({ row }) => <span className="text-sm">{row.original.owner.full_name}</span>,
   },
   {
     id: "updated_at",
-    header: "Son yenilənmə",
+    header: t().updated,
     ...sortable,
     cell: ({ row }) => <DateTime value={row.original.updated_at} className="text-text-3 text-sm" />,
   },

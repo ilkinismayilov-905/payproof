@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
+import { actionLabel, approvalText as t, documentTypeLabel } from "@payproof/api-client/i18n";
 import { Download, Lock } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState, type FormEvent } from "react";
@@ -52,16 +52,15 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
       },
       {
         onSuccess: ({ export: record, download }) => {
-          const done = `${pkg.invoice_number} v${record.package_version} ixrac edildi.`;
+          const done = t.exported(pkg.invoice_number, record.package_version);
           onOpenChange(false);
           // the export exists either way; a failed download can be repeated from "Manifesti yenidən yüklə"
           saveFile(
             `Prefly_${pkg.invoice_number}_v${record.package_version}.zip`,
             download.url,
           ).then(
-            () => toast.success(`${done} Manifest yükləndi.`),
-            () =>
-              toast.warning(`${done} Fayl yüklənmədi — “Manifesti yenidən yüklə” ilə təkrarlayın.`),
+            () => toast.success(`${done} ${t.manifestSaved}`),
+            () => toast.warning(`${done} ${t.manifestFailed}`),
           );
         },
         onError: (error) => error.code === "VERSION_CONFLICT" && onConflict(),
@@ -79,9 +78,11 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number}: ixrac paketi`}</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">
+                {t.exportTitle(pkg.invoice_number)}
+              </Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
-                Müştəriyə göstəriləcək sənədləri seçin. Göndərmə Prefly-dan kənarda aparılır.
+                {t.exportDescription}
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
@@ -91,15 +92,9 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                   onRefresh={() => void rebind().then((latest) => setPicked(current(latest)))}
                 />
               )}
-              {!invoice && (
-                <Banner
-                  tone="danger"
-                  role="alert"
-                  title="Paketdə faktura yoxdur — ixrac mümkün deyil."
-                />
-              )}
+              {!invoice && <Banner tone="danger" role="alert" title={t.noInvoice} />}
               <fieldset className="border-border rounded-md border">
-                <legend className="sr-only">Sənədlər</legend>
+                <legend className="sr-only">{t.documents}</legend>
                 {pkg.documents.map((d) => {
                   const invoice = d.type === "invoice";
                   return (
@@ -117,18 +112,15 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                       <span>
                         <b className="text-sm">{`${documentTypeLabel[d.type]} · v${d.current.version_no}`}</b>
                         <span className="text-text-3 block text-xs break-all">
-                          {invoice
-                            ? `${d.current.file_name} · təsdiqlənmiş versiya, məcburidir`
-                            : d.current.file_name}
+                          {invoice ? t.invoiceMandatory(d.current.file_name) : d.current.file_name}
                         </span>
                       </span>
                     </label>
                   );
                 })}
               </fieldset>
-              <Banner tone="neutral" icon={Lock} title="Daxili məlumatlar paketə daxil deyil">
-                Daxili AI izahları, əməkdaş şərhləri və audit qeydləri xarici paketə avtomatik əlavə
-                olunmur. Daxili yoxlama hesabatı ayrıca yüklənə bilər.
+              <Banner tone="neutral" icon={Lock} title={t.internalTitle}>
+                {t.internalBody}
               </Banner>
             </div>
             <div className="border-border flex flex-wrap justify-end gap-2 border-t px-6 py-4">
@@ -143,7 +135,7 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
                 aria-disabled={exp.isPending || Boolean(newer) || !invoice}
               >
                 <Download aria-hidden />
-                {exp.isPending ? "İxrac olunur…" : "İxrac et və manifesti yüklə"}
+                {exp.isPending ? t.exporting : t.exportSubmit}
               </Button>
             </div>
           </form>

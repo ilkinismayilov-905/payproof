@@ -1,6 +1,6 @@
 "use client";
 
-import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
+import { actionLabel, documentTypeLabel, packagesText } from "@payproof/api-client/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -53,10 +53,11 @@ export function NewPackageDialog({
     },
   });
 
+  const t = packagesText.dialog;
   const errors = {
-    customer: customer ? null : "Müştərini seçin.",
-    owner: ownerId ? null : "Məsul şəxsi seçin.",
-    invoice: files.invoice ? null : "Faktura faylı məcburidir.",
+    customer: customer ? null : t.customerRequired,
+    owner: ownerId ? null : t.ownerRequired,
+    invoice: files.invoice ? null : t.invoiceRequired,
   };
   const show = (e: string | null) => (shown ? e : null);
   const change = (next: Partial<Record<Slot, File>>) => {
@@ -78,12 +79,11 @@ export function NewPackageDialog({
       },
       {
         onSuccess: ({ accepted, failed }) => {
-          if (!accepted.package_id)
-            return setRefused(failed?.error?.message ?? "Paket yaradılmadı.");
+          if (!accepted.package_id) return setRefused(failed?.error?.message ?? t.notCreated);
           const label = files.invoice!.name.replace(/\.[^.]+$/, "");
           onOpenChange(false);
           router.push(`/packages/${accepted.package_id}`);
-          toast.info(`${label} yaradıldı, sənədlər emal olunur…`);
+          toast.info(t.created(label));
           void follow(client, accepted.job_id, accepted.package_id, label);
         },
       },
@@ -100,9 +100,9 @@ export function NewPackageDialog({
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">Yeni faktura paketi</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">{t.title}</Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
-                Müştərini və sənəd dəstini seçin. Sistem faylları emal edib sahələri çıxaracaq.
+                {t.description}
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
@@ -115,7 +115,7 @@ export function NewPackageDialog({
                   }}
                 />
               )}
-              <Field label="Müştəri" error={show(errors.customer)}>
+              <Field label={t.customer} error={show(errors.customer)}>
                 {(id, d) => (
                   <select
                     id={id}
@@ -125,7 +125,7 @@ export function NewPackageDialog({
                     aria-describedby={d}
                     className={input}
                   >
-                    <option value="">Seçin…</option>
+                    <option value="">{t.choose}</option>
                     {customers.data?.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -139,8 +139,8 @@ export function NewPackageDialog({
                   key={slot}
                   label={
                     slot === "invoice"
-                      ? `${documentTypeLabel[slot]} (məcburi)`
-                      : `${documentTypeLabel[slot]} (istəyə bağlı)`
+                      ? t.required(documentTypeLabel[slot])
+                      : t.optional(documentTypeLabel[slot])
                   }
                   error={slot === "invoice" ? show(errors.invoice) : null}
                   hint={files[slot]?.name}
@@ -160,7 +160,7 @@ export function NewPackageDialog({
                   )}
                 </Field>
               ))}
-              <Field label="Məsul şəxs" error={show(errors.owner)}>
+              <Field label={t.owner} error={show(errors.owner)}>
                 {(id, d) => (
                   <select
                     id={id}
@@ -170,7 +170,7 @@ export function NewPackageDialog({
                     aria-describedby={d}
                     className={input}
                   >
-                    <option value="">Seçin…</option>
+                    <option value="">{t.choose}</option>
                     {users.data?.map((u) => (
                       <option key={u.id} value={u.id}>{`${u.full_name} — ${u.title}`}</option>
                     ))}
@@ -179,7 +179,7 @@ export function NewPackageDialog({
               </Field>
               {refused && (
                 <Banner tone="warning" role="alert" title={refused}>
-                  Təkrar paket yaradılmadı.
+                  {t.duplicate}
                 </Banner>
               )}
             </div>
@@ -191,7 +191,7 @@ export function NewPackageDialog({
               </Dialog.Close>
               <Button type="submit" size="lg" aria-disabled={create.isPending}>
                 <Upload aria-hidden />
-                {create.isPending ? "Göndərilir…" : "Paketi yarat və emal et"}
+                {create.isPending ? t.sending : t.submit}
               </Button>
             </div>
           </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ui } from "@payproof/api-client/i18n";
+import { auditText as t, ui } from "@payproof/api-client/i18n";
 import { useMutation } from "@tanstack/react-query";
 import { Download, History } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +34,7 @@ export function AuditScreen() {
       // BOM: spreadsheet apps then read the Azerbaijani letters as UTF-8
       const text = await auditCsv(filter);
       await saveFile("Prefly_audit.csv", new Blob(["﻿", text], { type: "text/csv" }));
-      toast.success("Audit jurnalı CSV kimi yükləndi.");
+      toast.success(t.csvDone);
     },
   });
   const items = audit.data?.items;
@@ -42,8 +42,8 @@ export function AuditScreen() {
   return (
     <>
       <PageHeader
-        title="Audit tarixçəsi"
-        description="Kim, nə vaxt, hansı versiyada, nəyi dəyişdi. Daxili qeydlər xarici ixrac paketinə daxil edilmir."
+        title={t.title}
+        description={t.description}
         actions={
           <Button
             variant="outline"
@@ -52,28 +52,28 @@ export function AuditScreen() {
             onClick={() => csv.isPending || csv.mutate()}
           >
             <Download aria-hidden />
-            CSV yüklə
+            {t.csv}
           </Button>
         }
       />
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
         <div className="border-border flex flex-wrap items-center gap-3 border-b p-3">
           <SearchBox
-            label="Auditdə axtar"
-            placeholder="Hərəkət, faktura və ya təfərrüat axtar"
+            label={t.searchLabel}
+            placeholder={t.searchPlaceholder}
             value={filter.q}
             onSearch={(q) => go({ ...filter, q }, "replace")}
             className="min-w-60 grow"
           />
           <label className="text-sm">
-            <span className="sr-only">İstifadəçi</span>
+            <span className="sr-only">{t.user}</span>
             <select
               value={filter.actor}
               onChange={(e) => go({ ...filter, actor: e.target.value })}
               className="border-border-strong bg-surface focus-visible:ring-ring rounded-md border px-3 py-1.5 outline-none focus-visible:ring-2 pointer-coarse:min-h-11"
             >
-              <option value="">İstifadəçi: hamısı</option>
-              <option value="system">Sistem</option>
+              <option value="">{t.userAll}</option>
+              <option value="system">{ui.system}</option>
               {users.data?.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.full_name}
@@ -104,20 +104,16 @@ export function AuditScreen() {
             className={cn(audit.isPlaceholderData && "opacity-60")}
           >
             <DataTable
-              caption="Audit hadisələri"
-              columns={auditColumns}
+              caption={t.caption}
+              columns={auditColumns()}
               data={items}
               getRowId={(e) => e.id}
               empty={
-                <EmptyState
-                  icon={History}
-                  title="Uyğun hadisə yoxdur"
-                  description="Axtarış sözünü dəyişin və ya istifadəçi filtrini təmizləyin."
-                />
+                <EmptyState icon={History} title={t.emptyTitle} description={t.emptyDescription} />
               }
             />
             <p className="text-text-3 border-border border-t px-4 py-2 text-xs">
-              {`${items.length} hadisə${audit.data?.next_cursor ? " · ən son 100-ü göstərilir (tam jurnal CSV-də)" : ""} · append-only jurnal, redaktə edilmir`}
+              {t.footer(items.length, Boolean(audit.data?.next_cursor))}
             </p>
           </div>
         )}

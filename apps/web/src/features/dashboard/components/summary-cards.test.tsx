@@ -1,12 +1,13 @@
-import { ui } from "@payproof/api-client/i18n";
+import { setLocale, ui } from "@payproof/api-client/i18n";
 import { mockIds } from "@payproof/mocks";
 import { screen, within } from "@testing-library/react";
-import { beforeEach, expect, test } from "vitest";
+import { afterEach, beforeEach, expect, test } from "vitest";
 import { setToken } from "@/lib/auth";
 import { renderWithQuery } from "@/test/render";
 import { OverviewScreen } from "./overview-screen";
 
 beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
+afterEach(() => setLocale("az"));
 const card = (name: string) => screen.findByRole("region", { name });
 
 test("open problem amounts: one row per currency, never summed, with the 'not a loss' note", async () => {
@@ -39,4 +40,18 @@ test("problem age: average, the longest package, and the 'not measured yet' note
   );
   expect(within(age).getByText(/— 5 gün/)).toBeInTheDocument();
   expect(within(age).getByText(/vaxt qənaəti hələ ölçülməyib/)).toBeInTheDocument();
+});
+
+test("in English: the same cards with English titles, units and decimal point", async () => {
+  setLocale("en");
+  renderWithQuery(<OverviewScreen />);
+  expect(await screen.findByRole("heading", { level: 1, name: "Overview" })).toBeInTheDocument();
+  const amounts = await card("Invoice amount with open problems");
+  expect(within(amounts).getByText("AZN · 7 packages")).toBeInTheDocument();
+  expect(
+    within(await card("Most frequent problem")).getByText("3 / 9 resolved"),
+  ).toBeInTheDocument();
+  const age = await card("Time spent in problem");
+  expect(within(age).getByText("3.0 days")).toBeInTheDocument();
+  expect(within(age).getByText(/— 5 days/)).toBeInTheDocument();
 });

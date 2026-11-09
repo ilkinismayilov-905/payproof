@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateLong } from "@payproof/api-client/format";
-import { ui } from "@payproof/api-client/i18n";
+import { dashboardText, ui } from "@payproof/api-client/i18n";
 import { Package } from "lucide-react";
 import Link from "next/link";
 import { useMe } from "@/features/auth";
@@ -24,17 +24,16 @@ export function OverviewScreen() {
   return (
     <div className="@container flex flex-col gap-4">
       <PageHeader
-        title="İcmal"
+        title={dashboardText.title}
         description={
-          d &&
-          `${company} · ${formatDateLong(d.as_of)} vəziyyəti · ${d.package_count} unikal faktura paketi`
+          d && dashboardText.description(company ?? "", formatDateLong(d.as_of), d.package_count)
         }
         actions={
           <>
             <Button asChild variant="outline" size="lg">
               <Link href="/packages">
                 <Package aria-hidden />
-                Paketlərə bax
+                {dashboardText.viewPackages}
               </Link>
             </Button>
             <NewPackageButton />

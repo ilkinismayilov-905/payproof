@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { ui } from "@payproof/api-client/i18n";
+import { activityText as t, ui } from "@payproof/api-client/i18n";
 import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { DateTime } from "@/components/format";
@@ -38,7 +38,7 @@ export function ActivityList({ events }: { events: Schemas["AuditEvent"][] }) {
       </ol>
       {events.length > SHOWN && (
         <Button variant="link" className="px-0" onClick={() => setAll(!all)}>
-          {all ? "Daha az göstər" : `Bütün ${events.length} hadisəni göstər`}
+          {all ? t.showLess : t.showAll(events.length)}
         </Button>
       )}
     </>
@@ -62,7 +62,7 @@ export function ActivityPanel({
   const [confirming, setConfirming] = useState(false);
   return (
     <Panel
-      title="Fəaliyyət tarixçəsi"
+      title={t.title}
       actions={
         <div className="flex flex-wrap gap-1.5">
           <Button
@@ -72,20 +72,20 @@ export function ActivityPanel({
             onClick={() => report.pending || report.onClick()}
           >
             <Download aria-hidden />
-            Daxili yoxlama hesabatı
+            {t.report}
           </Button>
           {onDelete && (
             <>
               <Button variant="outline" size="sm" onClick={() => setConfirming(true)}>
                 <Trash2 aria-hidden />
-                Paketi sil
+                {t.delete}
               </Button>
               <ConfirmDialog
                 open={confirming}
                 onOpenChange={setConfirming}
-                title={`${invoiceNumber} paketini silmək?`}
-                description={`${invoiceNumber} paketi və ona bağlı açıq tapşırıqlar silinəcək. Audit qeydi saxlanılır. Bu əməliyyat geri qaytarılmır.`}
-                confirmLabel="Bəli, sil"
+                title={t.deleteTitle(invoiceNumber)}
+                description={t.deleteBody(invoiceNumber)}
+                confirmLabel={t.confirmDelete}
                 onConfirm={onDelete}
               />
             </>

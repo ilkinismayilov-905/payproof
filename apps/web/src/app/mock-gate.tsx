@@ -1,6 +1,6 @@
 "use client";
 
-import { ui } from "@payproof/api-client/i18n";
+import { commonText, ui } from "@payproof/api-client/i18n";
 import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { startMocking } from "@/lib/msw";
@@ -24,9 +24,7 @@ export default function MockGate({ children }: { children: ReactNode }) {
       <main role="alert" className="grid min-h-dvh place-items-center p-6 text-center">
         <div className="flex flex-col items-center gap-3">
           {/* dev-only screen: the worker file comes from `pnpm dev` (predev) */}
-          <p className="text-danger">
-            Demo API (MSW) işə düşmədi: public/mockServiceWorker.js yoxdur.
-          </p>
+          <p className="text-danger">{commonText.mockFailed}</p>
           <Button variant="outline" onClick={() => setState("starting")}>
             {ui.retry}
           </Button>

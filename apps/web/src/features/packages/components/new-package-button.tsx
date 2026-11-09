@@ -1,5 +1,6 @@
 "use client";
 
+import { packagesText } from "@payproof/api-client/i18n";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export function NewPackageButton() {
     <>
       <Button size="lg" onClick={() => setOpen(true)}>
         <Plus aria-hidden />
-        Yeni paket
+        {packagesText.newPackage}
       </Button>
       {open && <NewPackageDialog open onOpenChange={setOpen} />}
     </>

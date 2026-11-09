@@ -1,9 +1,8 @@
 import type { Schemas } from "@payproof/api-client";
-import { actionLabel } from "@payproof/api-client/i18n";
+import { actionLabel, detailText as t } from "@payproof/api-client/i18n";
 import { Check, Download, FileText, Lock, RefreshCw, Upload, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { detailText as t } from "../texts";
 
 // Inert, not `disabled`: it stays focusable, so the reason (title → description) can be read.
 export const Inert = ({
@@ -118,7 +117,7 @@ export function PackageActions({
           aria-hidden
           className={recheck.pending ? "motion-safe:animate-spin" : undefined}
         />
-        {recheck.pending ? "Yoxlanılır…" : t.recheck}
+        {recheck.pending ? t.rechecking : t.recheck}
       </Button>
       {onUpload ? (
         <Button variant="outline" size="lg" onClick={onUpload}>

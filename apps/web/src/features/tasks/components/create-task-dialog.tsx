@@ -2,7 +2,7 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { formatDate } from "@payproof/api-client/format";
-import { actionLabel } from "@payproof/api-client/i18n";
+import { actionLabel, tasksText as t } from "@payproof/api-client/i18n";
 import { Plus } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState, type FormEvent } from "react";
@@ -38,9 +38,9 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
   const [shown, setShown] = useState(false);
 
   const errors = {
-    who: who ? null : "Məsul şəxsi seçin.",
-    step: step.trim().length >= 10 ? null : "Addımı ən azı 10 simvolla təsvir edin.",
-    due: !due ? "Son tarixi seçin." : due < today ? "Son tarix keçmişdə ola bilməz." : null,
+    who: who ? null : t.errWho,
+    step: step.trim().length >= 10 ? null : t.errStep,
+    due: !due ? t.errDue : due < today ? t.errDuePast : null,
   };
   const show = (e: string | null) => (shown ? e : null);
 
@@ -57,11 +57,9 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
         ...(comment.trim() && { comment: comment.trim() }),
       },
       {
-        onSuccess: (t) => {
+        onSuccess: (task) => {
           onOpenChange(false);
-          toast.success(
-            `${t.number} yaradıldı: ${t.assignee.full_name}, son tarix ${formatDate(t.due_date)}.`,
-          );
+          toast.success(t.created(task.number, task.assignee.full_name, formatDate(task.due_date)));
         },
         // someone else was faster: the card now shows their task, the form has nothing left to do
         onError: (error) => {
@@ -81,7 +79,7 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">Düzəliş tapşırığı yarat</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">{t.dialogTitle}</Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
                 {`${pkg.invoice_number} · ${check.rule_id} ${check.title}`}
               </Dialog.Description>
@@ -91,7 +89,7 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
                 <CheckOutcomeBadge status={check.outcome} />
                 <p className="mt-1.5">{check.message}</p>
               </div>
-              <Field label="Məsul şəxs" error={show(errors.who)}>
+              <Field label={t.assignee} error={show(errors.who)}>
                 {(id, d) => (
                   <select
                     id={id}
@@ -101,14 +99,14 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
                     aria-describedby={d}
                     className={input}
                   >
-                    <option value="">Seçin…</option>
+                    <option value="">{t.pick}</option>
                     {users.data?.map((u) => (
                       <option key={u.id} value={u.id}>{`${u.full_name} — ${u.title}`}</option>
                     ))}
                   </select>
                 )}
               </Field>
-              <Field label="Tələb olunan addım" error={show(errors.step)}>
+              <Field label={t.col.step} error={show(errors.step)}>
                 {(id, d) => (
                   <textarea
                     id={id}
@@ -122,11 +120,7 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
                   />
                 )}
               </Field>
-              <Field
-                label="Son tarix"
-                error={show(errors.due)}
-                hint="Bu, əməliyyat tapşırığının tarixidir — fakturanın ödəmə tarixi deyil."
-              >
+              <Field label={t.col.due} error={show(errors.due)} hint={t.dueHint}>
                 {(id, d) => (
                   <input
                     id={id}
@@ -140,7 +134,7 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
                   />
                 )}
               </Field>
-              <Field label="Şərh (istəyə bağlı, daxili)">
+              <Field label={t.commentLabel}>
                 {(id) => (
                   <input
                     id={id}
@@ -161,7 +155,7 @@ export function CreateTaskDialog({ pkg, check, open, onOpenChange }: Props) {
               </Dialog.Close>
               <Button type="submit" size="lg" aria-disabled={create.isPending}>
                 <Plus aria-hidden />
-                {create.isPending ? "Yaradılır…" : "Tapşırığı yarat"}
+                {create.isPending ? t.creating : t.create}
               </Button>
             </div>
           </form>

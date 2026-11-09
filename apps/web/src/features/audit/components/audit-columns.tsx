@@ -1,15 +1,16 @@
 import type { Schemas } from "@payproof/api-client";
+import { auditText, ui } from "@payproof/api-client/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { DateTime } from "@/components/format";
 
 type Event = Schemas["AuditEvent"];
 
-/** Prototype `auditRows`: time, who, what, which package version. */
-export const auditColumns: ColumnDef<Event>[] = [
+/** Prototype `auditRows`: time, who, what, which package version. A function: headers follow the language. */
+export const auditColumns = (): ColumnDef<Event>[] => [
   {
     id: "time",
-    header: "Vaxt",
+    header: auditText.col.time,
     cell: ({ row }) => (
       <span className="text-sm whitespace-nowrap tabular-nums">
         <DateTime value={row.original.created_at} format="datetime" />
@@ -18,7 +19,7 @@ export const auditColumns: ColumnDef<Event>[] = [
   },
   {
     id: "actor",
-    header: "İstifadəçi",
+    header: auditText.col.user,
     cell: ({ row: { original: e } }) =>
       e.actor ? (
         <>
@@ -26,12 +27,12 @@ export const auditColumns: ColumnDef<Event>[] = [
           <div className="text-text-3 text-xs">{e.actor.title}</div>
         </>
       ) : (
-        <span className="text-text-2">Sistem</span>
+        <span className="text-text-2">{ui.system}</span>
       ),
   },
   {
     id: "event",
-    header: "Hadisə",
+    header: auditText.col.event,
     cell: ({ row: { original: e } }) => (
       <div className="max-w-[420px] text-sm">
         {e.message}
@@ -41,7 +42,7 @@ export const auditColumns: ColumnDef<Event>[] = [
   },
   {
     id: "package",
-    header: "Paket",
+    header: auditText.col.package,
     cell: ({ row: { original: e } }) =>
       e.package ? (
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -49,7 +50,7 @@ export const auditColumns: ColumnDef<Event>[] = [
             href={`/packages/${e.package.id}`}
             className="font-semibold hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center"
           >
-            {e.package.invoice_number ?? "Paket"}
+            {e.package.invoice_number ?? auditText.packageFallback}
           </Link>
           {e.package_version && (
             <span className="bg-surface-2 border-border rounded-sm border px-1.5 text-[11px] font-bold">{`v${e.package_version}`}</span>
