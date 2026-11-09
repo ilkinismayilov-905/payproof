@@ -2,6 +2,7 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { formatDateTime } from "@payproof/api-client/format";
+import { actionLabel, tasksText } from "@payproof/api-client/i18n";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,13 +15,10 @@ type Task = Schemas["Task"];
 
 /** What a submitted task came back as: the system resolves it only when its rule passes. */
 function submittedToast(before: Task, after: Task) {
-  if (after.status === "RESOLVED")
-    return toast.success(`${after.number}: yoxlama keçdi — tapşırıq həll edildi.`);
+  if (after.status === "RESOLVED") return toast.success(tasksText.resolvedToast(after.number));
   if (after.status === "IN_PROGRESS")
-    return toast.warning(
-      `${after.number}: ${before.rule_id} yoxlaması hələ keçmir — tapşırıq icraya qaytarıldı. Əvvəl sənədi düzəldin.`,
-    );
-  toast.info(`${after.number} yenidən yoxlamaya göndərildi.`);
+    return toast.warning(tasksText.stillFailing(after.number, before.rule_id));
+  toast.info(tasksText.sentForRecheck(after.number));
 }
 
 /**
@@ -36,14 +34,14 @@ export function TaskActions({ task, canManage }: { task: Task; canManage: boolea
   if (task.status === "RESOLVED")
     return (
       <span className="text-text-3 text-xs">
-        {task.resolved_at && `Həll edildi ${formatDateTime(task.resolved_at)}`}
+        {task.resolved_at && tasksText.resolvedAt(formatDateTime(task.resolved_at))}
       </span>
     );
   const next =
     task.status === "OPEN"
-      ? { status: "IN_PROGRESS" as const, label: "İcraya götür" }
+      ? { status: "IN_PROGRESS" as const, label: tasksText.take }
       : task.status === "IN_PROGRESS"
-        ? { status: "SUBMITTED_FOR_RECHECK" as const, label: "Yoxlamaya göndər" }
+        ? { status: "SUBMITTED_FOR_RECHECK" as const, label: tasksText.submit }
         : null;
   return (
     <div className="flex items-center justify-end gap-1.5">
@@ -60,8 +58,7 @@ export function TaskActions({ task, canManage }: { task: Task; canManage: boolea
                 {
                   onSuccess: (after) => {
                     keepFocusOnPage(); // the row may have left the current tab
-                    if (next.status === "IN_PROGRESS")
-                      toast.info(`${after.number} icraya götürüldü.`);
+                    if (next.status === "IN_PROGRESS") toast.info(tasksText.taken(after.number));
                     else submittedToast(task, after);
                   },
                 },
@@ -72,15 +69,15 @@ export function TaskActions({ task, canManage }: { task: Task; canManage: boolea
           </Button>
         )
       ) : (
-        <span className="text-text-3 text-xs">Yoxlama gözlənilir</span>
+        <span className="text-text-3 text-xs">{tasksText.awaitingCheck}</span>
       )}
       {canManage && (
         <>
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`${task.number} tapşırığını ləğv et`}
-            title="Ləğv et"
+            aria-label={tasksText.cancelAria(task.number)}
+            title={actionLabel.cancel}
             onClick={() => setConfirming(true)}
           >
             <Trash2 aria-hidden />
@@ -88,12 +85,12 @@ export function TaskActions({ task, canManage }: { task: Task; canManage: boolea
           <ConfirmDialog
             open={confirming}
             onOpenChange={setConfirming}
-            title={`${task.number} tapşırığını ləğv etmək?`}
-            description="Tapşırıq siyahıdan silinəcək; ləğv edilməsi audit jurnalına yazılacaq. Yoxlama nəticəsi dəyişmir."
-            confirmLabel="Bəli, ləğv et"
+            title={tasksText.cancelTitle(task.number)}
+            description={tasksText.cancelDescription}
+            confirmLabel={tasksText.cancelConfirm}
             onConfirm={async () => {
               await cancel.mutateAsync(task);
-              toast.success(`${task.number} ləğv edildi.`);
+              toast.success(tasksText.cancelled(task.number));
             }}
           />
         </>
