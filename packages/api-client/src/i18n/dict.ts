@@ -19,4 +19,10 @@ export function live<T extends object>(byLocale: { az: T; en: Dict<T> }): T {
 }
 
 /** A feature's texts in both languages side by side: `export const fooText = defineTexts({ az: {…}, en: {…} })`. */
-export const defineTexts = <T extends object>(texts: { az: T; en: Dict<T> }): T => live(texts);
+export function defineTexts<T extends object>(texts: { az: T; en: Dict<T> }): T {
+  definedTexts.push(texts);
+  return live(texts);
+}
+
+/** Every `defineTexts` pair, for the az/en key-parity test. */
+export const definedTexts: { az: object; en: object }[] = [];
