@@ -6,6 +6,7 @@ import { slugOf } from "../ids";
 import type { MockDb } from "../store";
 import { task } from "../views/records";
 import {
+  badRequest,
   body,
   currentUser,
   json,
@@ -17,13 +18,20 @@ import {
   type Ctx,
 } from "./http";
 
-const bad = (field: string, m: string) =>
-  new MockError("VALIDATION_ERROR", "Sorğuda xəta var.", 422, { fields: { [field]: m } });
+const bad = (field: string, m: string, en = "The request is invalid.") =>
+  new MockError("VALIDATION_ERROR", { az: "Sorğuda xəta var.", en }, 422, {
+    fields: { [field]: m },
+  });
 
 function assignee(db: MockDb, uuid: unknown): string {
   const slug = typeof uuid === "string" ? slugOf.user(uuid) : null;
   const u = slug ? db.user(slug) : undefined;
-  if (!u || u.role === "readonly") throw bad("assignee_id", "Məsul şəxs tapılmadı.");
+  if (!u || u.role === "readonly")
+    throw bad(
+      "assignee_id",
+      "Məsul şəxs tapılmadı.",
+      "The responsible person is not a company member.", // API: NOT_A_MEMBER
+    );
   return u.id;
 }
 const date = (v: unknown, field: string) => {
@@ -72,7 +80,8 @@ export const taskHandlers = (ctx: Ctx) => [
       requirePermission(user, "MANAGE_TASKS");
       const t = taskOf(db, params.task_id);
       const b = await body(request);
-      if (!Object.keys(b).length) throw bad("body", "Ən azı bir sahə göndərin.");
+      if (!Object.keys(b).length)
+        throw bad("body", "Ən azı bir sahə göndərin.", "No changes were sent.");
       const patch: TaskPatch = {};
       if (b.status !== undefined) {
         if (

@@ -1,6 +1,7 @@
 // Contract serializers for users, customers and records. Return types are the generated contract types.
 import type { Schemas } from "@payproof/api-client";
 import company from "../../../../fixtures/company.json";
+import { tr } from "../i18n";
 import { id } from "../ids";
 import { sumLines, decimal } from "../money";
 import { ROLE_PERMISSIONS } from "../permissions";
@@ -121,7 +122,7 @@ export const auditEvent = (db: MockDb, e: T.AuditEvent): Schemas["AuditEvent"] =
 
 export const notification = (db: MockDb, n: T.Notification): Schemas["Notification"] => ({
   id: id.notification(n.seq),
-  text: n.text,
+  text: tr({ az: n.text, en: n.text_en }),
   package: n.package_id ? pkgRef(db, n.package_id) : null,
   created_at: n.created_at,
   read_at: n.read ? n.created_at : null,

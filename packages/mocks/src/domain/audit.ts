@@ -1,14 +1,16 @@
 // Append-only audit log and in-app notifications. Messages are Azerbaijani (prototype wording), no document text.
+import { type Msg, tr } from "../i18n";
 import type { MockDb } from "../store";
 
+/** `message` is az; `msg` keeps the en text too (a plain string is the same in both languages). */
 export class MockError extends Error {
   constructor(
     readonly code: string,
-    message: string,
+    readonly msg: string | Msg,
     readonly status: number,
     readonly details: Record<string, unknown> = {},
   ) {
-    super(message);
+    super(tr(msg, "az"));
   }
 }
 
@@ -40,12 +42,13 @@ export function log(db: MockDb, e: LogInput) {
   });
 }
 
-export function notify(db: MockDb, to: string, pkg: string | null, text: string) {
+export function notify(db: MockDb, to: string, pkg: string | null, text: Msg) {
   db.notifications.push({
     seq: ++db.seq.notification,
     user_id: to,
     package_id: pkg,
-    text,
+    text: text.az,
+    text_en: text.en,
     created_at: db.nowIso(),
     read: false,
   });

@@ -2,10 +2,20 @@
 import { delay, HttpResponse } from "msw";
 import { MockError } from "../domain/audit";
 import { type EventBus, mark, newEvents } from "../events";
+import { type Locale, type Msg, negotiate, setLocale, tr } from "../i18n";
 import { slugOf } from "../ids";
 import { can, type Permission } from "../permissions";
 import type { MockDb } from "../store";
 import type { Pkg, User } from "../types";
+
+// en text = the API's (apps/api core/errors.py …) for the same situation; az stays the mock's wording
+/** Malformed or incomplete request — the API answers these with its generic BAD_REQUEST text. */
+export const badRequest = (az: string): Msg => ({ az, en: "The request is invalid." });
+const UNAUTHENTICATED = {
+  az: "Sessiya bitib. Yenidən daxil olun.",
+  en: "Your session has expired. Sign in again.",
+};
+const FORBIDDEN_EN = "You do not have permission for this action.";
 
 export interface Ctx {
   db: () => MockDb;
@@ -16,8 +26,20 @@ export interface Ctx {
 }
 
 export const json = (body: unknown, status = 200) => HttpResponse.json(body as never, { status });
-const errorBody = (e: MockError) => ({
-  error: { code: e.code, message: e.message, details: e.details },
+const isMsg = (v: unknown): v is Msg =>
+  !!v && typeof v === "object" && typeof (v as Msg).az === "string" && "en" in v;
+/** `details.fields` values may be az/en pairs (like the API, the field text is the localized message). */
+const fieldsIn = (fields: unknown, l: Locale) =>
+  fields && typeof fields === "object"
+    ? Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, isMsg(v) ? tr(v, l) : v]))
+    : fields;
+const errorBody = (e: MockError, l: Locale) => ({
+  error: {
+    code: e.code,
+    message: tr(e.msg, l),
+    details:
+      "fields" in e.details ? { ...e.details, fields: fieldsIn(e.details.fields, l) } : e.details,
+  },
 });
 
 /** Token issued by dev-login. Not a JWT — the mock only needs to know who is calling. */
@@ -28,7 +50,7 @@ export function currentUser(db: MockDb, request: Request): User {
   const slug = token.startsWith("mock.") ? slugOf.user(token.slice(5)) : null;
   const user = slug ? db.user(slug) : undefined;
   if (!user || user.role === "assignee")
-    throw new MockError("UNAUTHENTICATED", "Sessiya bitib. Yenidən daxil olun.", 401);
+    throw new MockError("UNAUTHENTICATED", UNAUTHENTICATED, 401);
   return user;
 }
 
@@ -40,12 +62,13 @@ export function requirePermission(user: User, perm: Permission) {
   if (!can(user, perm))
     throw new MockError(
       "FORBIDDEN",
-      FORBIDDEN[perm] ?? "Bu əməliyyat üçün səlahiyyətiniz yoxdur.",
+      { az: FORBIDDEN[perm] ?? "Bu əməliyyat üçün səlahiyyətiniz yoxdur.", en: FORBIDDEN_EN },
       403,
     );
 }
 
-export const notFound = () => new MockError("NOT_FOUND", "Obyekt tapılmadı.", 404);
+export const notFound = () =>
+  new MockError("NOT_FOUND", { az: "Obyekt tapılmadı.", en: "Not found." }, 404);
 
 // shortcut: demo files have no bytes — the "signed" link points at a placeholder (`*/mock-files/*`); real storage in B-13.
 export const signedLink = (db: MockDb, request: Request, path: string) => ({
@@ -65,7 +88,10 @@ export function requireEditable(p: Pkg) {
   if (p.processing)
     throw new MockError(
       "PACKAGE_NOT_READY",
-      "Paket hələ emal olunur — bir az sonra yenidən cəhd edin.",
+      {
+        az: "Paket hələ emal olunur — bir az sonra yenidən cəhd edin.",
+        en: "The package is still being processed — try again shortly.",
+      },
       409,
       {
         status: "PROCESSING",
@@ -79,13 +105,16 @@ export const versionParam = (raw: FormDataEntryValue | string | null) =>
 
 export function expectVersion(p: Pkg, expected: unknown) {
   if (typeof expected !== "number" || !Number.isInteger(expected))
-    throw new MockError("VALIDATION_ERROR", "expected_version məcburidir.", 422, {
+    throw new MockError("VALIDATION_ERROR", badRequest("expected_version məcburidir."), 422, {
       fields: { expected_version: "Məcburi sahə." },
     });
   if (expected !== p.version)
     throw new MockError(
       "VERSION_CONFLICT",
-      `Paket v${p.version}-ə yenilənib; səhifəni yeniləyin.`,
+      {
+        az: `Paket v${p.version}-ə yenilənib; səhifəni yeniləyin.`,
+        en: `The package has been updated to v${p.version}; refresh the page.`,
+      },
       409,
       {
         current_version: p.version,
@@ -103,12 +132,12 @@ export async function body(request: Request): Promise<Record<string, unknown>> {
   } catch {
     // fall through
   }
-  throw new MockError("VALIDATION_ERROR", "Sorğunun formatı yanlışdır.", 400);
+  throw new MockError("VALIDATION_ERROR", badRequest("Sorğunun formatı yanlışdır."), 400);
 }
 
 export const required = (value: unknown, field: string): string => {
   if (typeof value !== "string" || !value.trim())
-    throw new MockError("VALIDATION_ERROR", "Sorğuda xəta var.", 422, {
+    throw new MockError("VALIDATION_ERROR", badRequest("Sorğuda xəta var."), 422, {
       fields: { [field]: "Məcburi sahə." },
     });
   return value;
@@ -125,17 +154,25 @@ export async function idempotent(
   run: () => Promise<Response>,
 ) {
   const key = request.headers.get("Idempotency-Key");
-  if (!key) throw new MockError("VALIDATION_ERROR", "Idempotency-Key başlığı məcburidir.", 422);
+  if (!key)
+    throw new MockError("VALIDATION_ERROR", badRequest("Idempotency-Key başlığı məcburidir."), 422);
   const seen = db.idempotency.get(key);
   if (seen) {
     if (seen.fingerprint !== fingerprint)
       throw new MockError(
         "IDEMPOTENCY_KEY_REUSED",
-        "Eyni sorğu fərqli məlumatla təkrarlandı.",
+        {
+          az: "Eyni sorğu fərqli məlumatla təkrarlandı.",
+          en: "The same request was repeated with different data.",
+        },
         422,
       );
     if (seen.pending)
-      throw new MockError("IDEMPOTENCY_IN_PROGRESS", "Eyni sorğu hələ emal olunur.", 409);
+      throw new MockError(
+        "IDEMPOTENCY_IN_PROGRESS",
+        { az: "Eyni sorğu hələ emal olunur.", en: "The same request is still being processed." },
+        409,
+      );
     return json(seen.body, seen.status);
   }
   // claim the key before running, so a concurrent duplicate cannot run the action twice
@@ -168,6 +205,8 @@ export const route =
   <A extends Args>(ctx: Ctx, fn: (args: A, db: MockDb) => Promise<Response> | Response) =>
   async (args: A) => {
     if (ctx.latencyMs) await delay(ctx.latencyMs);
+    const lang = negotiate(args.request.headers.get("accept-language"));
+    setLocale(lang);
     const db = ctx.db();
     const before = mark(db);
     try {
@@ -176,11 +215,9 @@ export const route =
       if (res.ok) for (const e of newEvents(db, before)) ctx.events.emit(e);
       return res;
     } catch (e) {
-      if (e instanceof MockError) return json(errorBody(e), e.status);
+      if (e instanceof MockError) return json(errorBody(e, lang), e.status);
       console.error("[mocks]", e);
-      return json(
-        errorBody(new MockError("INTERNAL_ERROR", "Gözlənilməz xəta baş verdi.", 500)),
-        500,
-      );
+      const unexpected = { az: "Gözlənilməz xəta baş verdi.", en: "An unexpected error occurred." };
+      return json(errorBody(new MockError("INTERNAL_ERROR", unexpected, 500), lang), 500);
     }
   };

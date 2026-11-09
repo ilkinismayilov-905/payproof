@@ -1,6 +1,6 @@
 // Create (from a demo document set), finish processing (exact-ID link), soft delete.
-import { documentTypeLabel } from "@payproof/api-client/i18n";
 import { info } from "../engine/status";
+import { label } from "../i18n";
 import { decimal, sumLines } from "../money";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
@@ -50,7 +50,10 @@ export async function createPackage(db: MockDb, input: CreateInput, actor: strin
   )
     throw new MockError(
       "DUPLICATE_INVOICE",
-      `${set.invoice_number} bu müştəri üçün artıq mövcuddur.`,
+      {
+        az: `${set.invoice_number} bu müştəri üçün artıq mövcuddur.`,
+        en: `${set.invoice_number} already exists for this customer.`,
+      },
       409,
     );
   const at = db.tick();
@@ -119,7 +122,7 @@ export async function createPackage(db: MockDb, input: CreateInput, actor: strin
     log(db, {
       actor,
       action: "document.uploaded",
-      message: `${documentTypeLabel[d.type]}: ${d.versions[0]!.file_name} (sənəd v1)`,
+      message: `${label.doc(d.type).az}: ${d.versions[0]!.file_name} (sənəd v1)`,
       pkg: p.id,
       objectType: "document_version",
       at,
@@ -158,7 +161,10 @@ export function deletePackage(db: MockDb, p: Pkg, actor: string) {
   if (p.approvals.length || !["PROCESSING", "NEEDS_FIX", "NEEDS_REVIEW"].includes(s))
     throw new MockError(
       "PACKAGE_NOT_DELETABLE",
-      "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+      {
+        az: "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+        en: "An approved or ready-for-approval package cannot be deleted.",
+      },
       409,
       { status: s },
     );

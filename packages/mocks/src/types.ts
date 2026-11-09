@@ -154,6 +154,7 @@ export interface Notification {
   user_id: string;
   package_id: string | null;
   text: string;
+  text_en: string;
   created_at: string;
   read: boolean;
 }

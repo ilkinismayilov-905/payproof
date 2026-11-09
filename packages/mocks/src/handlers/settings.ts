@@ -5,6 +5,7 @@ import { saveRequirements } from "../domain/rules";
 import { id, slugOf } from "../ids";
 import { requirementSet } from "../views/records";
 import {
+  badRequest,
   body,
   currentUser,
   json,
@@ -28,22 +29,34 @@ export const settingsHandlers = (ctx: Ctx) => [
       const b = await body(request);
       const current = c.requirement_sets.at(-1)!.version;
       if (b.expected_version !== current)
-        throw new MockError("VERSION_CONFLICT", `Qayda dəsti v${current}-ə yenilənib.`, 409, {
-          current_version: current,
-        });
+        throw new MockError(
+          "VERSION_CONFLICT",
+          {
+            az: `Qayda dəsti v${current}-ə yenilənib.`,
+            en: `The rule set has been updated to v${current}; refresh the page.`,
+          },
+          409,
+          { current_version: current },
+        );
       const reason = required(b.reason, "reason");
       const tolerance = required(b.tolerance, "tolerance");
       if (reason.trim().length < 10)
-        throw new MockError("VALIDATION_ERROR", "Səbəb ən azı 10 simvol olmalıdır.", 422, {
-          fields: { reason: "Ən azı 10 simvol." },
-        });
+        throw new MockError(
+          "VALIDATION_ERROR",
+          badRequest("Səbəb ən azı 10 simvol olmalıdır."),
+          422,
+          { fields: { reason: "Ən azı 10 simvol." } },
+        );
       if (!/^(0\.\d{2}|1\.00)$/.test(tolerance))
-        throw new MockError("VALIDATION_ERROR", "Tolerans 0,00–1,00 aralığında olmalıdır.", 422, {
-          fields: { tolerance: "0.00–1.00" },
-        });
+        throw new MockError(
+          "VALIDATION_ERROR",
+          badRequest("Tolerans 0,00–1,00 aralığında olmalıdır."),
+          422,
+          { fields: { tolerance: "0.00–1.00" } },
+        );
       const flags = ["require_po", "require_delivery", "require_signature"] as const;
       if (flags.some((k) => typeof b[k] !== "boolean"))
-        throw new MockError("VALIDATION_ERROR", "Qayda sahələri məcburidir.", 422);
+        throw new MockError("VALIDATION_ERROR", badRequest("Qayda sahələri məcburidir."), 422);
       const set = saveRequirements(
         db,
         c,

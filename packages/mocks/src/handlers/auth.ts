@@ -28,9 +28,14 @@ export const authHandlers = (ctx: Ctx) => [
       const slug = body?.user_id ? slugOf.user(body.user_id) : null;
       const user = slug ? db.user(slug) : undefined;
       if (!user?.demo_login)
-        throw new MockError("VALIDATION_ERROR", "Demo istifadəçi tapılmadı.", 422, {
-          fields: { user_id: "Naməlum istifadəçi." },
-        });
+        throw new MockError(
+          "VALIDATION_ERROR",
+          { az: "Demo istifadəçi tapılmadı.", en: "Demo user not found." },
+          422,
+          {
+            fields: { user_id: "Naməlum istifadəçi." },
+          },
+        );
       return json({
         access_token: tokenFor(id.user(user.id)),
         token_type: "bearer",

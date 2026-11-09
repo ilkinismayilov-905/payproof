@@ -26,7 +26,10 @@ export function saveRequirements(
     if (p.deleted || p.processing || p.customer_id !== c.id) continue;
     if (p.exports.some((e) => e.package_version === p.version)) continue; // exported under its own rules
     // ADR-0009: a rule change is a new package version — approval invalidated (audited), approver notified
-    bump(db, p, `qayda dəsti v${version} qüvvəyə mindi`);
+    bump(db, p, {
+      az: `qayda dəsti v${version} qüvvəyə mindi`,
+      en: `rule set v${version} came into force`,
+    });
     validate(db, p);
   }
   return set;

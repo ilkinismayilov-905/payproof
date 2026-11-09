@@ -1,5 +1,6 @@
 // Deterministic rule engine — TS port of the prototype's runChecks()/info() (docs/architecture/rules-engine.md).
 // Money in integer cents. UNKNOWN is never PASS.
+import type { Msg } from "../i18n";
 import type { MockDb } from "../store";
 import type { EnginePkg, Order, RequirementSet } from "../types";
 import { ev, type Ev } from "./evidence";
@@ -15,7 +16,9 @@ export interface Check {
   rule_id: string;
   outcome: Outcome;
   cascade: boolean;
+  /** az, like the API's `message`; `message_en` is the English text. */
   message: string;
+  message_en: string;
   evidence: Ev[];
   fix_hint: FixHint;
   data: Record<string, unknown>;
@@ -39,7 +42,7 @@ export interface Ctx {
   add(
     id: string,
     outcome: Outcome,
-    message: string,
+    message: Msg,
     evidence?: (Ev | null)[],
     x?: Partial<Check>,
   ): void;
@@ -70,7 +73,8 @@ export function evaluate(db: MockDb, p: EnginePkg): Check[] {
       out.push({
         rule_id,
         outcome,
-        message,
+        message: message.az,
+        message_en: message.en,
         cascade: false,
         fix_hint: null,
         data: {},

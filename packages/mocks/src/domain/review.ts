@@ -1,5 +1,6 @@
 // Order link confirmation, signature review and manual extraction correction (with reason, audited).
 import { formatMoney } from "@payproof/api-client/format";
+import { inLocale, type Msg } from "../i18n";
 import { cents, decimal } from "../money";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
@@ -10,7 +11,7 @@ export function confirmLink(db: MockDb, p: Pkg, po: string, actor: string): bool
   if (p.order_link.confirmed && p.order_link.po_number === po) return false;
   p.order_link = { po_number: po, confirmed: true, confirmed_by: actor, method: "human" };
   p.candidates = [];
-  bump(db, p, "sifariş əlaqəsi dəyişdi");
+  bump(db, p, { az: "sifariş əlaqəsi dəyişdi", en: "the order link changed" });
   log(db, {
     actor,
     action: "link.confirmed",
@@ -45,10 +46,14 @@ export function correctField(
   reason: string,
   actor: string,
 ) {
-  const bad = (m: string) => new MockError("VALIDATION_ERROR", m, 422, { fields: { value: m } });
+  const bad = (m: Msg) => new MockError("VALIDATION_ERROR", m, 422, { fields: { value: m } });
   let from: string;
   if (path === "invoice.po_ref") {
-    if (!/^PO-\d+$/.test(value)) throw bad("Sifariş nömrəsi PO-123 formatında olmalıdır.");
+    if (!/^PO-\d+$/.test(value))
+      throw bad({
+        az: "Sifariş nömrəsi PO-123 formatında olmalıdır.",
+        en: "The order number must look like PO-123.",
+      });
     from = p.invoice.unreadable_fields.includes("po_ref")
       ? `${p.invoice.po_raw ?? "?"} (oxunmur)`
       : (p.invoice.po_ref ?? "—");
@@ -60,19 +65,31 @@ export function correctField(
   } else {
     const m = LINE_FIELD.exec(path);
     const line = m && p.invoice.lines.find((l) => l.product_code === m[1]);
-    if (!m || !line) throw new MockError("NOT_FOUND", "Sahə tapılmadı.", 404);
+    if (!m || !line)
+      throw new MockError("NOT_FOUND", { az: "Sahə tapılmadı.", en: "Not found." }, 404);
     if (m[2] === "qty") {
-      if (!/^[1-9]\d*$/.test(value)) throw bad("Miqdar müsbət tam ədəd olmalıdır.");
+      if (!/^[1-9]\d*$/.test(value))
+        throw bad({
+          az: "Miqdar müsbət tam ədəd olmalıdır.",
+          en: "The quantity must be a positive number.",
+        });
       from = String(line.qty);
       line.qty = Number(value);
     } else {
-      if (!/^\d+\.\d{2}$/.test(value)) throw bad("Vahid qiymət 100.00 formatında olmalıdır.");
-      from = formatMoney(line.unit_price);
+      if (!/^\d+\.\d{2}$/.test(value))
+        throw bad({
+          az: "Vahid qiymət 100.00 formatında olmalıdır.",
+          en: "The unit price must look like 100.00.",
+        });
+      from = inLocale("az", () => formatMoney(line.unit_price));
       line.unit_price = decimal(cents(value));
     }
   }
   (p.corrections ??= {})[path] = { from, to: value, reason, by: actor };
-  bump(db, p, "kritik sahə əl ilə düzəldildi");
+  bump(db, p, {
+    az: "kritik sahə əl ilə düzəldildi",
+    en: "a critical field was corrected by hand",
+  });
   log(db, {
     actor,
     action: "field.corrected",

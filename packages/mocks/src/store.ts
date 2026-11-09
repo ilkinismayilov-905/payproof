@@ -8,6 +8,7 @@ import packages from "../../../fixtures/packages.json";
 import samples from "../../../fixtures/samples.json";
 import tasks from "../../../fixtures/tasks.json";
 import users from "../../../fixtures/users.json";
+import type { Msg } from "./i18n";
 import type * as T from "./types";
 
 /** Fixture wall-clock (+04:00) → contract UTC (`…Z`, no milliseconds). */
@@ -26,7 +27,7 @@ export interface Job {
   /** null when the job failed before a package existed (e.g. DUPLICATE_INVOICE). */
   package_id: string | null;
   document_version_id?: string | undefined;
-  error?: { code: string; message: string } | undefined;
+  error?: { code: string; message: string | Msg } | undefined;
   done: boolean;
 }
 

@@ -1,5 +1,6 @@
 // Multipart parsing with the contract's file limits, and job creation for asynchronous work.
 import { MockError } from "../domain/audit";
+import { badRequest } from "./http";
 import { id } from "../ids";
 import type { Job, MockDb } from "../store";
 import type { Pkg } from "../types";
@@ -13,16 +14,24 @@ export function fileField(form: FormData, field: string, optional = false): File
   const f = form.get(field);
   if (f === null && optional) return null;
   if (!(f instanceof Blob))
-    throw new MockError("VALIDATION_ERROR", "Fayl məcburidir.", 422, {
+    throw new MockError("VALIDATION_ERROR", badRequest("Fayl məcburidir."), 422, {
       fields: { [field]: "Məcburi sahə." },
     });
   const file = f as File;
   if (file.size > MAX_BYTES)
-    throw new MockError("FILE_TOO_LARGE", "Fayl 20 MB-dan böyükdür.", 413, { max_mb: 20 });
+    throw new MockError(
+      "FILE_TOO_LARGE",
+      { az: "Fayl 20 MB-dan böyükdür.", en: "The file is larger than 20 MB." },
+      413,
+      { max_mb: 20 },
+    );
   if (!ALLOWED.test(file.name ?? ""))
     throw new MockError(
       "UNSUPPORTED_FILE_TYPE",
-      "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+      {
+        az: "Yalnız PDF, PNG, JPEG, CSV və XLSX qəbul olunur.",
+        en: "Only PDF, PNG, JPEG, CSV and XLSX are accepted.",
+      },
       415,
     );
   return file;
@@ -32,7 +41,7 @@ export async function form(request: Request): Promise<FormData> {
   try {
     return await request.formData();
   } catch {
-    throw new MockError("VALIDATION_ERROR", "Sorğunun formatı yanlışdır.", 400);
+    throw new MockError("VALIDATION_ERROR", badRequest("Sorğunun formatı yanlışdır."), 400);
   }
 }
 
@@ -42,7 +51,7 @@ export function startJob(
   kind: "extract_document" | "create_package",
   p: Pkg | null,
   document_version_id?: string,
-  error?: { code: string; message: string },
+  error?: Job["error"],
 ) {
   const job: Job = {
     id: id.job(++db.seq.job),
