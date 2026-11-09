@@ -237,3 +237,10 @@ export const actionLabel = {
   back: "Geri",
   refresh: "Yenilə",
 } as const;
+
+/** Language switch; each language is named in itself. */
+export const localeText = {
+  label: "Dil",
+  az: "Azərbaycanca",
+  en: "English",
+} as const;

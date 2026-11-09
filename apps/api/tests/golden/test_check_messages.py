@@ -1,6 +1,6 @@
 """Golden: R-001..R-009 messages (az + en) of every fixture package equal
 fixtures/check-messages.json — the mock engine asserts the same file (packages/mocks).
-Regenerate after a deliberate wording change: `uv run python -m tests.golden.test_check_messages`."""
+After a deliberate wording change: `uv run python -m tests.golden.test_check_messages`."""
 
 import json
 

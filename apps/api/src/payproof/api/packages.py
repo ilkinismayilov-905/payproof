@@ -27,9 +27,7 @@ def _statuses(raw: str | None) -> frozenset[PackageStatus]:
     try:
         return frozenset(PackageStatus(v) for v in (raw or "").split(",") if v)
     except ValueError:
-        raise DomainError(
-            "Sorğu yanlışdır.", details={"fields": [{"loc": ["query", "status"]}]}
-        ) from None
+        raise DomainError(details={"fields": [{"loc": ["query", "status"]}]}) from None
 
 
 @router.get("/dashboard", response_model=s.Dashboard, tags=["dashboard"])

@@ -6,6 +6,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import NotFound
+from payproof.core.i18n import tr
 from payproof.domain.enums import CheckOutcome, Currency, PackageStatus, Role
 from payproof.domain.money import Money as DomainMoney
 from payproof.domain.permissions import Permission, can
@@ -121,10 +122,10 @@ async def package_detail(
         checks=[
             d.CheckResult(
                 rule_id=c.rule_id,
-                title=TITLES[c.rule_id],
+                title=tr(TITLES[c.rule_id]),
                 outcome=c.outcome,
                 cascade=c.cascade,
-                message=c.message,
+                message=tr(c.msg),
                 evidence=[_evidence(e) for e in by_rule.get(c.rule_id, ())],
                 fix_hint=c.fix_hint.value if c.fix_hint else None,
                 data=dict(c.data),

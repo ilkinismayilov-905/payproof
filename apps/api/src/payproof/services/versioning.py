@@ -6,13 +6,16 @@ import datetime as dt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg
 from payproof.repositories.models import ApprovalRecord, InvoicePackage
 from payproof.services.audit import record
 from payproof.services.notifications import notify
 
 
-async def bump(session: AsyncSession, pkg: InvoicePackage, reason: str) -> None:
-    """`reason` is Azerbaijani, lower case: "təhvil sənədinin yeni versiyası yükləndi"."""
+async def bump(session: AsyncSession, pkg: InvoicePackage, why: Msg) -> None:
+    """`why` is lower case: "təhvil sənədinin yeni versiyası yükləndi". The stored reason and the
+    audit stay Azerbaijani; the approver's notification carries both languages."""
+    reason = why.az
     pkg.version += 1
     now = dt.datetime.now(dt.UTC)
     approvals = await session.scalars(
@@ -39,7 +42,11 @@ async def bump(session: AsyncSession, pkg: InvoicePackage, reason: str) -> None:
             session,
             pkg,
             [a.approver_id],
-            f"{pkg.invoice_number or 'Paket'}: {reason}. v{a.package_version} təsdiqi "
-            f"etibarsızlaşdı — v{pkg.version} yenidən təsdiq tələb edir.",
+            Msg(
+                f"{pkg.invoice_number or 'Paket'}: {reason}. v{a.package_version} təsdiqi "
+                f"etibarsızlaşdı — v{pkg.version} yenidən təsdiq tələb edir.",
+                f"{pkg.invoice_number or 'Package'}: {why.en}. The v{a.package_version} approval "
+                f"is no longer valid — v{pkg.version} needs approval again.",
+            ),
         )
     await session.flush()

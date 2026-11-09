@@ -10,6 +10,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg, tr
 from payproof.domain.format import format_qty
 from payproof.domain.rules.paths import INVOICE_PO
 from payproof.repositories import package_reads as reads
@@ -33,12 +34,19 @@ async def exact_order(
     )
 
 
-def _match_text(lines: dict[str, Decimal]) -> str:
+def _match_text(lines: dict[str, Decimal]) -> Msg:
     if len(lines) == 1:
         [(code, qty)] = lines.items()
-        return f"məhsul kodu {code} və miqdar ({format_qty(qty)}) uyğundur"
-    both = "hər iki" if len(lines) == 2 else "bütün"
-    return f"{both} məhsul kodu ({', '.join(lines)}) və miqdarlar uyğundur"
+        return Msg(
+            f"məhsul kodu {code} və miqdar ({format_qty(qty)}) uyğundur",
+            f"product code {code} and quantity ({format_qty(qty, en=True)}) match",
+        )
+    both, both_en = ("hər iki", "both") if len(lines) == 2 else ("bütün", "all")
+    codes = ", ".join(lines)
+    return Msg(
+        f"{both} məhsul kodu ({codes}) və miqdarlar uyğundur",
+        f"{both_en} product codes ({codes}) and quantities match",
+    )
 
 
 async def candidates(session: AsyncSession, pkg: InvoicePackage) -> list[Candidate]:
@@ -72,17 +80,22 @@ async def candidates(session: AsyncSession, pkg: InvoicePackage) -> list[Candida
         lines[order.id][li.product_code] = li.qty
         totals[order.id] += li.qty * li.unit_price
     note = await reads.latest_delivery(session, pkg.id)
-    extra = ""
+    extra = extra_en = ""
     if (inv.document_version_id, INVOICE_PO) in unread:
-        extra = " PO sahəsi skanda oxunmadı."
+        extra, extra_en = " PO sahəsi skanda oxunmadı.", " The PO field was not read on the scan."
     elif inv.po_ref:
         extra = f" Fakturadakı {inv.po_ref} sistemdə tapılmadı."
+        extra_en = f" {inv.po_ref} on the invoice was not found in the system."
+    match = _match_text(wanted)
     out = []
     for oid, order in orders.items():
         if lines[oid] != wanted:
             continue
-        reason = f"Alıcı, {_match_text(wanted)}. Sifariş tarixi: {order.order_date:%d.%m.%Y}."
+        reason = f"Alıcı, {match.az}. Sifariş tarixi: {order.order_date:%d.%m.%Y}."
+        reason_en = f"Buyer, {match.en}. Order date: {order.order_date:%d/%m/%Y}."
         if note and note.po_ref == order.po_number and note.note_number:
             reason += f" {note.note_number} təhvil aktı bu sifarişə istinad edir."
-        out.append(Candidate(order, totals[oid].quantize(Decimal("0.01")), reason + extra))
+            reason_en += f" Delivery note {note.note_number} refers to this order."
+        text = tr(Msg(reason + extra, reason_en + extra_en))
+        out.append(Candidate(order, totals[oid].quantize(Decimal("0.01")), text))
     return out

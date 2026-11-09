@@ -63,6 +63,7 @@ async def revalidate(
             outcome=c.outcome.value,
             cascade=c.cascade,
             message=c.message,
+            message_en=c.message_en,
             fix_hint=c.fix_hint.value if c.fix_hint else None,
             data=dict(c.data),
             # only evidence of this run's own document versions (see the model's shortcut)

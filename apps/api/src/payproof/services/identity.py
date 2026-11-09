@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.auth import issue_dev_token
 from payproof.core.errors import InvalidInput, NotFound
+from payproof.core.i18n import Msg
 from payproof.domain.enums import Role
 from payproof.domain.permissions import Permission, can
 from payproof.repositories.identity import MembershipRepository, UserRepository
@@ -42,7 +43,8 @@ async def dev_users(session: AsyncSession) -> list[UserRef]:
 async def dev_login(session: AsyncSession, user_id: uuid.UUID, secret: str) -> Session:
     if await MembershipRepository(session).sign_in(user_id) is None:
         raise InvalidInput(
-            "Demo istifadəçi tapılmadı.", details={"fields": {"user_id": "Naməlum istifadəçi."}}
+            Msg("Demo istifadəçi tapılmadı.", "Demo user not found."),
+            details={"fields": {"user_id": "Naməlum istifadəçi."}},
         )
     token, expires_in = issue_dev_token(user_id, secret)
     return Session(access_token=token, expires_in=expires_in, user=await profile(session, user_id))

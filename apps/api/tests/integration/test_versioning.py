@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg
 from payproof.repositories.base import bind_tenant
 from payproof.repositories.models import (
     ApprovalRecord,
@@ -24,7 +25,9 @@ async def test_bump_invalidates_the_approval_and_tells_the_approver(db: AsyncSes
     assert approval.valid
     before = pkg.version
 
-    await bump(db, pkg, "faktura yeni versiyası yükləndi")
+    await bump(
+        db, pkg, Msg("faktura yeni versiyası yükləndi", "a new invoice version was uploaded")
+    )
 
     assert pkg.version == before + 1
     assert (approval.valid, approval.invalidated_reason) == (
@@ -44,8 +47,12 @@ async def test_bump_invalidates_the_approval_and_tells_the_approver(db: AsyncSes
         -1
     ]
     assert note.user_id == approval.approver_id and f"v{before + 1} yenidən" in note.text
+    assert note.text_en == (
+        f"INV-1035: a new invoice version was uploaded. The v{approval.package_version} approval "
+        f"is no longer valid — v{before + 1} needs approval again."
+    )
 
-    await bump(db, pkg, "yenə")  # nothing valid left: no second invalidation
+    await bump(db, pkg, Msg("yenə", "again"))  # nothing valid left: no second invalidation
     assert (
         await db.scalar(
             select(AuditEvent.id).where(

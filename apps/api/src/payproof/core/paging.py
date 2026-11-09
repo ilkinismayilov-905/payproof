@@ -18,5 +18,5 @@ def decode_cursor(cursor: str | None) -> int:
     except (binascii.Error, UnicodeDecodeError, ValueError):
         offset = -1
     if offset < 0:
-        raise DomainError("Sorğu yanlışdır.", details={"fields": [{"loc": ["query", "cursor"]}]})
+        raise DomainError(details={"fields": [{"loc": ["query", "cursor"]}]})
     return offset
