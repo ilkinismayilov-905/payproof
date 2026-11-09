@@ -12,7 +12,10 @@ export function r003({ db, o, p, add, E }: Ctx) {
     add(
       "R-003",
       "FAIL",
-      `${wrongDl ? "Təhvil sənədi" : "Sifariş"} başqa alıcıya — ${other} — aid ola bilər. Faktura alıcısı: ${buyer.name}.`,
+      {
+        az: `${wrongDl ? "Təhvil sənədi" : "Sifariş"} başqa alıcıya — ${other} — aid ola bilər. Faktura alıcısı: ${buyer.name}.`,
+        en: `${wrongDl ? "The delivery note" : "The order"} may belong to another buyer — ${other}. Invoice buyer: ${buyer.name}.`,
+      },
       [E("invoice", "customer"), wrongDl ? E("delivery", "customer") : E("order", "customer")],
       { fix_hint: wrongDl ? "upload_delivery" : null },
     );
@@ -21,20 +24,34 @@ export function r003({ db, o, p, add, E }: Ctx) {
     add(
       "R-003",
       "UNKNOWN",
-      "Təhvil sənədində alıcı oxunmadı — tərəflərin uyğunluğu təsdiqlənmir.",
+      {
+        az: "Təhvil sənədində alıcı oxunmadı — tərəflərin uyğunluğu təsdiqlənmir.",
+        en: "The buyer was not read on the delivery note — the parties are not confirmed to match.",
+      },
       [E("delivery", "customer")],
       { fix_hint: "edit_field" },
     );
   else if (!o)
-    add("R-003", "UNKNOWN", "Sifariş təsdiqlənmədən tərəflər müqayisə olunmur.", [], {
-      cascade: true,
-    });
+    add(
+      "R-003",
+      "UNKNOWN",
+      {
+        az: "Sifariş təsdiqlənmədən tərəflər müqayisə olunmur.",
+        en: "The parties are not compared until the order is confirmed.",
+      },
+      [],
+      { cascade: true },
+    );
   else
-    add("R-003", "PASS", `Alıcı (VÖEN ${buyer.voen}) bütün sənədlərdə eynidir.`, [
-      E("invoice", "customer"),
-      E("order", "customer"),
-      E("delivery", "customer"),
-    ]);
+    add(
+      "R-003",
+      "PASS",
+      {
+        az: `Alıcı (VÖEN ${buyer.voen}) bütün sənədlərdə eynidir.`,
+        en: `The buyer (TIN ${buyer.voen}) is the same on all documents.`,
+      },
+      [E("invoice", "customer"), E("order", "customer"), E("delivery", "customer")],
+    );
 }
 
 export function r004(ctx: Ctx) {
@@ -48,14 +65,24 @@ export function r004(ctx: Ctx) {
   const mismatch = shared.filter((x) => x.inv && x.ord && x.inv !== x.ord);
   const unread = shared.filter((x) => !x.inv || !x.ord);
   if (!o)
-    add("R-004", "UNKNOWN", "Sifariş təsdiqlənmədən valyuta və vahid müqayisə olunmur.", [], {
-      cascade: true,
-    });
+    add(
+      "R-004",
+      "UNKNOWN",
+      {
+        az: "Sifariş təsdiqlənmədən valyuta və vahid müqayisə olunmur.",
+        en: "Currency and units are not compared until the order is confirmed.",
+      },
+      [],
+      { cascade: true },
+    );
   else if (o.currency !== p.currency)
     add(
       "R-004",
       "UNKNOWN",
-      `Faktura ${p.currency}, sifariş ${o.currency} ilə tərtib olunub. Valyuta avtomatik çevrilmir — qiymət müqayisəsi dayandırıldı.`,
+      {
+        az: `Faktura ${p.currency}, sifariş ${o.currency} ilə tərtib olunub. Valyuta avtomatik çevrilmir — qiymət müqayisəsi dayandırıldı.`,
+        en: `The invoice is in ${p.currency}, the order in ${o.currency}. Currency is not converted automatically — price comparison stopped.`,
+      },
       totals,
       { fix_hint: "upload_invoice" },
     );
@@ -63,7 +90,10 @@ export function r004(ctx: Ctx) {
     add(
       "R-004",
       "UNKNOWN",
-      `Ölçü vahidi fərqlidir: ${mismatch.map((x) => `${x.code} (faktura: ${x.inv}, sifariş: ${x.ord})`).join("; ")}. Təsdiqlənmiş çevirmə qaydası olmadığı üçün qiymət müqayisəsi dayandırıldı.`,
+      {
+        az: `Ölçü vahidi fərqlidir: ${mismatch.map((x) => `${x.code} (faktura: ${x.inv}, sifariş: ${x.ord})`).join("; ")}. Təsdiqlənmiş çevirmə qaydası olmadığı üçün qiymət müqayisəsi dayandırıldı.`,
+        en: `Units of measure differ: ${mismatch.map((x) => `${x.code} (invoice: ${x.inv}, order: ${x.ord})`).join("; ")}. There is no confirmed conversion rule, so price comparison stopped.`,
+      },
       totals,
       { data: { unit_mismatch: mismatch.map((x) => x.code) } },
     );
@@ -72,12 +102,23 @@ export function r004(ctx: Ctx) {
     add(
       "R-004",
       "UNKNOWN",
-      `Ölçü vahidi oxunmadı: ${unread.map((x) => `${x.code} (${x.inv ? "sifariş" : "faktura"})`).join("; ")}. Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı.`,
+      {
+        az: `Ölçü vahidi oxunmadı: ${unread.map((x) => `${x.code} (${x.inv ? "sifariş" : "faktura"})`).join("; ")}. Vahid uyğunluğu təsdiqlənmədən qiymət müqayisəsi dayandırıldı.`,
+        en: `Unit of measure not read: ${unread.map((x) => `${x.code} (${x.inv ? "order" : "invoice"})`).join("; ")}. Price comparison stopped until the units are confirmed.`,
+      },
       totals,
       { fix_hint: "edit_field", data: { unit_unread: unread.map((x) => x.code) } },
     );
   else {
     ctx.comparable = true;
-    add("R-004", "PASS", `Valyuta (${p.currency}) və ölçü vahidləri uyğundur.`, totals);
+    add(
+      "R-004",
+      "PASS",
+      {
+        az: `Valyuta (${p.currency}) və ölçü vahidləri uyğundur.`,
+        en: `Currency (${p.currency}) and units of measure match.`,
+      },
+      totals,
+    );
   }
 }
