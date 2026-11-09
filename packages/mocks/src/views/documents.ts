@@ -2,12 +2,14 @@
 import type { Schemas } from "@payproof/api-client";
 import { ruleTitleOf } from "../engine/catalog";
 import { ev, type Ev } from "../engine/evidence";
-import { locale } from "../i18n";
+import { locale, tr } from "../i18n";
 import { evaluate, type Check } from "../engine";
 import { id, type DocType } from "../ids";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
 import { userRef } from "./records";
+
+export const PO_LABEL = { az: "Sifariş № (PO)", en: "Order No. (PO)" };
 
 const currentNo = (p: Pkg, type: DocType) =>
   p.documents.find((d) => d.type === type)?.versions.at(-1)?.version_no ?? 1;
@@ -86,7 +88,7 @@ export function fields(db: MockDb, p: Pkg): Schemas["ExtractedField"][] {
     if (path === "invoice.po_ref") {
       const unread = p.invoice.unreadable_fields.includes("po_ref");
       return field(
-        "Sifariş № (PO)",
+        tr(PO_LABEL),
         unread ? p.invoice.po_raw : p.invoice.po_ref,
         p.invoice.po_ref,
         unread,
@@ -96,8 +98,20 @@ export function fields(db: MockDb, p: Pkg): Schemas["ExtractedField"][] {
     const code = path.slice(14, path.indexOf("]"));
     const line = p.invoice.lines.find((l) => l.product_code === code)!;
     return path.endsWith(".qty")
-      ? field(`${code} miqdarı`, String(line.qty), String(line.qty), false, `line:${code}`)
-      : field(`${code} vahid qiyməti`, line.unit_price, line.unit_price, false, `line:${code}`);
+      ? field(
+          tr({ az: `${code} miqdarı`, en: `${code} quantity` }),
+          String(line.qty),
+          String(line.qty),
+          false,
+          `line:${code}`,
+        )
+      : field(
+          tr({ az: `${code} vahid qiyməti`, en: `${code} unit price` }),
+          line.unit_price,
+          line.unit_price,
+          false,
+          `line:${code}`,
+        );
   });
 }
 

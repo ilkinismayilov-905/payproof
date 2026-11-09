@@ -1,7 +1,9 @@
 // PackageDetail — everything the package screen needs, for one viewer (permissions = role AND state).
 import type { Schemas } from "@payproof/api-client";
 import { rulesFor } from "../engine";
+import { qtyEn } from "../engine/evidence";
 import { currentApproval, info } from "../engine/status";
+import { tr } from "../i18n";
 import { id } from "../ids";
 import { can } from "../permissions";
 import type { MockDb } from "../store";
@@ -17,6 +19,36 @@ import {
   task,
   userRef,
 } from "./records";
+
+/**
+ * An order suggestion. az = the fixture's (prototype) reason; en is built the way apps/api
+ * services/matching.py builds it from the same data.
+ */
+export function candidate(db: MockDb, p: Pkg, c: Pkg["candidates"][number]) {
+  const o = db.orders[c.po_number]!;
+  const wanted = p.invoice.lines.filter((l) => l.qty !== null);
+  const codes = wanted.map((l) => l.product_code).join(", ");
+  const match =
+    wanted.length === 1
+      ? `product code ${codes} and quantity (${qtyEn(wanted[0]!.qty!)}) match`
+      : `${wanted.length === 2 ? "both" : "all"} product codes (${codes}) and quantities match`;
+  const [y, m, d] = o.order_date.split("-");
+  let en = `Buyer, ${match}. Order date: ${d}/${m}/${y}.`;
+  const note = p.delivery;
+  if (note?.note_number && note.po_ref === o.po_number)
+    en += ` Delivery note ${note.note_number} refers to this order.`;
+  if (p.invoice.unreadable_fields.includes("po_ref"))
+    en += " The PO field was not read on the scan.";
+  else if (p.invoice.po_ref)
+    en += ` ${p.invoice.po_ref} on the invoice was not found in the system.`;
+  return {
+    order_id: id.order(c.po_number),
+    po_number: c.po_number,
+    order_date: o.order_date,
+    total: orderTotal(o),
+    reason: tr({ az: c.reason, en }),
+  };
+}
 
 export function packageDetail(db: MockDb, p: Pkg, viewer: string): Schemas["PackageDetail"] {
   const i = info(db, p);
@@ -45,16 +77,7 @@ export function packageDetail(db: MockDb, p: Pkg, viewer: string): Schemas["Pack
       method: link.method,
       confirmed_by:
         link.confirmed_by && link.confirmed_by !== "system" ? userRef(db, link.confirmed_by) : null,
-      candidates: p.candidates.map((c) => {
-        const o = db.orders[c.po_number]!;
-        return {
-          order_id: id.order(c.po_number),
-          po_number: c.po_number,
-          order_date: o.order_date,
-          total: orderTotal(o),
-          reason: c.reason,
-        };
-      }),
+      candidates: p.candidates.map((c) => candidate(db, p, c)),
     },
     documents: documents(db, p),
     fields: fields(db, p),

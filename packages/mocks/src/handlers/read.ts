@@ -4,8 +4,7 @@ import { info } from "../engine/status";
 import { cents } from "../money";
 import { id, slugOf } from "../ids";
 import { dashboard, listItem, live } from "../views/overview";
-import { packageDetail } from "../views/detail";
-import { orderTotal } from "../views/records";
+import { candidate, packageDetail } from "../views/detail";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
 import { currentUser, json, packageOf, page, route, type Ctx } from "./http";
@@ -114,16 +113,7 @@ export const readHandlers = (ctx: Ctx) => [
       currentUser(db, request);
       const p = packageOf(db, params.package_id);
       return json({
-        items: p.candidates.map((c) => {
-          const o = db.orders[c.po_number]!;
-          return {
-            order_id: id.order(c.po_number),
-            po_number: c.po_number,
-            order_date: o.order_date,
-            total: orderTotal(o),
-            reason: c.reason,
-          };
-        }),
+        items: p.candidates.map((c) => candidate(db, p, c)),
       });
     }),
   ),
