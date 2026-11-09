@@ -1,16 +1,20 @@
-// az-AZ display helpers, matching the prototype (money / fD / fDT / fLong).
+// Display helpers in the UI language: az-AZ as in the prototype (money / fD / fDT / fLong), or en-GB.
 // Money and quantities stay strings end to end: grouping is done on digits, never via Number().
 
 import type { components } from "../generated/schema";
+import { getLocale } from "../locale";
 
 type Money = components["schemas"]["Money"];
 
 const MONEY = /^(-?)(0|[1-9][0-9]*)\.([0-9]{2})$/;
 const QUANTITY = /^(0|[1-9][0-9]*)(?:\.([0-9]{1,3}))?$/;
 const MINUS = "−";
-const group = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+// az-AZ: 12.000,50 · en-GB: 12,000.50
+const marks = () =>
+  getLocale() === "en" ? { thousands: ",", decimal: "." } : { thousands: ".", decimal: "," };
+const group = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, marks().thousands);
 
-/** `formatMoney("12000.00", "AZN")` → `"12.000,00 AZN"`; `formatMoney("-500.00")` → `"−500,00"`. */
+/** `formatMoney("12000.00", "AZN")` → `"12.000,00 AZN"` (en: `"12,000.00 AZN"`); `formatMoney("-500.00")` → `"−500,00"`. */
 export function formatMoney(money: Money): string;
 export function formatMoney(amount: string, currency?: string): string;
 export function formatMoney(value: string | Money, currency?: string): string {
@@ -23,17 +27,31 @@ export function formatMoney(value: string | Money, currency?: string): string {
     );
   const [, sign, int, frac] = m as unknown as [string, string, string, string];
   const negative = sign === "-" && !(int === "0" && frac === "00");
-  return `${negative ? MINUS : ""}${group(int)},${frac}${cur ? ` ${cur}` : ""}`;
+  return `${negative ? MINUS : ""}${group(int)}${marks().decimal}${frac}${cur ? ` ${cur}` : ""}`;
 }
 
-/** `"1200"` → `"1.200"`, `"12.500"` → `"12,5"`. */
+/** `"1200"` → `"1.200"`, `"12.500"` → `"12,5"` (en: `"1,200"`, `"12.5"`). */
 export function formatQuantity(qty: string): string {
   const m = QUANTITY.exec(qty);
   if (!m) throw new Error(`formatQuantity: not a quantity string: ${JSON.stringify(qty)}`);
   const frac = (m[2] ?? "").replace(/0+$/, "");
-  return group(m[1]!) + (frac ? `,${frac}` : "");
+  return group(m[1]!) + (frac ? `${marks().decimal}${frac}` : "");
 }
 
+const MONTHS_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 const MONTHS = [
   "yanvar",
   "fevral",
@@ -100,13 +118,16 @@ function parts(value: string): Parts {
 /** `"2026-11-03"` → `"03.11.2026"`. */
 export function formatDate(value: string): string {
   const { y, m, d } = parts(value);
-  return `${d}.${m}.${y}`;
+  return dmy(y, m, d);
 }
 
-/** `"2026-11-03T05:12:00Z"` → `"03.11.2026, 09:12"` (Baku time). */
+// az-AZ: 03.11.2026 · en-GB: 03/11/2026
+const dmy = (y: string, m: string, d: string) => [d, m, y].join(getLocale() === "en" ? "/" : ".");
+
+/** `"2026-11-03T05:12:00Z"` → `"03.11.2026, 09:12"` (Baku time; en: `"03/11/2026, 09:12"`). */
 export function formatDateTime(value: string): string {
   const p = parts(value);
-  return p.time ? `${p.d}.${p.m}.${p.y}, ${p.time}` : `${p.d}.${p.m}.${p.y}`;
+  return p.time ? `${dmy(p.y, p.m, p.d)}, ${p.time}` : dmy(p.y, p.m, p.d);
 }
 
 const bakuDayNumber = (value: string) => {
@@ -119,8 +140,8 @@ export function bakuDaysBetween(from: string, to: string): number {
   return Math.max(0, bakuDayNumber(to) - bakuDayNumber(from));
 }
 
-/** `"2026-11-08"` → `"8 noyabr 2026"`. */
+/** `"2026-11-08"` → `"8 noyabr 2026"` (en: `"8 November 2026"`). */
 export function formatDateLong(value: string): string {
   const { y, m, d } = parts(value);
-  return `${Number(d)} ${MONTHS[Number(m) - 1]} ${y}`;
+  return `${Number(d)} ${(getLocale() === "en" ? MONTHS_EN : MONTHS)[Number(m) - 1]} ${y}`;
 }

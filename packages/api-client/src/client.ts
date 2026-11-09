@@ -1,10 +1,11 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { components, paths } from "./generated/schema";
-import { errorFallback } from "./i18n/az";
+import { errorFallback } from "./i18n";
+import { getLocale } from "./locale";
 
 export type ErrorCode = components["schemas"]["ErrorCode"] | "NETWORK_ERROR";
 
-/** Every non-2xx response and network failure surfaces as ApiError; `message` is Azerbaijani and UI-safe. */
+/** Every non-2xx response and network failure surfaces as ApiError; `message` is in the UI language and UI-safe. */
 export class ApiError extends Error {
   override readonly name = "ApiError";
   constructor(
@@ -26,9 +27,6 @@ export interface ApiClientOptions {
   fetch?: (input: Request) => Promise<Response>;
 }
 
-const UNEXPECTED = errorFallback.INTERNAL_ERROR;
-const OFFLINE = errorFallback.NETWORK_ERROR;
-
 export async function toApiError(response: Response): Promise<ApiError> {
   try {
     const body = (await response.clone().json()) as {
@@ -45,7 +43,7 @@ export async function toApiError(response: Response): Promise<ApiError> {
   } catch {
     // not JSON — fall through
   }
-  return new ApiError("INTERNAL_ERROR", UNEXPECTED, response.status);
+  return new ApiError("INTERNAL_ERROR", errorFallback.INTERNAL_ERROR, response.status);
 }
 
 export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) {
@@ -60,6 +58,8 @@ export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) 
     onRequest({ request }) {
       const token = getToken?.();
       if (token) request.headers.set("Authorization", `Bearer ${token}`);
+      // server texts (check messages, errors, notifications) follow the UI language
+      request.headers.set("Accept-Language", getLocale());
       return request;
     },
     async onResponse({ response }) {
@@ -70,7 +70,7 @@ export function createApiClient({ baseUrl, getToken, fetch }: ApiClientOptions) 
       if (error instanceof ApiError) return error;
       // Cancellation (TanStack Query, navigation) is not an outage: rethrow the original AbortError.
       if (error instanceof Error && error.name === "AbortError") return;
-      return new ApiError("NETWORK_ERROR", OFFLINE, 0, {}, { cause: error });
+      return new ApiError("NETWORK_ERROR", errorFallback.NETWORK_ERROR, 0, {}, { cause: error });
     },
   };
   client.use(middleware);
