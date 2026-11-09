@@ -1,4 +1,4 @@
-# Render Blueprint — API, worker and Postgres for the hosted demo (web runs on Vercel).
+# Render Blueprint — web, API, worker and Postgres for the hosted demo.
 # Render → New → Blueprint → this repo. Values marked `sync: false` are asked for once, in the
 # dashboard; they are never committed. Storage is any S3-compatible bucket (e.g. Cloudflare R2).
 # The demo logs in through dev-login, which exists only with ENV=dev: synthetic data only.
@@ -47,6 +47,26 @@ services:
         sync: false
       - key: AI_API_KEY
         sync: false
+
+  - type: web
+    name: payproof-web
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter web build
+    startCommand: pnpm --filter web start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: PORT
+        value: "3000" # `next start -p 3000`
+      # NEXT_PUBLIC_* are baked in at build time: change them, then redeploy
+      - key: NEXT_PUBLIC_API_MOCK
+        value: "0"
+      - key: NEXT_PUBLIC_DEMO_FILES
+        value: "1" # demo document sets; the API runs AI_PROVIDER=mock
+      - key: NEXT_PUBLIC_API_URL
+        sync: false # https://payproof-api-<id>.onrender.com (the API's public URL)
 
   - type: worker
     name: payproof-worker
