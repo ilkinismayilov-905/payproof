@@ -368,3 +368,172 @@ export const evidenceText = defineTexts({
   },
   en: {
     oldVersion: (v, current) =>
+      `Old version: this evidence is from v${v}; the current version is v${current}.`,
+    scan: "Scanned document: the text was read with OCR — compare the value with the source.",
+    signatureTitle: "Signature requirement (R-008)",
+    signatureBody:
+      "Look at the recipient's signature area. Your confirmation only records that a signature is visibly present — it is not legal authentication.",
+    noBbox: "No highlight coordinates — the page and quote are shown.",
+    quote: "Quote",
+    recording: "Recording…",
+    confirmSignature: "I confirm the signature is present",
+    notFound: "Source document not found",
+  },
+});
+
+/** Choosing and confirming the order an invoice belongs to. */
+export const matchText = defineTexts({
+  az: {
+    linked: (po: string | undefined) => `${po} ilə əlaqə təsdiqləndi.`,
+    title: (invoice: string | null) => `${invoice}: sifarişi seçin və təsdiqləyin`,
+    description: "AI namizədləri ID, məhsul kodu və miqdara görə təklif edir. Seçimi insan edir.",
+    none: "Uyğun sifariş namizədi tapılmadı. Sifariş sistemdə qeydə alındıqdan sonra paketi yenidən yoxlayın.",
+    candidates: "Sifariş namizədləri",
+    pickOne: "Sifarişlərdən birini seçin.",
+    invoiceSource: "Faktura (mənbə)",
+    confirm: "Seçilmiş sifarişlə əlaqəni təsdiqlə",
+  },
+  en: {
+    linked: (po) => `Link to ${po} confirmed.`,
+    title: (invoice) => `${invoice}: choose and confirm the order`,
+    description:
+      "AI suggests candidates by ID, product code and quantity. A person makes the choice.",
+    none: "No matching order candidate was found. Re-check the package once the order is registered in the system.",
+    candidates: "Order candidates",
+    pickOne: "Choose one of the orders.",
+    invoiceSource: "Invoice (source)",
+    confirm: "Confirm the link to the selected order",
+  },
+});
+
+/** Activity history panel and deleting a package. */
+export const activityText = defineTexts({
+  az: {
+    title: "Fəaliyyət tarixçəsi",
+    showLess: "Daha az göstər",
+    showAll: (n: number) => `Bütün ${n} hadisəni göstər`,
+    report: "Daxili yoxlama hesabatı",
+    delete: "Paketi sil",
+    deleteTitle: (invoice: string) => `${invoice} paketini silmək?`,
+    deleteBody: (invoice: string) =>
+      `${invoice} paketi və ona bağlı açıq tapşırıqlar silinəcək. Audit qeydi saxlanılır. Bu əməliyyat geri qaytarılmır.`,
+    confirmDelete: "Bəli, sil",
+  },
+  en: {
+    title: "Activity history",
+    showLess: "Show less",
+    showAll: (n) => `Show all ${n} events`,
+    report: "Internal check report",
+    delete: "Delete package",
+    deleteTitle: (invoice) => `Delete package ${invoice}?`,
+    deleteBody: (invoice) =>
+      `Package ${invoice} and its open tasks will be deleted. The audit record is kept. This cannot be undone.`,
+    confirmDelete: "Yes, delete",
+  },
+});
+
+/** Upload dialog: file picker, stages, refusals. */
+export const uploadText = defineTexts({
+  az: {
+    stages: {
+      accepted: "Qəbul edildi",
+      processing: "Emal olunur",
+      extracted: "Çıxarıldı",
+      checked: "Yoxlandı",
+    },
+    stageDone: " — tamamlandı",
+    stageWaiting: " — gözləyir",
+    uploaded: (name: string | undefined) => `${name} yükləndi.`,
+    title: (invoice: string) => `${invoice}: sənəd yüklə`,
+    description: "Faylın qəbulu, emalı və xətası ayrıca göstərilir.",
+    docType: "Sənəd növü",
+    newVersionOf: (label: string) => `${label} (yeni versiya)`,
+    pickFile: "Fayl seçin.",
+    keepsOld: "Yeni versiya köhnəsini silmir — köhnə versiya audit üçün saxlanılır.",
+    sending: "Göndərilir…",
+    submit: "Yüklə və emal et",
+    demoPick: "Demo faylı seçin",
+    noDemo: "Bu paket və sənəd növü üçün sintetik demo faylı yoxdur.",
+    duplicate: "Təkrar fayl: paketdə eyni fayl var",
+    dropzone: "Kompüterdən fayl seçin və ya bura atın",
+    formats: "PDF və ya skan şəkli",
+    duplicateTitle: "Bu fayl paketdə artıq var — yeni versiya yaradılmadı.",
+    duplicateBody: "Eyni hash-li fayl ikinci dəfə qəbul edilmir. Düzəldilmiş faylı seçin.",
+    conflictTitle: "Paket yenilənib — başqa istifadəçi dəyişiklik edib.",
+    conflictBody: "Yeniləyin və faylı yenidən göndərin.",
+    lostTitle: "Emalın vəziyyətini almaq olmadı.",
+    lostBody: "Dialoqu bağlayın — nəticə paket səhifəsində yenilənəcək.",
+    failedTitle: "Emal alınmadı — yeni versiya yaradılmadı.",
+  },
+  en: {
+    stages: {
+      accepted: "Accepted",
+      processing: "Processing",
+      extracted: "Extracted",
+      checked: "Checked",
+    },
+    stageDone: " — done",
+    stageWaiting: " — waiting",
+    uploaded: (name) => `${name} uploaded.`,
+    title: (invoice) => `${invoice}: upload document`,
+    description: "Acceptance, processing and errors of the file are shown separately.",
+    docType: "Document type",
+    newVersionOf: (label) => `${label} (new version)`,
+    pickFile: "Choose a file.",
+    keepsOld: "A new version does not delete the old one — the old version is kept for audit.",
+    sending: "Sending…",
+    submit: "Upload and process",
+    demoPick: "Choose a demo file",
+    noDemo: "There is no synthetic demo file for this package and document type.",
+    duplicate: "Duplicate file: the package already has the same file",
+    dropzone: "Choose a file from your computer or drop it here",
+    formats: "PDF or scanned image",
+    duplicateTitle: "This file is already in the package — no new version was created.",
+    duplicateBody: "A file with the same hash is not accepted twice. Choose the corrected file.",
+    conflictTitle: "The package has been updated — another user made changes.",
+    conflictBody: "Refresh and send the file again.",
+    lostTitle: "Could not get the processing status.",
+    lostBody: "Close the dialog — the result will update on the package page.",
+    failedTitle: "Processing failed — no new version was created.",
+  },
+});
+
+/** Live updates: "who changed what" toasts and the stale-version banner. */
+export const liveText = defineTexts({
+  az: {
+    verb: {
+      "package.created": "yaratdı",
+      "package.updated": "yenilədi",
+      "package.approved": "təsdiqlədi",
+      "package.exported": "ixrac etdi",
+      "package.deleted": "sildi",
+    },
+    packageEvent: (who: string, verb: string, invoice?: string) =>
+      `${who} ${invoice ? `${invoice} paketini` : "paketi"} ${verb}`,
+    taskEvent: (who: string, invoice?: string) =>
+      `${who} ${invoice ? `${invoice} paketinin tapşırığını` : "tapşırığı"} yenilədi`,
+    rulesEvent: (who: string) => `${who} müştəri qaydasını yenilədi`,
+    otherUser: "Başqa istifadəçi",
+    staleTitle: (v: number) => `Başqa istifadəçi paketi yenilədi (v${v}).`,
+    staleBody: "Davam etmək üçün yenidən baxın.",
+    downloadFailed: (status: number) => `Fayl yüklənmədi (${status}).`,
+  },
+  en: {
+    verb: {
+      "package.created": "created",
+      "package.updated": "updated",
+      "package.approved": "approved",
+      "package.exported": "exported",
+      "package.deleted": "deleted",
+    },
+    packageEvent: (who, verb, invoice) =>
+      `${who} ${verb} ${invoice ? `package ${invoice}` : "the package"}`,
+    taskEvent: (who, invoice) =>
+      `${who} updated ${invoice ? `the task of package ${invoice}` : "a task"}`,
+    rulesEvent: (who) => `${who} updated a customer rule`,
+    otherUser: "Another user",
+    staleTitle: (v) => `Another user updated the package (v${v}).`,
+    staleBody: "Review it again to continue.",
+    downloadFailed: (status) => `The file could not be downloaded (${status}).`,
+  },
+});
