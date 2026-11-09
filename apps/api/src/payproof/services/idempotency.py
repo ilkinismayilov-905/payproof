@@ -9,13 +9,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, ErrorCode, IdempotencyKeyReused
+from payproof.core.i18n import Msg
 from payproof.repositories.base import TENANT_KEY
 from payproof.repositories.models import IdempotencyKey
 
 
 class IdempotencyInProgress(Conflict):
     code = ErrorCode.IDEMPOTENCY_IN_PROGRESS
-    message = "Eyni sorğu hələ emal olunur."
+    message = Msg("Eyni sorğu hələ emal olunur.", "The same request is still being processed.")
 
 
 @dataclass(frozen=True)

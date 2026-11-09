@@ -12,13 +12,17 @@ from fastapi import Request, Response
 
 from payproof.api.deps import CurrentMember
 from payproof.core.errors import DomainError, ErrorCode, FileTooLarge, error_response
+from payproof.core.i18n import Msg
 from payproof.services.files import MAX_BYTES, MAX_MB
 
 
 class RateLimited(DomainError):
     status_code = 429
     code = ErrorCode.RATE_LIMITED
-    message = "Çox sorğu göndərildi — bir az sonra yenidən cəhd edin."
+    message = Msg(
+        "Çox sorğu göndərildi — bir az sonra yenidən cəhd edin.",
+        "Too many requests — try again shortly.",
+    )
     headers: ClassVar[dict[str, str]] = {}
 
     def __init__(self, retry_after: int) -> None:
