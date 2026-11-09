@@ -10,12 +10,19 @@ from sqlalchemy import select
 
 from payproof.api.deps import Member, Session, require
 from payproof.core.errors import ErrorCode, NotFound
+from payproof.core.i18n import Msg, tr
 from payproof.domain.permissions import Permission
 from payproof.repositories.models import Job
 
 router = APIRouter(tags=["documents"])
 Viewer = Annotated[Member, Depends(require(Permission.VIEW))]
-_MESSAGES = {ErrorCode.INTERNAL_ERROR: "Sənəd emal oluna bilmədi — faylı yenidən yükləyin."}
+_MESSAGES = {
+    ErrorCode.INTERNAL_ERROR: Msg(
+        "Sənəd emal oluna bilmədi — faylı yenidən yükləyin.",
+        "The document could not be processed — upload the file again.",
+    )
+}
+_FAILED = Msg("Emal alınmadı.", "Processing failed.")
 
 
 class JobError(BaseModel):
@@ -49,5 +56,5 @@ async def get_job(job_id: uuid.UUID, session: Session, member: Viewer) -> JobOut
         created_at=job.created_at,
         updated_at=job.updated_at,
         result=job.result,
-        error=JobError(code=code, message=_MESSAGES.get(code, "Emal alınmadı.")) if code else None,
+        error=JobError(code=code, message=tr(_MESSAGES.get(code, _FAILED))) if code else None,
     )
