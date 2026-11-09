@@ -1,4 +1,5 @@
 import type { Schemas } from "@payproof/api-client";
+import { dashboardText } from "@payproof/api-client/i18n";
 import { CircleHelp, CircleX, Clock, Package, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -14,45 +15,51 @@ interface Kpi {
   sub: string;
 }
 
-const kpis = ({ status_counts: c, package_count, customer_count }: Dashboard): Kpi[] => [
-  {
-    href: "/packages",
-    icon: Package,
-    iconClass: "text-text-2",
-    label: "Faktura paketləri",
-    value: package_count,
-    sub: `${customer_count} müştəri · hər faktura bir dəfə sayılır`,
-  },
-  {
-    href: "/packages?status=NEEDS_REVIEW",
-    icon: CircleHelp,
-    iconClass: "text-warning",
-    label: "Yoxlama tələb edir",
-    value: c.NEEDS_REVIEW,
-    sub: `İnsan yoxlaması lazımdır${c.PROCESSING ? ` · ${c.PROCESSING} emal olunur` : ""}`,
-  },
-  {
-    href: "/packages?status=NEEDS_FIX",
-    icon: CircleX,
-    iconClass: "text-danger",
-    label: "Düzəliş tələb edir",
-    value: c.NEEDS_FIX,
-    sub: "Təsdiqlənmiş uyğunsuzluq var",
-  },
-  {
-    href: "/packages?status=READY_FOR_APPROVAL",
-    icon: Clock,
-    iconClass: "text-brand",
-    label: "Təsdiq gözləyir",
-    value: c.READY_FOR_APPROVAL,
-    sub: `Göndərilməyə hazır: ${c.APPROVED_READY} · ixrac edilib: ${c.EXPORTED}`,
-  },
-];
+const kpis = ({ status_counts: c, package_count, customer_count }: Dashboard): Kpi[] => {
+  const t = dashboardText.kpi;
+  return [
+    {
+      href: "/packages",
+      icon: Package,
+      iconClass: "text-text-2",
+      label: t.packages,
+      value: package_count,
+      sub: t.packagesSub(customer_count),
+    },
+    {
+      href: "/packages?status=NEEDS_REVIEW",
+      icon: CircleHelp,
+      iconClass: "text-warning",
+      label: t.review,
+      value: c.NEEDS_REVIEW,
+      sub: `${t.reviewSub}${c.PROCESSING ? t.processing(c.PROCESSING) : ""}`,
+    },
+    {
+      href: "/packages?status=NEEDS_FIX",
+      icon: CircleX,
+      iconClass: "text-danger",
+      label: t.fix,
+      value: c.NEEDS_FIX,
+      sub: t.fixSub,
+    },
+    {
+      href: "/packages?status=READY_FOR_APPROVAL",
+      icon: Clock,
+      iconClass: "text-brand",
+      label: t.approval,
+      value: c.READY_FOR_APPROVAL,
+      sub: t.approvalSub(c.APPROVED_READY, c.EXPORTED),
+    },
+  ];
+};
 
 /** Prototype `.kpis`: each card opens the package list with its filter. */
 export function KpiCards({ dashboard }: { dashboard: Dashboard }) {
   return (
-    <ul aria-label="Əsas göstəricilər" className="grid gap-4 @lg:grid-cols-2 @4xl:grid-cols-4">
+    <ul
+      aria-label={dashboardText.kpi.label}
+      className="grid gap-4 @lg:grid-cols-2 @4xl:grid-cols-4"
+    >
       {kpis(dashboard).map(({ href, icon: Icon, iconClass, label, value, sub }) => (
         <li key={href}>
           <Link
