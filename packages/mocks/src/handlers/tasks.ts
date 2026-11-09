@@ -6,6 +6,7 @@ import { slugOf } from "../ids";
 import type { MockDb } from "../store";
 import { task } from "../views/records";
 import {
+  badRequest,
   body,
   currentUser,
   json,
@@ -18,7 +19,9 @@ import {
 } from "./http";
 
 const bad = (field: string, m: string) =>
-  new MockError("VALIDATION_ERROR", "Sorğuda xəta var.", 422, { fields: { [field]: m } });
+  new MockError("VALIDATION_ERROR", badRequest("Sorğuda xəta var."), 422, {
+    fields: { [field]: m },
+  });
 
 function assignee(db: MockDb, uuid: unknown): string {
   const slug = typeof uuid === "string" ? slugOf.user(uuid) : null;

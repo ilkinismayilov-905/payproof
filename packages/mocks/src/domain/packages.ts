@@ -158,7 +158,10 @@ export function deletePackage(db: MockDb, p: Pkg, actor: string) {
   if (p.approvals.length || !["PROCESSING", "NEEDS_FIX", "NEEDS_REVIEW"].includes(s))
     throw new MockError(
       "PACKAGE_NOT_DELETABLE",
-      "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+      {
+        az: "Təsdiqlənmiş və ya təsdiqə hazır paket silinə bilməz.",
+        en: "An approved or ready-for-approval package cannot be deleted.",
+      },
       409,
       { status: s },
     );

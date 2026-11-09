@@ -1,14 +1,16 @@
 // Append-only audit log and in-app notifications. Messages are Azerbaijani (prototype wording), no document text.
+import { type Msg, tr } from "../i18n";
 import type { MockDb } from "../store";
 
+/** `message` is az; `msg` keeps the en text too (a plain string is the same in both languages). */
 export class MockError extends Error {
   constructor(
     readonly code: string,
-    message: string,
+    readonly msg: string | Msg,
     readonly status: number,
     readonly details: Record<string, unknown> = {},
   ) {
-    super(message);
+    super(tr(msg, "az"));
   }
 }
 
