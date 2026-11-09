@@ -125,7 +125,7 @@ class LlmAdapter:
                 },
             )
         except anthropic.APIError as e:  # after the SDK's own retries (429/5xx/timeouts)
-            log.warning("llm extraction failed", extra={"error": type(e).__name__})
+            log.warning("llm extraction failed: %s", type(e).__name__)  # type only, no text
             return await self._fallback(src, type(e).__name__)
         if msg.stop_reason != "end_turn":  # refusal, max_tokens
             return await self._fallback(src, f"stop_reason:{msg.stop_reason}")
