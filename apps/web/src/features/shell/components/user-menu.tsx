@@ -1,6 +1,13 @@
 "use client";
 
-import { loginText, roleLabel, shellText } from "@payproof/api-client/i18n";
+import {
+  isLocale,
+  LOCALES,
+  localeText,
+  loginText,
+  roleLabel,
+  shellText,
+} from "@payproof/api-client/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, LogOut, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,6 +17,7 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDevLogin, useDevUsers, useMe } from "@/features/auth";
 import { setToken } from "@/lib/auth";
+import { changeLocale, useLocale } from "@/lib/locale";
 import { demoText, useResetDemo } from "../demo";
 
 const initials = (name: string) =>
@@ -29,6 +37,7 @@ export function UserMenu() {
   const me = useMe().data;
   const users = useDevUsers();
   const login = useDevLogin();
+  const locale = useLocale();
   const reset = useResetDemo();
   const [confirmReset, setConfirmReset] = useState(false);
   if (!me) return null;
@@ -80,6 +89,23 @@ export function UserMenu() {
                     {roleLabel[u.role]} · {u.title}
                   </span>
                 </span>
+                <DropdownMenu.ItemIndicator>
+                  <Check aria-hidden className="text-brand size-4" />
+                </DropdownMenu.ItemIndicator>
+              </DropdownMenu.RadioItem>
+            ))}
+          </DropdownMenu.RadioGroup>
+          <DropdownMenu.Separator className="bg-border my-1 h-px" />
+          <DropdownMenu.Label className="text-text-3 px-3 py-2 text-xs font-bold uppercase">
+            {localeText.label}
+          </DropdownMenu.Label>
+          <DropdownMenu.RadioGroup
+            value={locale}
+            onValueChange={(l) => isLocale(l) && changeLocale(l)}
+          >
+            {LOCALES.map((l) => (
+              <DropdownMenu.RadioItem key={l} value={l} lang={l} className={menuItem}>
+                <span className="grow">{localeText[l]}</span>
                 <DropdownMenu.ItemIndicator>
                   <Check aria-hidden className="text-brand size-4" />
                 </DropdownMenu.ItemIndicator>
