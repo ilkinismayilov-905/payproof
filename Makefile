@@ -20,6 +20,8 @@ up: ## Start postgres + minio and create the bucket
 	docker compose run --rm minio-init
 
 demo: ## Whole stack in containers (api, worker, web :3000), migrated and seeded
+	@# MinIO runs as a non-root user: on Linux a bind-mount dir docker creates (root-owned) is read-only to it
+	mkdir -p .data/minio && chmod a+rwx .data/minio
 	docker compose up -d --build --wait postgres minio api worker web
 	docker compose exec api alembic upgrade head
 	docker compose exec api payproof-seed
