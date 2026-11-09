@@ -1,3 +1,5 @@
+# mypy: disable-error-code="no-untyped-call"
+# (pymupdf ships no type hints; this script only draws test documents)
 """Write the synthetic AI-eval documents and their ground truth to tests/fixtures/ai-eval/.
 
 `uv run python scripts/make_ai_eval_docs.py` — demo names from fixtures/ (A Distribusiya MMC,
