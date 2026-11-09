@@ -1,3 +1,4 @@
+import { packagesText } from "@payproof/api-client/i18n";
 import { demoSets } from "../new-package";
 
 // shortcut: demo files are named stand-ins; the mock server recognises them by name
@@ -14,8 +15,8 @@ export function DemoSetPicker({
   onPick: (customerName: string, files: Record<string, File>) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label="Demo sənəd dəsti" className="flex flex-col gap-2">
-      <span className="text-sm font-semibold">Demo sənəd dəsti</span>
+    <div role="radiogroup" aria-label={packagesText.dialog.demoSet} className="flex flex-col gap-2">
+      <span className="text-sm font-semibold">{packagesText.dialog.demoSet}</span>
       {demoSets().map((s) => (
         <label
           key={s.id}

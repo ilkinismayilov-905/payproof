@@ -1,7 +1,7 @@
 import customers from "@fixtures/customers.json";
 import newsets from "@fixtures/newsets.json";
 import { toFormData, unwrap, type Schemas } from "@payproof/api-client";
-import { packageStatusLabel } from "@payproof/api-client/i18n";
+import { packagesText, packageStatusLabel } from "@payproof/api-client/i18n";
 import type { QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 // the file, not the index: the dashboard index imports this feature
@@ -70,9 +70,12 @@ export async function follow(client: QueryClient, jobId: string, packageId: stri
     client.invalidateQueries({ queryKey: packageKeys.all }),
     client.invalidateQueries({ queryKey: dashboardKeys.all }),
   ]);
-  if (job.status === "FAILED") return toast.error(job.error?.message ?? `${label} emal olunmadı.`);
+  if (job.status === "FAILED")
+    return toast.error(job.error?.message ?? packagesText.processingFailed(label));
   const pkg = client.getQueryData<Schemas["PackageDetail"]>(packageKeys.detail(packageId));
   toast.success(
-    pkg ? `${label} emal olundu: ${packageStatusLabel[pkg.status]}.` : `${label} emal olundu.`,
+    pkg
+      ? packagesText.processed(label, packageStatusLabel[pkg.status])
+      : packagesText.processedPlain(label),
   );
 }
