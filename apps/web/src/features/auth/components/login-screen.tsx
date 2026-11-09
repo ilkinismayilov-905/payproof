@@ -5,6 +5,7 @@ import { CheckCircle2, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LocaleSwitch } from "@/components/locale-switch";
 import { PreflyLogo } from "@/components/prefly-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,8 @@ export function LoginScreen() {
   };
 
   return (
-    <main className="grid min-h-dvh place-items-center p-6">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
+      <LocaleSwitch />
       <div className="bg-surface border-border shadow-2 w-full max-w-md overflow-hidden rounded-xl border">
         <header className="bg-brand text-brand-foreground flex flex-col gap-2 px-6 py-8">
           <span className="bg-surface grid size-14 place-items-center rounded-xl">
