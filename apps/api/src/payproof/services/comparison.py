@@ -5,12 +5,14 @@ import uuid
 from collections.abc import Callable, Mapping
 from decimal import Decimal
 
+from payproof.core.i18n import Msg, tr
 from payproof.domain.money import Money
 from payproof.domain.rules.paths import INVOICE_PO, line
 from payproof.domain.snapshot import PackageSnapshot
 from payproof.schemas.detail import ComparisonCell, ComparisonRow, Evidence
 
 State = str  # "ok" | "mismatch" | "unknown" | "empty"
+PO_LABEL = Msg("Sifariş № (PO)", "Order No. (PO)")
 EvidenceOf = Callable[[str], Evidence | None]
 
 
@@ -43,14 +45,21 @@ def comparison_rows(
 
     def add(
         key: str,
-        label: str,
+        label: Msg,
         inv: ComparisonCell,
         ord_: ComparisonCell,
         dlv: ComparisonCell,
-        group: str | None = None,
+        group: str | Msg | None = None,
     ) -> None:
         rows.append(
-            ComparisonRow(key=key, group=group, label=label, invoice=inv, order=ord_, delivery=dlv)
+            ComparisonRow(
+                key=key,
+                group=None if group is None else tr(group),
+                label=tr(label),
+                invoice=inv,
+                order=ord_,
+                delivery=dlv,
+            )
         )
 
     unread = INVOICE_PO in s.invoice.unreadable_fields
@@ -58,7 +67,7 @@ def comparison_rows(
     po_bad = "unknown" if unread else "mismatch" if not po or (o and po != o.po) else None
     add(
         "po_ref",
-        "Sifariş № (PO)",
+        PO_LABEL,
         _cell(
             None if unread else po,
             po_bad,
@@ -74,7 +83,7 @@ def comparison_rows(
     )
     add(
         "customer",
-        "Alıcı",
+        Msg("Alıcı", "Buyer"),
         _cell(name.get(s.customer_id), evidence=evidence("invoice.customer")),
         _cell(
             name.get(o.customer_id) if o else None,
@@ -88,7 +97,7 @@ def comparison_rows(
     )
     add(
         "currency",
-        "Valyuta",
+        Msg("Valyuta", "Currency"),
         _cell(str(cur)),
         _cell(str(o.currency) if o else None, "unknown" if o and not same_cur else None),
         _cell(None),
@@ -102,9 +111,10 @@ def comparison_rows(
         qty_bad = (same_cur and ol is not None and ol.qty != li.qty) or (
             code in delivered and got != li.qty
         )
+        unit = li.unit or (ol.unit if ol else "") or ""
         add(
             f"lines[{code}].qty",
-            f"Miqdar ({li.unit or (ol.unit if ol else '') or ''})",
+            Msg(f"Miqdar ({unit})", f"Quantity ({unit})"),
             _cell(
                 _qty(li.qty),
                 "mismatch" if qty_bad else None,
@@ -122,7 +132,7 @@ def comparison_rows(
         price_bad = same_cur and ol is not None and ol.unit_price != li.unit_price
         add(
             f"lines[{code}].unit_price",
-            "Vahid qiymət",
+            Msg("Vahid qiymət", "Unit price"),
             _cell(
                 _money(li.unit_price),
                 "mismatch" if price_bad else None,
@@ -141,7 +151,7 @@ def comparison_rows(
     order_total = Money.sum((ol.unit_price * ol.qty for ol in o.lines), o.currency) if o else None
     add(
         "total",
-        "Yekun məbləğ",
+        Msg("Yekun məbləğ", "Total amount"),
         _cell(_money(s.invoice.total), currency=cur, evidence=evidence("invoice.total")),
         _cell(
             _money(order_total),
@@ -149,6 +159,6 @@ def comparison_rows(
             currency=o.currency if o else None,
         ),
         _cell(None),
-        "Cəmlər",
+        Msg("Cəmlər", "Totals"),
     )
     return rows
