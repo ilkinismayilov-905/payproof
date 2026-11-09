@@ -1,8 +1,8 @@
-# PayProof
+# Prefly
 
 > Find the document issue before it becomes a payment delay.
 
-PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi ilə tutuşdurur, ödənişi ləngidə bilən sənəd problemlərini mənbə sübutu ilə göstərir, düzəlişi məsul şəxsə yönləndirir və hazır paketi insan təsdiqindən sonra ixrac edir.
+Prefly (əvvəlki adı PayProof) B2B satış fakturasını müştərinin sifarişi və təhvil sənədi ilə tutuşdurur, ödənişi ləngidə bilən sənəd problemlərini mənbə sübutu ilə göstərir, düzəlişi məsul şəxsə yönləndirir və hazır paketi insan təsdiqindən sonra ixrac edir.
 
 **Status:** MVP (P0) implementasiyası başlayır. Bütün demo məlumatları sintetikdir.
 

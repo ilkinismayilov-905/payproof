@@ -33,7 +33,7 @@ export function AuditScreen() {
     mutationFn: async () => {
       // BOM: spreadsheet apps then read the Azerbaijani letters as UTF-8
       const text = await auditCsv(filter);
-      await saveFile("PayProof_audit.csv", new Blob(["﻿", text], { type: "text/csv" }));
+      await saveFile("Prefly_audit.csv", new Blob(["﻿", text], { type: "text/csv" }));
       toast.success("Audit jurnalı CSV kimi yükləndi.");
     },
   });

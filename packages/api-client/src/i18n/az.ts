@@ -182,7 +182,7 @@ export const ui = {
 
 /** Login screen (dev auth: pick a demo user). */
 export const loginText = {
-  brand: "PayProof",
+  brand: "Prefly",
   tagline: "Faktura paketlərinin hazırlığı və təsdiqi",
   demoBadge: "Sintetik məlumatlarla demo",
   pickTitle: "Demo hesabını seçin",

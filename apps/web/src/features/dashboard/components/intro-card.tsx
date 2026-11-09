@@ -50,13 +50,13 @@ export function IntroCard() {
       </button>
       <div>
         <span className="text-brand text-xs font-bold tracking-wider uppercase">
-          PayProof · B2B maliyyə komandası üçün
+          Prefly · B2B maliyyə komandası üçün
         </span>
         <h2 className="mt-1.5 mb-2 max-w-[760px] pr-10 text-2xl leading-tight tracking-tight font-bold">
           Ödənişi ləngidə bilən sənəd problemini faktura müştəriyə getməzdən əvvəl tapın.
         </h2>
         <p className="text-text-2 max-w-[760px]">
-          PayProof fakturanı sifariş və təhvil sənədi ilə tutuşdurur, uyğunsuzluğu mənbə sübutu ilə
+          Prefly fakturanı sifariş və təhvil sənədi ilə tutuşdurur, uyğunsuzluğu mənbə sübutu ilə
           göstərir, düzəlişi məsul şəxsə yönləndirir və hazır paketi insan təsdiqindən sonra ixrac
           edir. AI sənədi oxuyur, rəqəmləri deterministik qayda mühərriki yoxlayır, qərarı insan
           verir.

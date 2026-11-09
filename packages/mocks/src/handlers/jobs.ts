@@ -23,7 +23,7 @@ export const jobHandlers = (ctx: Ctx) => [
   http.get(
     "*/mock-files/:version_id",
     ({ params }) =>
-      new HttpResponse(`PayProof demo faylı ${String(params.version_id)}\n`, {
+      new HttpResponse(`Prefly demo faylı ${String(params.version_id)}\n`, {
         headers: { "Content-Type": "text/plain; charset=utf-8" },
       }),
   ),

@@ -15,7 +15,7 @@ test("audit: search narrows the log, the URL keeps it, CSV downloads", async ({ 
   await expect(table.getByRole("link", { name: "INV-1036" }).first()).toBeVisible();
   const csv = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV yüklə" }).click();
-  expect((await csv).suggestedFilename()).toBe("PayProof_audit.csv");
+  expect((await csv).suggestedFilename()).toBe("Prefly_audit.csv");
 });
 
 test("notifications: unread count, a click opens the package and reads it", async ({ page }) => {

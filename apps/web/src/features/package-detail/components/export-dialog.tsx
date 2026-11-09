@@ -56,7 +56,7 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
           onOpenChange(false);
           // the export exists either way; a failed download can be repeated from "Manifesti yenidən yüklə"
           saveFile(
-            `PayProof_${pkg.invoice_number}_v${record.package_version}.zip`,
+            `Prefly_${pkg.invoice_number}_v${record.package_version}.zip`,
             download.url,
           ).then(
             () => toast.success(`${done} Manifest yükləndi.`),
@@ -81,7 +81,7 @@ export function ExportDialog({ pkg, open, onOpenChange, onConflict }: Props) {
             <div className="px-6 pt-5 pb-3">
               <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number}: ixrac paketi`}</Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
-                Müştəriyə göstəriləcək sənədləri seçin. Göndərmə PayProof-dan kənarda aparılır.
+                Müştəriyə göstəriləcək sənədləri seçin. Göndərmə Prefly-dan kənarda aparılır.
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">

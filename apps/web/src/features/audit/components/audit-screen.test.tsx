@@ -52,6 +52,6 @@ test("search replaces the URL entry; CSV downloads the filtered log", async () =
   );
   await userEvent.click(screen.getByRole("button", { name: "CSV yüklə" }));
   await waitFor(() =>
-    expect(saveFile).toHaveBeenCalledWith("PayProof_audit.csv", expect.any(Blob)),
+    expect(saveFile).toHaveBeenCalledWith("Prefly_audit.csv", expect.any(Blob)),
   );
 });

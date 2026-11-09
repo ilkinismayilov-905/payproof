@@ -32,7 +32,7 @@ test("the invoice is mandatory; the chosen documents are exported and downloaded
   await userEvent.click(screen.getByRole("button", { name: "İxrac et və manifesti yüklə" }));
   await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   expect(saveFile).toHaveBeenCalledWith(
-    expect.stringMatching(/^PayProof_INV-1035_v\d+\.zip$/),
+    expect.stringMatching(/^Prefly_INV-1035_v\d+\.zip$/),
     expect.stringMatching(/\.zip$/),
   );
   const after = await detail();
