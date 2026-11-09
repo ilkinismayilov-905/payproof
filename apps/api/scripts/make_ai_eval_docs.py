@@ -3,7 +3,8 @@
 """Write the synthetic AI-eval documents and their ground truth to tests/fixtures/ai-eval/.
 
 `uv run python scripts/make_ai_eval_docs.py` — demo names from fixtures/ (A Distribusiya MMC,
-customers c1/c2, products, PO numbers). Deterministic; re-run after editing DOCS."""
+customers c1/c2, products, PO numbers). Same content each run, but
+new PDF bytes (timestamps): re-run only after editing DOCS, then re-run scripts/ai_eval.py."""
 
 import json
 import math
