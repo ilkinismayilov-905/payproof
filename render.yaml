@@ -1,0 +1,79 @@
+# Render Blueprint — API, worker and Postgres for the hosted demo (web runs on Vercel).
+# Render → New → Blueprint → this repo. Values marked `sync: false` are asked for once, in the
+# dashboard; they are never committed. Storage is any S3-compatible bucket (e.g. Cloudflare R2).
+# The demo logs in through dev-login, which exists only with ENV=dev: synthetic data only.
+
+envVarGroups:
+  - name: payproof-shared
+    envVars:
+      - key: ENV
+        value: dev
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_PROVIDER
+        value: mock # set to llm (and AI_API_KEY on both services) for real extraction
+      - key: AI_MODEL
+        value: claude-sonnet-5-5
+
+services:
+  - type: web
+    name: payproof-api
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    # the image's last stage is the worker; the API runs the same image with its own command.
+    # payproof-seed is a no-op once the demo data exists.
+    dockerCommand: sh -c "alembic upgrade head && payproof-seed && exec payproof-api"
+    healthCheckPath: /v1/health
+    envVars:
+      - fromGroup: payproof-shared
+      - key: PORT
+        value: "8000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: payproof-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false # https://<your-app>.vercel.app
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+
+  - type: worker
+    name: payproof-worker
+    runtime: docker
+    region: frankfurt
+    plan: starter # background workers have no free plan
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    envVars:
+      - fromGroup: payproof-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: payproof-db
+          property: connectionString
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+
+databases:
+  - name: payproof-db
+    region: frankfurt
+    plan: free
+    postgresMajorVersion: "16"
