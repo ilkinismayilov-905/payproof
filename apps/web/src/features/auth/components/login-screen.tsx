@@ -1,10 +1,11 @@
 "use client";
 
 import { loginText, roleLabel, ui } from "@payproof/api-client/i18n";
-import { CheckCircle2, Info, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PreflyLogo } from "@/components/prefly-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDevLogin, useDevUsers } from "../queries";
@@ -30,7 +31,9 @@ export function LoginScreen() {
     <main className="grid min-h-dvh place-items-center p-6">
       <div className="bg-surface border-border shadow-2 w-full max-w-md overflow-hidden rounded-xl border">
         <header className="bg-brand text-brand-foreground flex flex-col gap-2 px-6 py-8">
-          <ShieldCheck aria-hidden className="size-10" />
+          <span className="bg-surface grid size-14 place-items-center rounded-xl">
+            <PreflyLogo className="size-11" />
+          </span>
           <h1 className="text-3xl font-semibold tracking-tight">{loginText.brand}</h1>
           <p className="opacity-90">{loginText.tagline}</p>
           <span className="inline-flex w-fit items-center gap-1 rounded-full bg-brand-foreground/20 px-3 py-1 text-sm">

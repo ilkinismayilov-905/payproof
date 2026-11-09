@@ -17,6 +17,23 @@
   --radius-xl: var(--r-xl);
 }
 
+/* Prefly logo — brand asset colors, not theme tokens. On dark surfaces the P turns light. */
+.prefly-logo {
+  --logo-ink: #0f3328;
+  --logo-line: #d4f4a0;
+  --logo-accent: #10c97e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .prefly-logo {
+    --logo-ink: #d4f4a0;
+    --logo-line: #0f3328;
+  }
+}
+:root[data-theme="dark"] .prefly-logo {
+  --logo-ink: #d4f4a0;
+  --logo-line: #0f3328;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
