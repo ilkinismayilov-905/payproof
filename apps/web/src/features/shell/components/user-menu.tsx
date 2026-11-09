@@ -2,12 +2,15 @@
 
 import { loginText, roleLabel, shellText } from "@payproof/api-client/i18n";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, LogOut } from "lucide-react";
+import { Check, ChevronDown, LogOut, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DropdownMenu } from "radix-ui";
+import { useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDevLogin, useDevUsers, useMe } from "@/features/auth";
 import { setToken } from "@/lib/auth";
+import { demoText, useResetDemo } from "../demo";
 
 const initials = (name: string) =>
   name
@@ -26,6 +29,8 @@ export function UserMenu() {
   const me = useMe().data;
   const users = useDevUsers();
   const login = useDevLogin();
+  const reset = useResetDemo();
+  const [confirmReset, setConfirmReset] = useState(false);
   if (!me) return null;
 
   const switchTo = (id: string) => {
@@ -82,12 +87,27 @@ export function UserMenu() {
             ))}
           </DropdownMenu.RadioGroup>
           <DropdownMenu.Separator className="bg-border my-1 h-px" />
+          {/* demo login exists only with ENV=dev — so does the reset */}
+          {users.isSuccess && (
+            <DropdownMenu.Item onSelect={() => setConfirmReset(true)} className={menuItem}>
+              <RotateCcw aria-hidden className="size-4" />
+              {demoText.reset}
+            </DropdownMenu.Item>
+          )}
           <DropdownMenu.Item onSelect={signOut} className={menuItem}>
             <LogOut aria-hidden className="size-4" />
             {shellText.signOut}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
+      <ConfirmDialog
+        open={confirmReset}
+        onOpenChange={setConfirmReset}
+        title={demoText.confirmTitle}
+        description={demoText.confirmBody}
+        confirmLabel={demoText.confirm}
+        onConfirm={() => reset.mutateAsync()}
+      />
     </DropdownMenu.Root>
   );
 }

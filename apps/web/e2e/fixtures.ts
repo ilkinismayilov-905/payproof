@@ -6,7 +6,23 @@ import { API_ENV, API_URL, REAL, STACK } from "./stack";
 // each such response. Anything else in the console — or an uncaught error — fails the test.
 const EXPECTED = /Failed to load resource: the server responded with a status of 4\d\d/;
 
-export const test = base.extend<{ consoleGuard: void; freshData: void }>({
+// I-02: the demo must run without internet (mock AI, local storage): any request that leaves this
+// machine fails the test
+const LOCAL = new Set(["localhost", "127.0.0.1"]);
+
+export const test = base.extend<{ consoleGuard: void; freshData: void; offlineGuard: void }>({
+  offlineGuard: [
+    async ({ page }, use) => {
+      const external: string[] = [];
+      page.on("request", (r) => {
+        const url = new URL(r.url());
+        if (url.protocol.startsWith("http") && !LOCAL.has(url.hostname)) external.push(r.url());
+      });
+      await use();
+      expect(external, "no request leaves localhost").toEqual([]);
+    },
+    { auto: true },
+  ],
   // mock data starts fresh on every full load; the real database is reseeded before each test
   // (the compose stack's through its dev-only reset endpoint: its database is not reachable here)
   freshData: [
