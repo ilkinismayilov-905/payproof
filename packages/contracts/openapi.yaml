@@ -1,11 +1,13 @@
 openapi: 3.1.0
 info:
-  title: PayProof API
-  version: 0.3.0
+  title: Prefly API
+  version: 0.4.0
   description: |
-    PayProof P0 API contract — the single source of truth (docs/architecture/api-contract.md).
+    Prefly (formerly PayProof) P0 API contract — the single source of truth (docs/architecture/api-contract.md).
     Conventions: `snake_case` fields; money is a decimal **string** with its currency, never a float;
-    quantities are strings; timestamps are ISO 8601 UTC. Changes only via `/contract-change`
+    quantities are strings; timestamps are ISO 8601 UTC. User-facing texts (`message`, `title`, labels,
+    notifications, error messages) follow `Accept-Language` (`az` default, `en`); codes, enums and
+    stored audit messages do not. Changes only via `/contract-change`
     (docs/progress/CONTRACT-CHANGELOG.md). Example IDs are illustrative and mirror fixtures/.
 servers:
   - url: http://localhost:8000
@@ -41,6 +43,8 @@ tags:
     description: Live change signals (Server-Sent Events)
 paths:
   /v1/auth/dev-users:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [auth]
       operationId: listDevUsers
@@ -79,6 +83,8 @@ paths:
                     }
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/auth/dev-login:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     post:
       tags: [auth]
       operationId: devLogin
@@ -123,6 +129,8 @@ paths:
         "422": { $ref: "#/components/responses/ValidationError" }
         "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/me:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [auth]
       operationId: getMe
@@ -136,6 +144,8 @@ paths:
               example: *me_u1
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/dashboard:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [dashboard]
       operationId: getDashboard
@@ -201,6 +211,8 @@ paths:
                     exported: false
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/packages:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [packages]
       operationId: listPackages
@@ -362,6 +374,7 @@ paths:
         "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/packages/{package_id}:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     get:
       tags: [packages]
@@ -566,6 +579,7 @@ paths:
                 }
   /v1/documents/versions/{version_id}/file:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - {
           name: version_id,
           in: path,
@@ -591,6 +605,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/jobs/{job_id}:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - { name: job_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
     get:
       tags: [documents]
@@ -619,6 +634,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/packages/{package_id}/documents:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [documents]
@@ -674,6 +690,7 @@ paths:
         "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/documents/{document_id}/versions:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - {
           name: document_id,
           in: path,
@@ -710,6 +727,7 @@ paths:
         "429": { $ref: "#/components/responses/TooManyRequests" }
   /v1/packages/{package_id}/match-candidates:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     get:
       tags: [review]
@@ -742,6 +760,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/packages/{package_id}/matches:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [review]
@@ -775,6 +794,7 @@ paths:
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/fields/{field_id}:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - { name: field_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
     patch:
       tags: [review]
@@ -801,6 +821,7 @@ paths:
       responses: *package_mutation_responses
   /v1/packages/{package_id}/signature-review:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [review]
@@ -815,6 +836,7 @@ paths:
       responses: *package_mutation_responses
   /v1/packages/{package_id}/validate:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [review]
@@ -823,6 +845,8 @@ paths:
       requestBody: *versioned_body
       responses: *package_mutation_responses
   /v1/tasks:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [tasks]
       operationId: listTasks
@@ -894,6 +918,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/packages/{package_id}/tasks:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [tasks]
@@ -942,6 +967,7 @@ paths:
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/tasks/{task_id}:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - { name: task_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
     patch:
       tags: [tasks]
@@ -1008,6 +1034,7 @@ paths:
                 }
   /v1/packages/{package_id}/approve:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [approval]
@@ -1078,6 +1105,7 @@ paths:
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/packages/{package_id}/export:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     post:
       tags: [approval]
@@ -1195,6 +1223,7 @@ paths:
                 }
   /v1/packages/{package_id}/internal-report:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     get:
       tags: [approval]
@@ -1235,6 +1264,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/packages/{package_id}/audit:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - $ref: "#/components/parameters/PackageId"
     get:
       tags: [audit]
@@ -1253,6 +1283,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/audit:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [audit]
       operationId: listAudit
@@ -1286,6 +1318,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/customers:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [customers]
       operationId: listCustomers
@@ -1327,6 +1361,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/customers/{customer_id}/requirements:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - {
           name: customer_id,
           in: path,
@@ -1413,6 +1448,8 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
   /v1/notifications:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [notifications]
       operationId: listNotifications
@@ -1446,6 +1483,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/notifications/{notification_id}/read:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - {
           name: notification_id,
           in: path,
@@ -1461,6 +1499,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/notifications/read-all:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     post:
       tags: [notifications]
       operationId: markAllNotificationsRead
@@ -1469,6 +1509,8 @@ paths:
         "204": { description: All marked as read }
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/demo/reset:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     post:
       tags: [demo]
       operationId: resetDemo
@@ -1478,6 +1520,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/users:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [users]
       operationId: listUsers
@@ -1521,6 +1565,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /v1/exports/{export_id}/download:
     parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
       - { name: export_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
     get:
       tags: [approval]
@@ -1540,6 +1585,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthenticated" }
         "404": { $ref: "#/components/responses/NotFound" }
   /v1/events:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [events]
       operationId: streamEvents
@@ -1598,6 +1645,17 @@ components:
         while the first request is still running → 409 `IDEMPOTENCY_IN_PROGRESS`.
       schema: { type: string, format: uuid }
       example: 6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      required: false
+      description: |
+        Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+        header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+        Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+        returned in `az` until the package is re-validated.
+      schema: { type: string, enum: [az, en], default: az }
+      example: en
     Limit:
       name: limit
       in: query

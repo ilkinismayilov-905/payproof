@@ -7,7 +7,16 @@ export interface paths {
     "/v1/auth/dev-users": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -24,7 +33,16 @@ export interface paths {
     "/v1/auth/dev-login": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -41,7 +59,16 @@ export interface paths {
     "/v1/me": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -58,7 +85,16 @@ export interface paths {
     "/v1/dashboard": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -75,7 +111,16 @@ export interface paths {
     "/v1/packages": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -93,7 +138,16 @@ export interface paths {
     "/v1/packages/{package_id}": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -113,7 +167,16 @@ export interface paths {
     "/v1/documents/versions/{version_id}/file": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 version_id: components["schemas"]["Uuid"];
             };
@@ -132,7 +195,16 @@ export interface paths {
     "/v1/jobs/{job_id}": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 job_id: components["schemas"]["Uuid"];
             };
@@ -151,7 +223,16 @@ export interface paths {
     "/v1/packages/{package_id}/documents": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -170,7 +251,16 @@ export interface paths {
     "/v1/documents/{document_id}/versions": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 document_id: components["schemas"]["Uuid"];
             };
@@ -189,7 +279,16 @@ export interface paths {
     "/v1/packages/{package_id}/match-candidates": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -208,7 +307,16 @@ export interface paths {
     "/v1/packages/{package_id}/matches": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -227,7 +335,16 @@ export interface paths {
     "/v1/fields/{field_id}": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 field_id: components["schemas"]["Uuid"];
             };
@@ -246,7 +363,16 @@ export interface paths {
     "/v1/packages/{package_id}/signature-review": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -265,7 +391,16 @@ export interface paths {
     "/v1/packages/{package_id}/validate": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -284,7 +419,16 @@ export interface paths {
     "/v1/tasks": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -301,7 +445,16 @@ export interface paths {
     "/v1/packages/{package_id}/tasks": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -320,7 +473,16 @@ export interface paths {
     "/v1/tasks/{task_id}": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 task_id: components["schemas"]["Uuid"];
             };
@@ -340,7 +502,16 @@ export interface paths {
     "/v1/packages/{package_id}/approve": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -365,7 +536,16 @@ export interface paths {
     "/v1/packages/{package_id}/export": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -390,7 +570,16 @@ export interface paths {
     "/v1/packages/{package_id}/internal-report": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -409,7 +598,16 @@ export interface paths {
     "/v1/packages/{package_id}/audit": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -428,7 +626,16 @@ export interface paths {
     "/v1/audit": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -445,7 +652,16 @@ export interface paths {
     "/v1/customers": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -462,7 +678,16 @@ export interface paths {
     "/v1/customers/{customer_id}/requirements": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 customer_id: components["schemas"]["Uuid"];
             };
@@ -482,7 +707,16 @@ export interface paths {
     "/v1/notifications": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -499,7 +733,16 @@ export interface paths {
     "/v1/notifications/{notification_id}/read": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 notification_id: components["schemas"]["Uuid"];
             };
@@ -518,7 +761,16 @@ export interface paths {
     "/v1/notifications/read-all": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -535,7 +787,16 @@ export interface paths {
     "/v1/demo/reset": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -552,7 +813,16 @@ export interface paths {
     "/v1/users": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -569,7 +839,16 @@ export interface paths {
     "/v1/exports/{export_id}/download": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 export_id: components["schemas"]["Uuid"];
             };
@@ -588,7 +867,16 @@ export interface paths {
     "/v1/events": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1345,6 +1633,14 @@ export interface components {
          * @example 6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b
          */
         IdempotencyKey: string;
+        /**
+         * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+         *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+         *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+         *     returned in `az` until the package is re-validated.
+         * @example en
+         */
+        AcceptLanguage: "az" | "en";
         Limit: number;
         /** @description Opaque cursor from `next_cursor` of the previous page. */
         Cursor: string;
@@ -1358,7 +1654,16 @@ export interface operations {
     listDevUsers: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1405,7 +1710,16 @@ export interface operations {
     devLogin: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1466,7 +1780,16 @@ export interface operations {
     getMe: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1508,7 +1831,16 @@ export interface operations {
     getDashboard: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1648,7 +1980,16 @@ export interface operations {
                 /** @description Opaque cursor from `next_cursor` of the previous page. */
                 cursor?: components["parameters"]["Cursor"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1719,6 +2060,14 @@ export interface operations {
             query?: never;
             header: {
                 /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+                /**
                  * @description Client-generated UUID, created once per user intent and reused on retries. A replay returns the
                  *     original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
                  *     while the first request is still running → 409 `IDEMPOTENCY_IN_PROGRESS`.
@@ -1787,7 +2136,16 @@ export interface operations {
     getPackage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2020,7 +2378,16 @@ export interface operations {
             query: {
                 expected_version: number;
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2061,7 +2428,16 @@ export interface operations {
     getDocumentFileUrl: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 version_id: components["schemas"]["Uuid"];
             };
@@ -2091,7 +2467,16 @@ export interface operations {
     getJob: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 job_id: components["schemas"]["Uuid"];
             };
@@ -2131,6 +2516,14 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
                 /**
                  * @description Client-generated UUID, created once per user intent and reused on retries. A replay returns the
                  *     original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
@@ -2207,6 +2600,14 @@ export interface operations {
             query?: never;
             header: {
                 /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+                /**
                  * @description Client-generated UUID, created once per user intent and reused on retries. A replay returns the
                  *     original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
                  *     while the first request is still running → 409 `IDEMPOTENCY_IN_PROGRESS`.
@@ -2259,7 +2660,16 @@ export interface operations {
     listMatchCandidates: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2311,7 +2721,16 @@ export interface operations {
     confirmMatch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2352,7 +2771,16 @@ export interface operations {
     correctField: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 field_id: components["schemas"]["Uuid"];
             };
@@ -2397,7 +2825,16 @@ export interface operations {
     reviewSignature: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2434,7 +2871,16 @@ export interface operations {
     validatePackage: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2479,7 +2925,16 @@ export interface operations {
                 /** @description Opaque cursor from `next_cursor` of the previous page. */
                 cursor?: components["parameters"]["Cursor"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -2550,7 +3005,16 @@ export interface operations {
     createTask: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -2617,7 +3081,16 @@ export interface operations {
     cancelTask: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 task_id: components["schemas"]["Uuid"];
             };
@@ -2658,7 +3131,16 @@ export interface operations {
     updateTask: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 task_id: components["schemas"]["Uuid"];
             };
@@ -2722,6 +3204,14 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
                 /**
                  * @description Client-generated UUID, created once per user intent and reused on retries. A replay returns the
                  *     original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
@@ -2818,6 +3308,14 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
                 /**
                  * @description Client-generated UUID, created once per user intent and reused on retries. A replay returns the
                  *     original response without a new event. Same key with a different body → 422 `IDEMPOTENCY_KEY_REUSED`;
@@ -2947,7 +3445,16 @@ export interface operations {
     getInternalReport: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -3018,7 +3525,16 @@ export interface operations {
                 /** @description Opaque cursor from `next_cursor` of the previous page. */
                 cursor?: components["parameters"]["Cursor"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 package_id: components["parameters"]["PackageId"];
             };
@@ -3053,7 +3569,16 @@ export interface operations {
                 /** @description Opaque cursor from `next_cursor` of the previous page. */
                 cursor?: components["parameters"]["Cursor"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3080,7 +3605,16 @@ export interface operations {
     listCustomers: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3132,7 +3666,16 @@ export interface operations {
     listRequirementSets: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 customer_id: components["schemas"]["Uuid"];
             };
@@ -3181,7 +3724,16 @@ export interface operations {
     createRequirementSet: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 customer_id: components["schemas"]["Uuid"];
             };
@@ -3258,7 +3810,16 @@ export interface operations {
                 /** @description Opaque cursor from `next_cursor` of the previous page. */
                 cursor?: components["parameters"]["Cursor"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3301,7 +3862,16 @@ export interface operations {
     markNotificationRead: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 notification_id: components["schemas"]["Uuid"];
             };
@@ -3323,7 +3893,16 @@ export interface operations {
     markAllNotificationsRead: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3342,7 +3921,16 @@ export interface operations {
     resetDemo: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3365,7 +3953,16 @@ export interface operations {
                 /** @description Only users who can be task assignees or package owners (excludes readonly). */
                 assignable?: boolean;
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -3412,7 +4009,16 @@ export interface operations {
     getExportDownload: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
             path: {
                 export_id: components["schemas"]["Uuid"];
             };
@@ -3443,6 +4049,14 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                /**
+                 * @description Language of user-facing texts: `az` (default) or `en`. The server also accepts standard
+                 *     header syntax (`en-GB`, `en;q=0.8, az;q=0.5`); any other language falls back to `az`.
+                 *     Responses carry `Vary: Accept-Language`. Check results stored before English existed are
+                 *     returned in `az` until the package is re-validated.
+                 * @example en
+                 */
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
                 /** @description Last event id the client saw. Accepted, not replayed in P0 — on (re)connect the client refetches everything. */
                 "Last-Event-ID"?: string;
             };
