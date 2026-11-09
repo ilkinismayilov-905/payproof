@@ -3,6 +3,7 @@
 not found, uncited or unparseable stays None — UNKNOWN for the rules, manual entry for a
 person. Page numbers are checked against the file later by `validate()`."""
 
+import datetime as dt
 import re
 import uuid
 from decimal import Decimal, InvalidOperation
@@ -11,11 +12,15 @@ from pydantic import BaseModel, ConfigDict
 
 from payproof.domain.enums import Currency
 from payproof.domain.rules.paths import (
+    DELIVERY_CUSTOMER,
+    DELIVERY_PO,
+    DELIVERY_SIGNATURE,
     INVOICE_PO,
     INVOICE_TOTAL,
     line,
 )
 from payproof.extraction.base import (
+    DeliveryData,
     Evidence,
     ExtractionResult,
     InvoiceData,
@@ -54,6 +59,20 @@ class InvoiceOut(_Strict):
     currency: str | None
     total: Cited
     lines: list[InvoiceLineOut]
+
+
+class DeliveryLineOut(_Strict):
+    product_code: str
+    qty: Cited
+
+
+class DeliveryOut(_Strict):
+    note_number: str | None
+    po_number: Cited
+    customer_voen: Cited
+    signed: CitedFlag
+    delivery_date: str | None  # YYYY-MM-DD
+    lines: list[DeliveryLineOut]
 
 
 class _Reader:
@@ -108,5 +127,38 @@ def _invoice(out: InvoiceOut) -> ExtractionResult:
     return ExtractionResult("llm", invoice=inv, evidence=tuple(r.evidence))
 
 
-def to_result(out: InvoiceOut, customer_id: uuid.UUID, customer: str) -> ExtractionResult:
-    return _invoice(out)
+def _date(text: str | None) -> dt.date | None:
+    try:
+        return dt.date.fromisoformat(text) if text else None
+    except ValueError:
+        return None
+
+
+def _delivery(out: DeliveryOut, customer_id: uuid.UUID, customer: str) -> ExtractionResult:
+    r = _Reader()
+    po = r.get(DELIVERY_PO, out.po_number)
+    voen = r.get(DELIVERY_CUSTOMER, out.customer_voen)
+    signed = r.get(DELIVERY_SIGNATURE, out.signed)
+    digits = re.sub(r"\D", "", voen) if isinstance(voen, str) else ""
+    d = DeliveryData(
+        note_number=out.note_number,
+        po_ref=po.strip().upper() if isinstance(po, str) else None,
+        # the model never sees ids: the note names our customer only if the VÖEN matches
+        customer_id=customer_id if digits and digits in re.sub(r"\D", "", customer) else None,
+        signed=signed if isinstance(signed, bool) else None,
+        delivery_date=_date(out.delivery_date),
+        lines=tuple(
+            LineData(p, r.number(line("delivery", p, "qty"), li.qty), None)
+            for li in out.lines
+            if (p := li.product_code.strip())
+        ),
+    )
+    return ExtractionResult("llm", delivery=d, evidence=tuple(r.evidence))
+
+
+def to_result(
+    out: InvoiceOut | DeliveryOut, customer_id: uuid.UUID, customer: str
+) -> ExtractionResult:
+    if isinstance(out, InvoiceOut):
+        return _invoice(out)
+    return _delivery(out, customer_id, customer)

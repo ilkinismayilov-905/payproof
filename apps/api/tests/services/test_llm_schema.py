@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from payproof.extraction.llm_schema import InvoiceOut, to_result
+from payproof.extraction.llm_schema import DeliveryOut, InvoiceOut, to_result
 
 CUSTOMER = uuid.uuid4()
 
@@ -68,3 +68,24 @@ def test_unsupported_currency_is_dropped() -> None:
 def test_schema_rejects_extra_fields() -> None:
     with pytest.raises(ValidationError):
         _invoice(all_checks_passed=True)
+
+
+def test_delivery_customer_only_when_the_voen_matches() -> None:
+    raw = {
+        "note_number": "TQ-77",
+        "po_number": _ref("PO-381"),
+        "customer_voen": _ref("1234567890"),
+        "signed": _ref(True, 1, "İmza: [imza]"),
+        "delivery_date": "2026-11-01",
+        "lines": [{"product_code": "KY-10", "qty": _ref("12")}],
+    }
+    r = to_result(DeliveryOut.model_validate(raw), CUSTOMER, "A MMC, VÖEN 1234567890")
+    assert r.delivery is not None
+    assert (r.delivery.customer_id, r.delivery.signed, r.delivery.po_ref) == (
+        CUSTOMER,
+        True,
+        "PO-381",
+    )
+    other = DeliveryOut.model_validate(raw | {"customer_voen": _ref("9999999999")})
+    d = to_result(other, CUSTOMER, "A MMC, VÖEN 1234567890").delivery
+    assert d is not None and d.customer_id is None
