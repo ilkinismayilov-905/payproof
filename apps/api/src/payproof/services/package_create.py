@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, ErrorCode, InvalidInput, NotFound
+from payproof.core.errors import NOT_A_MEMBER, Conflict, ErrorCode, InvalidInput, NotFound
+from payproof.core.i18n import Msg
 from payproof.core.ids import uuid7
 from payproof.extraction.mock import newset_for
 from payproof.repositories.models import (
@@ -66,7 +67,7 @@ async def create_package(
         )
     )
     if owner is None:
-        raise InvalidInput("Məsul şəxs şirkətin üzvü deyil.", {"fields": {"owner_id": "?"}})
+        raise InvalidInput(NOT_A_MEMBER, {"fields": {"owner_id": "?"}})
     invoice = next(name for f, _, name in checked if f.doc_type == "invoice")
     # shortcut: the invoice number is known up front only for the demo sets (AI_PROVIDER=mock);
     # with real extraction it arrives with the job, and the duplicate check moves there
@@ -79,7 +80,12 @@ async def create_package(
             InvoicePackage.deleted_at.is_(None),
         )
     ):
-        raise DuplicateInvoice(f"{number} bu müştəri üçün artıq mövcuddur.")
+        raise DuplicateInvoice(
+            Msg(
+                f"{number} bu müştəri üçün artıq mövcuddur.",
+                f"{number} already exists for this customer.",
+            )
+        )
     pkg = InvoicePackage(
         company_id=customer.company_id, customer_id=customer.id, owner_id=owner_id,
         invoice_number=number, currency=demo["currency"] if demo else None,

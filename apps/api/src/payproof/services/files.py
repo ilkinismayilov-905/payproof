@@ -8,6 +8,7 @@ import zipfile
 from dataclasses import dataclass
 
 from payproof.core.errors import FileTooLarge, UnsupportedFileType
+from payproof.core.i18n import Msg
 
 MAX_MB = 20
 MAX_BYTES = MAX_MB * 1024 * 1024
@@ -63,5 +64,11 @@ def inspect(data: bytes) -> FileInfo:
     mime, kind = _kind(data)
     pages = {"pdf": len(_PDF_PAGE.findall(data)) or 1, "scan": 1}.get(kind)
     if pages and pages > MAX_PAGES:
-        raise FileTooLarge(f"Faylda {MAX_PAGES} səhifədən çox var.", {"max_pages": MAX_PAGES})
+        raise FileTooLarge(
+            Msg(
+                f"Faylda {MAX_PAGES} səhifədən çox var.",
+                f"The file has more than {MAX_PAGES} pages.",
+            ),
+            {"max_pages": MAX_PAGES},
+        )
     return FileInfo(mime, kind, pages, hashlib.sha256(data).hexdigest())

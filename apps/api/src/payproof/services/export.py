@@ -12,7 +12,15 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, DomainError, ErrorCode, InvalidInput, PackageNotReady
+from payproof.core.errors import (
+    Conflict,
+    DomainError,
+    ErrorCode,
+    InvalidInput,
+    PackageNotReady,
+    stale_package,
+)
+from payproof.core.i18n import Msg
 from payproof.domain.enums import PackageStatus
 from payproof.repositories.models import (
     ApprovalRecord,
@@ -31,7 +39,9 @@ from payproof.storage.s3 import Storage
 class InvoiceRequired(DomainError):
     status_code = 422
     code = ErrorCode.INVOICE_REQUIRED
-    message = "Fakturanın cari versiyası seçilməlidir."
+    message = Msg(
+        "Fakturanın cari versiyası seçilməlidir.", "The current invoice version must be selected."
+    )
 
 
 @dataclass(frozen=True)
@@ -76,7 +86,7 @@ async def export(
     rs = await session.get(RequirementSet, state.rule_set_id) if state.rule_set_id else None
     if expected_version != pkg.version or rs is None or expected_rule_set_version != rs.version:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {"current_version": pkg.version, "expected_version": expected_version},
         )
     done = await session.scalar(
@@ -88,14 +98,24 @@ async def export(
         return Exported(done, rs.version, zip_key(done.manifest_key), created=False)
     if state.status is not PackageStatus.APPROVED_READY:
         raise PackageNotReady(
-            "Paket təsdiqlənməyib — ixrac edilə bilməz.", {"status": state.status.value}
+            Msg(
+                "Paket təsdiqlənməyib — ixrac edilə bilməz.",
+                "The package is not approved — it cannot be exported.",
+            ),
+            {"status": state.status.value},
         )
     if not version_ids:
-        raise InvalidInput("Ən azı bir sənəd seçin.", {"fields": {"document_version_ids": "boş"}})
+        raise InvalidInput(
+            Msg("Ən azı bir sənəd seçin.", "Select at least one document."),
+            {"fields": {"document_version_ids": "boş"}},
+        )
     current = await _current_versions(session, pkg)
     if unknown := [str(i) for i in version_ids if i not in current]:
         raise InvalidInput(
-            "Yalnız paketin cari sənəd versiyaları seçilə bilər.",
+            Msg(
+                "Yalnız paketin cari sənəd versiyaları seçilə bilər.",
+                "Only the package's current document versions can be selected.",
+            ),
             {"fields": {"document_version_ids": unknown}},
         )
     chosen = [current[i] for i in version_ids]

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from sqlalchemy import Integer, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, DomainError, ErrorCode, InvalidInput
+from payproof.core.errors import NOT_A_MEMBER, Conflict, DomainError, ErrorCode, InvalidInput
 from payproof.core.i18n import Msg
 from payproof.domain.enums import CheckOutcome, Role, TaskStatus
 from payproof.domain.rules.catalog import TITLES
@@ -21,7 +21,6 @@ from payproof.services.package_query import load_states
 
 _OPEN_TO_ACT = {CheckOutcome.FAIL, CheckOutcome.UNKNOWN}
 _SIGNS_IN = {Role.OPERATOR, Role.APPROVER, Role.ADMIN}  # assignees and readonly get no notice
-NOT_A_MEMBER = Msg("Məsul şəxs şirkətin üzvü deyil.", "The assignee is not a company member.")
 
 
 class TaskAlreadyOpen(Conflict):

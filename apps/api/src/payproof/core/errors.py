@@ -10,6 +10,9 @@ from starlette.exceptions import HTTPException
 from payproof.core.i18n import Msg, tr
 
 BAD_REQUEST = Msg("Sorğu yanlışdır.", "The request is invalid.")
+NOT_A_MEMBER = Msg(
+    "Məsul şəxs şirkətin üzvü deyil.", "The responsible person is not a company member."
+)
 
 
 class ErrorCode(StrEnum):

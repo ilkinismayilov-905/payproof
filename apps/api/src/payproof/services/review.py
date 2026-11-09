@@ -5,7 +5,8 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, InvalidInput, PackageNotReady
+from payproof.core.errors import Conflict, InvalidInput, PackageNotReady, stale_package
+from payproof.core.i18n import Msg
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import InvoicePackage
 from payproof.services.audit import record
@@ -21,7 +22,7 @@ async def _current(
         raise PackageNotReady(details={"status": "PROCESSING"})
     if expected_version != pkg.version:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {"current_version": pkg.version, "expected_version": expected_version},
         )
     return pkg
@@ -45,7 +46,10 @@ async def review_signature(
         return
     note = await reads.latest_delivery(session, pkg.id)
     if note is None:
-        raise InvalidInput("Paketdə təhvil sənədi yoxdur.", {"fields": {"delivery": "yoxdur"}})
+        raise InvalidInput(
+            Msg("Paketdə təhvil sənədi yoxdur.", "The package has no delivery note."),
+            {"fields": {"delivery": "yoxdur"}},
+        )
     pkg.signature_reviewed_by = actor_id
     await record(
         session,
