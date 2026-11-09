@@ -13,7 +13,10 @@ describe("mock rule messages = API messages (fixtures/check-messages.json)", () 
   it.each(Object.entries(golden))("%s", (inv, want) => {
     const db = createMockDb();
     const got = Object.fromEntries(
-      info(db, db.pkg(ids[inv]!)).checks.map((c) => [c.rule_id, { az: c.message, en: c.message_en }]),
+      info(db, db.pkg(ids[inv]!)).checks.map((c) => [
+        c.rule_id,
+        { az: c.message, en: c.message_en },
+      ]),
     );
     expect(got).toEqual(want);
   });
