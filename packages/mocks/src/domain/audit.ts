@@ -42,12 +42,13 @@ export function log(db: MockDb, e: LogInput) {
   });
 }
 
-export function notify(db: MockDb, to: string, pkg: string | null, text: string) {
+export function notify(db: MockDb, to: string, pkg: string | null, text: Msg) {
   db.notifications.push({
     seq: ++db.seq.notification,
     user_id: to,
     package_id: pkg,
-    text,
+    text: text.az,
+    text_en: text.en,
     created_at: db.nowIso(),
     read: false,
   });

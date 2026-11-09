@@ -2,11 +2,15 @@
 import { formatMoney } from "@payproof/api-client/format";
 import { info, type Info } from "../engine/status";
 import { rulesFor } from "../engine";
+import { both, type Msg } from "../i18n";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
 import { approvers, log, notify } from "./audit";
 
-export function bump(db: MockDb, p: Pkg, reason: string) {
+/** `why` is lower-case, as it continues a sentence; audit and invalidated_reason keep the az text. */
+export function bump(db: MockDb, p: Pkg, reasonText: string | Msg) {
+  const why = typeof reasonText === "string" ? { az: reasonText, en: reasonText } : reasonText;
+  const reason = why.az;
   p.version++;
   for (const a of p.approvals) {
     if (!a.valid || a.package_version >= p.version) continue;
@@ -21,12 +25,10 @@ export function bump(db: MockDb, p: Pkg, reason: string) {
       objectType: "approval",
       details: { approval_version: a.package_version },
     });
-    notify(
-      db,
-      a.approver_id,
-      p.id,
-      `${p.invoice_number}: ${reason}. v${a.package_version} təsdiqi etibarsızlaşdı — v${p.version} yenidən təsdiq tələb edir.`,
-    );
+    notify(db, a.approver_id, p.id, {
+      az: `${p.invoice_number}: ${reason}. v${a.package_version} təsdiqi etibarsızlaşdı — v${p.version} yenidən təsdiq tələb edir.`,
+      en: `${p.invoice_number}: ${why.en}. The v${a.package_version} approval is no longer valid — v${p.version} needs approval again.`,
+    });
   }
 }
 
@@ -67,14 +69,13 @@ export function validate(db: MockDb, p: Pkg, actor = "system"): Info {
     }
   }
   if (i.status !== p.last_status) {
+    const amount = () => both(() => formatMoney(p.invoice.total!, p.currency));
     if (i.status === "READY_FOR_APPROVAL")
       for (const u of approvers(db))
-        notify(
-          db,
-          u,
-          p.id,
-          `${p.invoice_number} təsdiqinizi gözləyir · ${formatMoney(p.invoice.total, p.currency)}`,
-        );
+        notify(db, u, p.id, {
+          az: `${p.invoice_number} təsdiqinizi gözləyir · ${amount().az}`,
+          en: `${p.invoice_number} is waiting for your approval · ${amount().en}`,
+        });
     p.last_status = i.status;
   }
   const problem = i.status === "NEEDS_FIX" || i.status === "NEEDS_REVIEW";
