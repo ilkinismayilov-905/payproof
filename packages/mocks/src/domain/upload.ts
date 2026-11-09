@@ -1,5 +1,5 @@
 // Document upload: duplicate check by sha256, pre-processed sample extraction (AI_PROVIDER=mock), new version.
-import { documentTypeLabel } from "@payproof/api-client/i18n";
+import { label } from "../i18n";
 import { id, type DocType } from "../ids";
 import { decimal, sumLines } from "../money";
 import type { MockDb } from "../store";
@@ -12,6 +12,13 @@ export async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+// apps/api services/upload.py bump reasons
+const UPLOADED_EN: Record<DocType, string> = {
+  invoice: "a new invoice version was uploaded",
+  order: "a new order version was uploaded",
+  delivery: "a new delivery note version was uploaded",
+};
 
 export const sourceKind = (f: string): DocVersion["source_kind"] =>
   /\.(jpe?g|png)$/i.test(f) ? "scan" : /\.(xlsx|csv)$/i.test(f) ? "spreadsheet" : "pdf";
@@ -29,16 +36,20 @@ export async function uploadDocument(
   for (const d of p.documents)
     for (const v of d.versions)
       if (v.sha256 === hash) {
+        const of = label.doc(d.type);
         log(db, {
           actor,
           action: "document.duplicate",
-          message: `${fileName}: ${documentTypeLabel[d.type]} v${v.version_no} ilə eyni hash — yeni versiya yaradılmadı`,
+          message: `${fileName}: ${of.az} v${v.version_no} ilə eyni hash — yeni versiya yaradılmadı`,
           pkg: p.id,
           objectType: "document_version",
         });
         throw new MockError(
           "DUPLICATE_FILE",
-          `${fileName}: ${documentTypeLabel[d.type]} v${v.version_no} ilə eyni fayldır — yeni versiya yaradılmadı.`,
+          {
+            az: `${fileName}: ${of.az} v${v.version_no} ilə eyni fayldır — yeni versiya yaradılmadı.`,
+            en: `${fileName}: the same file as ${of.en} v${v.version_no} — no new version was created.`,
+          },
           409,
           { document_version_id: id.version(p.id, d.type, v.version_no), version_no: v.version_no },
         );
@@ -66,7 +77,10 @@ export async function uploadDocument(
   }
   let doc = p.documents.find((d) => d.type === type);
   if (!doc) p.documents.push((doc = { type, versions: [] }));
-  bump(db, p, `${documentTypeLabel[type].toLowerCase()} yeni versiyası yükləndi`);
+  bump(db, p, {
+    az: `${label.doc(type).az.toLowerCase()} yeni versiyası yükləndi`,
+    en: UPLOADED_EN[type],
+  });
   const version: DocVersion = {
     version_no: doc.versions.length + 1,
     file_name: fileName,
@@ -82,7 +96,7 @@ export async function uploadDocument(
   log(db, {
     actor,
     action: "document.uploaded",
-    message: `${documentTypeLabel[type]}: ${fileName} (sənəd v${version.version_no}) · paket v${p.version}`,
+    message: `${label.doc(type).az}: ${fileName} (sənəd v${version.version_no}) · paket v${p.version}`,
     pkg: p.id,
     objectType: "document_version",
     objectId: id.version(p.id, type, version.version_no),

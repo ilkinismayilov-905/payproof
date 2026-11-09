@@ -26,8 +26,20 @@ export interface Ctx {
 }
 
 export const json = (body: unknown, status = 200) => HttpResponse.json(body as never, { status });
+const isMsg = (v: unknown): v is Msg =>
+  !!v && typeof v === "object" && typeof (v as Msg).az === "string" && "en" in v;
+/** `details.fields` values may be az/en pairs (like the API, the field text is the localized message). */
+const fieldsIn = (fields: unknown, l: Locale) =>
+  fields && typeof fields === "object"
+    ? Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, isMsg(v) ? tr(v, l) : v]))
+    : fields;
 const errorBody = (e: MockError, l: Locale) => ({
-  error: { code: e.code, message: tr(e.msg, l), details: e.details },
+  error: {
+    code: e.code,
+    message: tr(e.msg, l),
+    details:
+      "fields" in e.details ? { ...e.details, fields: fieldsIn(e.details.fields, l) } : e.details,
+  },
 });
 
 /** Token issued by dev-login. Not a JWT — the mock only needs to know who is calling. */
