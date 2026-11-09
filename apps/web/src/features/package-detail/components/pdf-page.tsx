@@ -1,7 +1,7 @@
 "use client";
 
 import { Document, Page, pdfjs } from "react-pdf";
-import { ui } from "@payproof/api-client/i18n";
+import { detailText, ui } from "@payproof/api-client/i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -28,7 +28,7 @@ export default function PdfPage({
   if (failed)
     return (
       <div role="alert" className="flex items-center justify-between gap-3 p-4 text-sm">
-        <span className="text-danger">Faylı açmaq alınmadı — sitata baxın.</span>
+        <span className="text-danger">{detailText.pdfFailed}</span>
         <Button
           variant="outline"
           onClick={() => {

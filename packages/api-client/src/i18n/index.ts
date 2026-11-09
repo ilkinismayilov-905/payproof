@@ -35,3 +35,13 @@ export const loginText = pick("loginText");
 export const shellText = pick("shellText");
 export const actionLabel = pick("actionLabel");
 export const localeText = pick("localeText");
+export * from "./texts/tasks";
+export * from "./texts/customers";
+export * from "./texts/audit";
+export * from "./texts/dashboard";
+export * from "./texts/notifications";
+export * from "./texts/shell";
+export * from "./texts/common";
+
+export * from "./texts/packages";
+export * from "./texts/package-detail";

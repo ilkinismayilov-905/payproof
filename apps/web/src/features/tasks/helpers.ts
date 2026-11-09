@@ -1,4 +1,5 @@
 import type { Schemas } from "@payproof/api-client";
+import { tasksText } from "@payproof/api-client/i18n";
 
 type RuleId = Schemas["RuleId"];
 
@@ -26,25 +27,13 @@ export function dueState(
 }
 
 // shortcut: templates live in the UI (prototype STEP_T) until the API offers them
-const STEPS: Record<RuleId, (po: string) => string> = {
-  "R-001": (po) =>
-    `Fakturaya müştərinin sifariş nömrəsini (${po}) mənbə sistemində əlavə edin və düzəldilmiş faktura versiyasını yükləyin.`,
-  "R-002": (po) =>
-    `Fakturadakı sifariş nömrəsini təsdiqlənmiş sifarişə (${po}) uyğun düzəldin və yeni versiyanı yükləyin.`,
-  "R-003": () => "Bu alıcıya aid düzgün təhvil sənədini tapın və paketə yükləyin.",
-  "R-004": () =>
-    "Müştəri ilə fakturanın valyutasını dəqiqləşdirin; lazım olarsa fakturanı sifarişin valyutasında yenidən tərtib edin.",
-  "R-005": () => "Aktual qiymət razılaşmasını yoxlayın və düzgün qiyməti təsdiqləyin.",
-  "R-006": () => "Faktiki təhvil miqdarını anbar qeydləri ilə tutuşdurub təsdiqləyin.",
-  "R-007": () => "Müştərinin tələb etdiyi təhvil-təslim aktını paketə yükləyin.",
-  "R-008": () => "Təhvil aktında imzanın mövcudluğunu sənədə baxaraq təsdiqləyin.",
-  "R-009": () => "Fakturada sətir cəmləri ilə yekun məbləği uyğunlaşdırın.",
-  "R-010": () => "Bloklayan yoxlamaları həll edin.",
-};
+export function stepTemplate(rule: RuleId, po: string | null) {
+  const step = (tasksText.step as Record<string, string | ((po: string) => string)>)[rule];
+  return typeof step === "function" ? step(po ?? "PO") : (step ?? "");
+}
 
-export const stepTemplate = (rule: RuleId, po: string | null) => STEPS[rule]?.(po ?? "PO") ?? "";
-
-// shortcut: departments by job title (prototype DEF_WHO); a real org model would carry them
+// shortcut: departments by job title (prototype DEF_WHO); a real org model would carry them.
+// Matched against users' server-side titles, so these stay Azerbaijani in every UI language.
 const DEPARTMENT: Partial<Record<RuleId, string>> = {
   "R-001": "Mühasib",
   "R-002": "Mühasib",

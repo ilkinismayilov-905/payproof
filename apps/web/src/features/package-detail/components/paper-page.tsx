@@ -1,7 +1,6 @@
 import type { Schemas } from "@payproof/api-client";
-import { documentTypeLabel } from "@payproof/api-client/i18n";
+import { detailText as t, documentTypeLabel } from "@payproof/api-client/i18n";
 import { cn } from "@/lib/utils";
-import { detailText as t } from "../texts";
 
 type Pkg = Schemas["PackageDetail"];
 
@@ -61,7 +60,7 @@ export function PaperPage({
         )}
       </ul>
       <div className="border-paper-line text-paper-muted mt-3.5 flex justify-between border-t border-dashed pt-2 text-[10.5px]">
-        <span>{`Səhifə ${evidence.page}`}</span>
+        <span>{t.page(evidence.page)}</span>
         <span>{`${version.file_name} · v${version.version_no}`}</span>
       </div>
     </div>

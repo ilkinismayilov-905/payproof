@@ -4,8 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { DateTime, Money } from "@/components/format";
 import { PackageStatusBadge } from "@/components/status/status-badges";
-import { shellText } from "@payproof/api-client/i18n";
-import { detailText as t } from "../texts";
+import { detailText as t, shellText } from "@payproof/api-client/i18n";
 
 type Pkg = Schemas["PackageDetail"];
 

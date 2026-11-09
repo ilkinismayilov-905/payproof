@@ -6,7 +6,9 @@ from payproof.main import create_app
 
 PREFLIGHT = {
     "Access-Control-Request-Method": "POST",
-    "Access-Control-Request-Headers": "authorization,content-type,idempotency-key,last-event-id",
+    "Access-Control-Request-Headers": (
+        "accept-language,authorization,content-type,idempotency-key,last-event-id"
+    ),
 }
 
 
@@ -25,7 +27,9 @@ async def test_allowed_origin_preflight(origin: str) -> None:
     assert r.status_code == 200
     assert r.headers["access-control-allow-origin"] == origin
     allowed = {h.strip().lower() for h in r.headers["access-control-allow-headers"].split(",")}
-    assert {"authorization", "content-type", "idempotency-key", "last-event-id"} <= allowed
+    assert {
+        "accept-language", "authorization", "content-type", "idempotency-key", "last-event-id"
+    } <= allowed  # fmt: skip
     assert "access-control-allow-credentials" not in r.headers
 
 

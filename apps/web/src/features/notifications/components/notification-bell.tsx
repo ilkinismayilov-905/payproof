@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateTime } from "@payproof/api-client/format";
-import { shellText } from "@payproof/api-client/i18n";
+import { notificationsText, shellText } from "@payproof/api-client/i18n";
 import { Bell, BellOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Popover } from "radix-ui";
@@ -21,7 +21,7 @@ export function NotificationBell({ className }: { className: string }) {
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
-        aria-label={`${shellText.notifications}, ${unread} oxunmamış`}
+        aria-label={notificationsText.unreadCount(shellText.notifications, unread)}
         className={cn(className, "relative")}
       >
         <Bell aria-hidden className="size-5" />
@@ -49,15 +49,15 @@ export function NotificationBell({ className }: { className: string }) {
                 onClick={() => readAll.mutate()}
                 className="text-brand focus-visible:ring-ring rounded-sm text-sm font-semibold outline-none hover:underline focus-visible:ring-2"
               >
-                Hamısını oxunmuş et
+                {notificationsText.markAllRead}
               </button>
             )}
           </div>
           {list.data?.items.length === 0 && (
             <p className="text-text-2 flex flex-col items-center gap-1 p-6 text-center text-sm">
               <BellOff aria-hidden className="text-text-3 size-6" />
-              <b>Bildiriş yoxdur</b>
-              Yeni hadisə olduqda burada görünəcək.
+              <b>{notificationsText.emptyTitle}</b>
+              {notificationsText.emptyBody}
             </p>
           )}
           <ul className="overflow-auto">
@@ -83,7 +83,7 @@ export function NotificationBell({ className }: { className: string }) {
                     )}
                   />
                   <span>
-                    {!n.read_at && <span className="sr-only">Oxunmamış: </span>}
+                    {!n.read_at && <span className="sr-only">{notificationsText.unread}</span>}
                     {n.text}
                     <span className="text-text-3 block text-xs">
                       {formatDateTime(n.created_at)}

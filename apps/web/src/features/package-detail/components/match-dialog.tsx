@@ -2,7 +2,12 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { formatDate } from "@payproof/api-client/format";
-import { actionLabel, packageStatusLabel } from "@payproof/api-client/i18n";
+import {
+  actionLabel,
+  detailText,
+  matchText as t,
+  packageStatusLabel,
+} from "@payproof/api-client/i18n";
 import { CircleAlert, Link2 } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { useState } from "react";
@@ -42,7 +47,7 @@ export function MatchDialog({
         onSuccess: (next) => {
           onOpenChange(false);
           toast.success(
-            `${po} ilə əlaqə təsdiqləndi. Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`,
+            `${t.linked(po)} ${detailText.rechecked(next.version, packageStatusLabel[next.status])}`,
           );
         },
       },
@@ -58,22 +63,19 @@ export function MatchDialog({
           className="bg-surface border-border shadow-3 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(940px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border"
         >
           <div className="px-6 pt-5 pb-3">
-            <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number}: sifarişi seçin və təsdiqləyin`}</Dialog.Title>
-            <Dialog.Description className="text-text-2 text-sm">
-              AI namizədləri ID, məhsul kodu və miqdara görə təklif edir. Seçimi insan edir.
-            </Dialog.Description>
+            <Dialog.Title className="text-xl font-semibold">
+              {t.title(pkg.invoice_number)}
+            </Dialog.Title>
+            <Dialog.Description className="text-text-2 text-sm">{t.description}</Dialog.Description>
           </div>
           <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
             {candidates.length === 0 ? (
               // nothing to choose from (e.g. a new package): say so instead of an impossible choice
-              <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">
-                Uyğun sifariş namizədi tapılmadı. Sifariş sistemdə qeydə alındıqdan sonra paketi
-                yenidən yoxlayın.
-              </p>
+              <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">{t.none}</p>
             ) : (
               <div
                 role="radiogroup"
-                aria-label="Sifariş namizədləri"
+                aria-label={t.candidates}
                 aria-invalid={missing || undefined}
                 aria-describedby={missing ? "match-error" : undefined}
                 className="flex flex-col gap-2"
@@ -112,15 +114,13 @@ export function MatchDialog({
                 className="text-danger flex items-center gap-1.5 text-sm"
               >
                 <CircleAlert aria-hidden className="size-4" />
-                Sifarişlərdən birini seçin.
+                {t.pickOne}
               </p>
             )}
-            <p className="text-text-3 text-xs">
-              Semantik oxşarlıq sübut deyil — əlaqəni insan təsdiqləyir.
-            </p>
+            <p className="text-text-3 text-xs">{detailText.matchDisclaimer}</p>
             {process.env.NEXT_PUBLIC_API_MOCK === "1" && invoice && poField?.evidence && (
-              <section aria-label="Faktura (mənbə)">
-                <h3 className="mb-1 text-sm font-bold">Faktura (mənbə)</h3>
+              <section aria-label={t.invoiceSource}>
+                <h3 className="mb-1 text-sm font-bold">{t.invoiceSource}</h3>
                 <PaperPage
                   pkg={pkg}
                   version={invoice}
@@ -143,7 +143,7 @@ export function MatchDialog({
                 onClick={() => confirm.isPending || submit()}
               >
                 <Link2 aria-hidden />
-                Seçilmiş sifarişlə əlaqəni təsdiqlə
+                {t.confirm}
               </Button>
             )}
           </div>

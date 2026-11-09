@@ -1,10 +1,10 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatDateTime, formatMoney } from "@payproof/api-client/format";
+import { detailText as t, readinessText as r } from "@payproof/api-client/i18n";
 import { CircleCheck, Clock, Download, Lock, RefreshCw, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
-import { detailText as t } from "../texts";
 
 type Pkg = Schemas["PackageDetail"];
 type Tone = "danger" | "warning" | "success" | "brand" | "neutral";
@@ -13,9 +13,7 @@ type Tone = "danger" | "warning" | "success" | "brand" | "neutral";
 const latest = <T,>(items: T[], at: (item: T) => string) =>
   items.reduce<T | undefined>((m, x) => (!m || at(x) > at(m) ? x : m), undefined);
 
-// shortcut: banner texts from the prototype's readiness(); move to shared i18n with detailText
-const sumText = (s: Pkg["summary"]) =>
-  `${s.pass} keçdi, ${s.fail} uyğunsuz, ${s.unknown} naməlum, ${s.not_applicable} tətbiq olunmur`;
+const sumText = (s: Pkg["summary"]) => r.sum(s.pass, s.fail, s.unknown, s.not_applicable);
 
 function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body: string } {
   const v = p.version;
@@ -24,16 +22,16 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
       return {
         tone: "neutral",
         icon: Clock,
-        title: "Sənədlər emal olunur",
-        body: "Mətn qatı yoxlanır, lazım olduqda OCR tətbiq edilir. Emal bitməyincə heç bir nəticə göstərilmir.",
+        title: t.stillProcessing,
+        body: r.processingBody,
       };
     case "NEEDS_FIX":
     case "NEEDS_REVIEW":
       return {
         tone: p.status === "NEEDS_FIX" ? "danger" : "warning",
         icon: Lock,
-        title: `Paket bloklanıb — ${p.summary.blocking.length} problem həll edilməlidir`,
-        body: `R-010: cari v${v} bütün məcburi yoxlamalardan keçməyib (${sumText(p.summary)}). Bloklayan nəticələr düymə ilə gizlədilə bilməz.`,
+        title: r.blockedTitle(p.summary.blocking.length),
+        body: r.blockedBody(v, sumText(p.summary)),
       };
     case "READY_FOR_APPROVAL": {
       const invalid = latest(
@@ -43,8 +41,8 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
       return {
         tone: "brand",
         icon: CircleCheck,
-        title: `Bütün məcburi yoxlamalar v${v} üzrə keçdi — insan təsdiqi gözlənilir`,
-        body: `${invalid ? `Əvvəlki v${invalid.package_version} təsdiqi etibarsızlaşıb və auditdə saxlanılır. ` : ""}Təsdiq yalnız sənəd paketinin hazırlığına aiddir.`,
+        title: r.readyTitle(v),
+        body: `${invalid ? r.invalidated(invalid.package_version) : ""}${r.readyBody}`,
       };
     }
     case "APPROVED_READY": {
@@ -52,8 +50,8 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
       return {
         tone: "success",
         icon: CircleCheck,
-        title: `${p.total ? `${formatMoney(p.total)}-lik faktura paketi` : "Faktura paketi"} göndərilməyə hazırdır`,
-        body: `${a ? `Təsdiqləyən: ${a.approver.full_name} · ${formatDateTime(a.approved_at)} · v${a.package_version}. ` : ""}Bu, ödənişin təmin edildiyi demək deyil.`,
+        title: t.readyToSend(p.total ? formatMoney(p.total) : undefined),
+        body: `${a ? r.approvedBy(a.approver.full_name, formatDateTime(a.approved_at), a.package_version) : ""}${r.approvedBody}`,
       };
     }
     case "EXPORTED": {
@@ -65,8 +63,8 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
       return {
         tone: "neutral",
         icon: Download,
-        title: `v${v} paketi ixrac edilib`,
-        body: `${e ? `${e.created_by.full_name} · ${formatDateTime(e.created_at)}. ` : ""}Göndərilmə və müştərinin qəbulu Prefly-dan kənarda izlənir (P1).`,
+        title: r.exportedTitle(v),
+        body: `${e ? `${e.created_by.full_name} · ${formatDateTime(e.created_at)}. ` : ""}${r.exportedBody}`,
       };
     }
   }

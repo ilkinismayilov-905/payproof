@@ -1,6 +1,6 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatDate, formatDateTime } from "@payproof/api-client/format";
-import { ruleShort } from "@payproof/api-client/i18n";
+import { ruleShort, tasksText } from "@payproof/api-client/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Clock, TriangleAlert } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ type Task = Schemas["Task"];
 export const taskColumns = (canManage: boolean): ColumnDef<Task>[] => [
   {
     id: "number",
-    header: "Tapşırıq",
+    header: tasksText.col.task,
     cell: ({ row: { original: t } }) => (
       <>
         <b>{t.number}</b>
@@ -24,7 +24,7 @@ export const taskColumns = (canManage: boolean): ColumnDef<Task>[] => [
   },
   {
     id: "problem",
-    header: "Problem",
+    header: tasksText.col.problem,
     cell: ({ row: { original: t } }) => (
       <>
         <Link
@@ -42,7 +42,7 @@ export const taskColumns = (canManage: boolean): ColumnDef<Task>[] => [
   },
   {
     id: "assignee",
-    header: "Məsul",
+    header: tasksText.col.assignee,
     cell: ({ row: { original: t } }) => (
       <>
         {t.assignee.full_name}
@@ -52,38 +52,38 @@ export const taskColumns = (canManage: boolean): ColumnDef<Task>[] => [
   },
   {
     id: "step",
-    header: "Tələb olunan addım",
+    header: tasksText.col.step,
     cell: ({ row: { original: t } }) => (
       <div className="max-w-[340px] text-sm">
         {t.step}
-        {t.comment && <div className="text-text-3 text-xs">{`Şərh: ${t.comment}`}</div>}
+        {t.comment && <div className="text-text-3 text-xs">{tasksText.comment(t.comment)}</div>}
       </div>
     ),
   },
   {
     id: "due",
-    header: "Son tarix",
+    header: tasksText.col.due,
     cell: ({ row: { original: t } }) => {
       const state = dueState(t.due_date, t.status);
       return (
         <div className="flex flex-col items-start gap-1 text-sm tabular-nums">
           {formatDate(t.due_date)}
           {state === "overdue" && (
-            <StatusBadge tone="danger" icon={TriangleAlert} label="Gecikir" />
+            <StatusBadge tone="danger" icon={TriangleAlert} label={tasksText.overdue} />
           )}
-          {state === "today" && <StatusBadge tone="warning" icon={Clock} label="Bu gün" />}
+          {state === "today" && <StatusBadge tone="warning" icon={Clock} label={tasksText.today} />}
         </div>
       );
     },
   },
   {
     id: "status",
-    header: "Status",
+    header: tasksText.col.status,
     cell: ({ row }) => <TaskStatusBadge status={row.original.status} />,
   },
   {
     id: "actions",
-    header: () => <span className="sr-only">Əməliyyatlar</span>,
+    header: () => <span className="sr-only">{tasksText.col.actions}</span>,
     cell: ({ row }) => <TaskActions task={row.original} canManage={canManage} />,
   },
 ];

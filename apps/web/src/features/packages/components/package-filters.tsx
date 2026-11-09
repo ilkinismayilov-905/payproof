@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { packageStatusLabel, ruleShort } from "@payproof/api-client/i18n";
+import { packagesText, packageStatusLabel, ruleShort } from "@payproof/api-client/i18n";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ export function PackageFilters({
 }) {
   const customers = useCustomers().data ?? [];
   const owners = useAssignableUsers().data ?? [];
+  const t = packagesText.filters;
   const set = (patch: Partial<ListParams>, mode: Mode = "push") => {
     const next = { ...params, ...patch, cursor: undefined };
     onChange(
@@ -61,21 +62,23 @@ export function PackageFilters({
   return (
     <div className="border-border flex flex-wrap items-center gap-2 border-b p-4">
       <SearchBox
-        label="Axtarış"
-        placeholder="Faktura, müştəri, PO və ya təhvil aktı"
+        label={t.search}
+        placeholder={t.searchPlaceholder}
         value={params.q ?? ""}
         onSearch={(q) => set({ q: q || undefined }, "replace")}
         className="min-w-[220px] flex-[2]"
       />
       <Select
-        label="Status"
+        label={t.status}
         value={(params.status?.length ?? 0) > 1 ? MANY : (params.status?.[0] ?? "")}
         onChange={(v) => set({ status: v ? [v as Schemas["PackageStatus"]] : undefined })}
       >
-        <option value="">Status: hamısı</option>
+        <option value="">{t.statusAll}</option>
         {/* the API takes several statuses (shared links); this control picks one */}
         {(params.status?.length ?? 0) > 1 && (
-          <option value={MANY} disabled>{`Bir neçə status (${params.status!.length})`}</option>
+          <option value={MANY} disabled>
+            {t.manyStatuses(params.status!.length)}
+          </option>
         )}
         {STATUSES.map((s) => (
           <option key={s} value={s}>
@@ -84,11 +87,11 @@ export function PackageFilters({
         ))}
       </Select>
       <Select
-        label="Müştəri"
+        label={t.customer}
         value={params.customer_id ?? ""}
         onChange={(v) => set({ customer_id: v || undefined })}
       >
-        <option value="">Müştəri: hamısı</option>
+        <option value="">{t.customerAll}</option>
         {customers.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
@@ -96,21 +99,21 @@ export function PackageFilters({
         ))}
       </Select>
       <Select
-        label="Problem növü"
+        label={t.issue}
         value={params.issue ?? ""}
         onChange={(v) => set({ issue: v || undefined })}
       >
-        <option value="">Problem: hamısı</option>
+        <option value="">{t.issueAll}</option>
         {Object.entries(ruleShort).map(([id, short]) => (
           <option key={id} value={id}>{`${id} · ${short}`}</option>
         ))}
       </Select>
       <Select
-        label="Məsul şəxs"
+        label={t.owner}
         value={params.owner_id ?? ""}
         onChange={(v) => set({ owner_id: v || undefined })}
       >
-        <option value="">Məsul: hamısı</option>
+        <option value="">{t.ownerAll}</option>
         {owners.map((u) => (
           <option key={u.id} value={u.id}>
             {u.full_name}
@@ -118,7 +121,7 @@ export function PackageFilters({
         ))}
       </Select>
       <label className="text-text-2 flex items-center gap-1.5 text-sm">
-        Tarixdən
+        {t.from}
         <input
           type="date"
           value={params.from ?? ""}
@@ -128,7 +131,7 @@ export function PackageFilters({
         />
       </label>
       <label className="text-text-2 flex items-center gap-1.5 text-sm">
-        Tarixədək
+        {t.to}
         <input
           type="date"
           value={params.to ?? ""}
@@ -143,7 +146,7 @@ export function PackageFilters({
           onClick={() => onChange(params.sort ? { sort: params.sort } : {}, "push")}
         >
           <X aria-hidden />
-          Təmizlə
+          {t.clear}
         </Button>
       )}
     </div>

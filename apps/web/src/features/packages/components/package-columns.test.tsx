@@ -1,6 +1,7 @@
+import { setLocale } from "@payproof/api-client/i18n";
 import { mockIds } from "@payproof/mocks";
 import { screen, within } from "@testing-library/react";
-import { beforeEach, expect, test } from "vitest";
+import { afterEach, beforeEach, expect, test } from "vitest";
 import { DataTable } from "@/components/ui/data-table";
 import { setToken } from "@/lib/auth";
 import { renderWithQuery } from "@/test/render";
@@ -8,13 +9,14 @@ import { usePackageList } from "../queries";
 import { packageColumns } from "./package-columns";
 
 beforeEach(() => setToken(`mock.${mockIds.user("u1")}`));
+afterEach(() => setLocale("az"));
 
 function Table({ q }: { q: string }) {
   const items = usePackageList({ q }).data?.items;
   return items ? (
     <DataTable
       caption="Faktura paketləri"
-      columns={packageColumns}
+      columns={packageColumns()}
       data={items}
       getRowId={(p) => p.id}
       empty=""
@@ -34,8 +36,17 @@ test("the invoice cell links to the package and names its PO; blockers are liste
   expect(row).toHaveTextContent(/bloklayan: R-00\d/);
 });
 
+test("in English the headers and the blocker note follow the locale", async () => {
+  setLocale("en");
+  renderWithQuery(<Table q="INV-1042" />);
+  const table = await screen.findByRole("table");
+  expect(within(table).getByRole("columnheader", { name: /Invoice #/ })).toBeInTheDocument();
+  expect(within(table).getByRole("columnheader", { name: /Last updated/ })).toBeInTheDocument();
+  expect(within(table).getAllByRole("row")[1]!).toHaveTextContent(/blocking: R-00\d/);
+});
+
 test("every column is sortable by its API key only when the screen handles sorting", () => {
-  expect(packageColumns.map((c) => c.id)).toEqual([
+  expect(packageColumns().map((c) => c.id)).toEqual([
     "invoice_number",
     "customer",
     "invoice_date",
@@ -45,5 +56,5 @@ test("every column is sortable by its API key only when the screen handles sorti
     "owner",
     "updated_at",
   ]);
-  expect(packageColumns.every((c) => c.enableSorting === true)).toBe(true);
+  expect(packageColumns().every((c) => c.enableSorting === true)).toBe(true);
 });

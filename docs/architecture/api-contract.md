@@ -11,6 +11,7 @@ Həqiqət mənbəyi: `packages/contracts/openapi.yaml` (S-04). Bu sənəd onun q
 - Versiyanı dəyişən sorğularda body-də `expected_version` → uyğun deyilsə `409 VERSION_CONFLICT`.
 - Approve, export, upload: `Idempotency-Key` header-i (UUID). Təkrar sorğu əvvəlki cavabı qaytarır.
 - Uzun iş: `202 Accepted` + `{"job_id": …}` → `GET /v1/jobs/{id}`.
+- Dil: `Accept-Language: az | en` (default `az`; `en-GB`, q-siyahıları qəbul olunur, başqa dil → `az`). İstifadəçiyə görünən mətnlər bu dildə qaytarılır; kodlar, enum-lar və saxlanmış audit mesajları dəyişmir. Cavablarda `Vary: Accept-Language`.
 
 ## Xəta formatı
 ```json

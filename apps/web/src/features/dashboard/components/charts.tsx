@@ -1,5 +1,5 @@
 import type { Schemas } from "@payproof/api-client";
-import { packageStatusLabel, ruleLabel, ruleShort } from "@payproof/api-client/i18n";
+import { dashboardText, packageStatusLabel, ruleLabel, ruleShort } from "@payproof/api-client/i18n";
 import Link from "next/link";
 import { Panel } from "@/components/ui/layout";
 
@@ -11,10 +11,11 @@ export function RuleBars({ counts }: { counts: Dashboard["rule_counts"] }) {
   const rows = [...counts].sort((a, b) => b.fail + b.unknown - (a.fail + a.unknown));
   const max = Math.max(1, ...rows.map((r) => r.fail + r.unknown));
   const pct = (n: number) => `${(n / max) * 100}%`;
+  const t = dashboardText.charts;
   return (
     <Panel
-      title="Problem növləri (qayda üzrə)"
-      actions={<span className="text-text-3 text-xs">ixrac edilməmiş paketlər</span>}
+      title={t.rulesTitle}
+      actions={<span className="text-text-3 text-xs">{t.rulesScope}</span>}
     >
       {rows.length ? (
         <ul className="flex flex-col gap-2.5">
@@ -35,21 +36,21 @@ export function RuleBars({ counts }: { counts: Dashboard["rule_counts"] }) {
                 <i className="bg-warning block h-full" style={{ width: pct(unknown) }} />
               </span>
               <b className="text-right tabular-nums">{fail + unknown}</b>
-              <span className="sr-only">{`${fail} uyğunsuz, ${unknown} naməlum`}</span>
+              <span className="sr-only">{t.ruleCounts(fail, unknown)}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-text-2">Açıq problem yoxdur.</p>
+        <p className="text-text-2">{dashboardText.noOpenProblems}</p>
       )}
       <div className="text-text-2 mt-3 flex flex-wrap gap-4 text-xs">
         <span className="inline-flex items-center gap-1.5">
           <i aria-hidden className="bg-danger size-2.5 rounded-[3px]" />
-          Uyğunsuz (FAIL)
+          {t.fail}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <i aria-hidden className="bg-warning size-2.5 rounded-[3px]" />
-          Naməlum (UNKNOWN)
+          {t.unknown}
         </span>
       </div>
     </Panel>
@@ -82,9 +83,13 @@ export function StatusDonut({
     dash: Math.max(0, shares[i]! - 0.8), // small gap between segments
     offset: 25 - shares.slice(0, i).reduce((a, b) => a + b, 0),
   })).filter(({ s }) => counts[s] > 0);
-  const label = `Status bölgüsü, ${total} paket: ${ORDER.map(([s]) => `${packageStatusLabel[s]} ${counts[s]}`).join(", ")}`;
+  const t = dashboardText.charts;
+  const label = t.statusLabel(
+    total,
+    ORDER.map(([s]) => `${packageStatusLabel[s]} ${counts[s]}`).join(", "),
+  );
   return (
-    <Panel title="Paketlər statusa görə">
+    <Panel title={t.statusTitle}>
       <div className="flex flex-wrap items-center gap-5">
         <svg viewBox="0 0 42 42" role="img" aria-label={label} className="size-[168px] shrink-0">
           <circle
@@ -112,7 +117,7 @@ export function StatusDonut({
             {total}
           </text>
           <text x="21" y="27" textAnchor="middle" fontSize="3" fill="var(--text-3)">
-            paket
+            {t.packageUnit}
           </text>
         </svg>
         <ul className="flex min-w-[190px] flex-1 flex-col gap-0.5">

@@ -1,7 +1,13 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { actionLabel, documentTypeLabel, packageStatusLabel } from "@payproof/api-client/i18n";
+import {
+  actionLabel,
+  detailText,
+  documentTypeLabel,
+  packageStatusLabel,
+  uploadText,
+} from "@payproof/api-client/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { Dialog } from "radix-ui";
@@ -75,8 +81,8 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
       onOpenChange(false);
       toast.success(
         next
-          ? `${file?.name} yükləndi. Paket v${next.version} yenidən yoxlandı: ${packageStatusLabel[next.status]}.`
-          : `${file?.name} yükləndi.`,
+          ? `${uploadText.uploaded(file?.name)} ${detailText.rechecked(next.version, packageStatusLabel[next.status])}`
+          : uploadText.uploaded(file?.name),
       );
     });
     // run once per finished job
@@ -120,9 +126,11 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
         >
           <form onSubmit={submit} noValidate className="flex min-h-0 flex-col">
             <div className="px-6 pt-5 pb-3">
-              <Dialog.Title className="text-xl font-semibold">{`${pkg.invoice_number ?? "Paket"}: sənəd yüklə`}</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">
+                {uploadText.title(pkg.invoice_number ?? detailText.packageFallback)}
+              </Dialog.Title>
               <Dialog.Description className="text-text-2 text-sm">
-                Faylın qəbulu, emalı və xətası ayrıca göstərilir.
+                {uploadText.description}
               </Dialog.Description>
             </div>
             <div className="flex flex-col gap-3 overflow-auto px-6 pb-4">
@@ -144,7 +152,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
               ) : (
                 <>
                   <label htmlFor={typeId} className="text-sm font-semibold">
-                    Sənəd növü
+                    {uploadText.docType}
                   </label>
                   <select
                     id={typeId}
@@ -158,7 +166,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
                     {(["invoice", "delivery"] as const).map((t) => (
                       <option key={t} value={t}>
                         {pkg.documents.some((d) => d.type === t)
-                          ? `${documentTypeLabel[t]} (yeni versiya)`
+                          ? uploadText.newVersionOf(documentTypeLabel[t])
                           : documentTypeLabel[t]}
                       </option>
                     ))}
@@ -172,7 +180,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
                   />
                   {missing && (
                     <p role="alert" className="text-danger text-sm">
-                      Fayl seçin.
+                      {uploadText.pickFile}
                     </p>
                   )}
                   {refusal && (
@@ -184,9 +192,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
                       }}
                     />
                   )}
-                  <p className="text-text-3 text-xs">
-                    Yeni versiya köhnəsini silmir — köhnə versiya audit üçün saxlanılır.
-                  </p>
+                  <p className="text-text-3 text-xs">{uploadText.keepsOld}</p>
                 </>
               )}
             </div>
@@ -199,7 +205,7 @@ export function UploadDialog({ pkg, open, onOpenChange, initialType }: Props) {
               {!jobId && (
                 <Button type="submit" size="lg" aria-disabled={busy}>
                   <Upload aria-hidden />
-                  {upload.isPending ? "Göndərilir…" : "Yüklə və emal et"}
+                  {upload.isPending ? uploadText.sending : uploadText.submit}
                 </Button>
               )}
             </div>
