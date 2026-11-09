@@ -25,6 +25,13 @@ def test_loads_ci_environment() -> None:
     assert s.s3_bucket == "payproof-docs"
 
 
+@pytest.mark.parametrize("scheme", ["postgresql", "postgres"])
+def test_host_database_url_gets_async_driver(monkeypatch: pytest.MonkeyPatch, scheme: str) -> None:
+    monkeypatch.setenv("DATABASE_URL", f"{scheme}://u:p@db.internal:5432/payproof")
+    s = Settings(_env_file=None)
+    assert s.database_url == "postgresql+asyncpg://u:p@db.internal:5432/payproof"
+
+
 def test_secret_is_not_printed() -> None:
     s = Settings(_env_file=None)
     assert "test-only" not in repr(s)
