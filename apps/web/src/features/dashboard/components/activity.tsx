@@ -2,7 +2,7 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { bakuDaysBetween } from "@payproof/api-client/format";
-import { ui } from "@payproof/api-client/i18n";
+import { dashboardText, ui } from "@payproof/api-client/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowRight, CircleCheck, Download, TriangleAlert } from "lucide-react";
 import Link from "next/link";
@@ -28,10 +28,10 @@ const More = ({ href, children }: { href: string; children: ReactNode }) => (
   </Link>
 );
 
-const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
+const attentionColumns = (asOf: string, t = dashboardText.attention): ColumnDef<Item>[] => [
   {
     id: "invoice",
-    header: "Faktura",
+    header: t.invoice,
     cell: ({ row: { original: p } }) => (
       <>
         <Link
@@ -46,7 +46,7 @@ const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
   },
   {
     id: "problem",
-    header: "Problem",
+    header: t.problem,
     cell: ({ row: { original: p } }) => (
       <>
         <PackageStatusBadge status={p.status} />
@@ -58,13 +58,13 @@ const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
   },
   {
     id: "total",
-    header: "Məbləğ",
+    header: t.amount,
     meta: { align: "right" },
     cell: ({ row: { original: p } }) => p.total && <Money {...p.total} />,
   },
   {
     id: "days",
-    header: "Gün",
+    header: t.days,
     meta: { align: "right" },
     cell: ({ row: { original: p } }) => p.problem_since && bakuDaysBetween(p.problem_since, asOf),
   },
@@ -73,8 +73,9 @@ const attentionColumns = (asOf: string): ColumnDef<Item>[] => [
 /** Open problems that waited longest (prototype "Diqqət tələb edən paketlər"). */
 export function AttentionPackages({ asOf }: { asOf: string }) {
   const list = useAttentionPackages();
+  const t = dashboardText.attention;
   return (
-    <Panel title="Diqqət tələb edən paketlər" actions={<More href="/packages">Hamısı</More>} flush>
+    <Panel title={t.title} actions={<More href="/packages">{t.all}</More>} flush>
       {list.isPending && <SkeletonTable rows={5} columns={4} />}
       {list.isError && (
         <div role="alert" className="flex items-center justify-between gap-3 px-4 pb-4">
@@ -86,28 +87,29 @@ export function AttentionPackages({ asOf }: { asOf: string }) {
       )}
       {list.data && (
         <DataTable
-          caption="Diqqət tələb edən paketlər"
+          caption={t.title}
           columns={attentionColumns(asOf)}
           data={list.data}
           getRowId={(p) => p.id}
-          empty={<EmptyState headingLevel={3} title="Açıq problem yoxdur." />}
+          empty={<EmptyState headingLevel={3} title={dashboardText.noOpenProblems} />}
         />
       )}
     </Panel>
   );
 }
 
-const validity = ({ valid, exported }: Approval) =>
+const validity = ({ valid, exported }: Approval, t = dashboardText.approvals) =>
   !valid
-    ? { tone: "warning" as const, icon: TriangleAlert, label: "Etibarsızlaşıb" }
+    ? { tone: "warning" as const, icon: TriangleAlert, label: t.invalidated }
     : exported
-      ? { tone: "neutral" as const, icon: Download, label: "İxrac edilib" }
-      : { tone: "success" as const, icon: CircleCheck, label: "Qüvvədə" };
+      ? { tone: "neutral" as const, icon: Download, label: t.exported }
+      : { tone: "success" as const, icon: CircleCheck, label: t.valid };
 
 /** The last approvals, bound to the package version they were given for. */
 export function ApprovalHistory({ approvals }: { approvals: Approval[] }) {
+  const t = dashboardText.approvals;
   return (
-    <Panel title="Təsdiq tarixçəsi" actions={<More href="/audit">Audit</More>}>
+    <Panel title={t.title} actions={<More href="/audit">{t.audit}</More>}>
       {approvals.length ? (
         <ul>
           {approvals.map((a) => (
@@ -133,7 +135,7 @@ export function ApprovalHistory({ approvals }: { approvals: Approval[] }) {
           ))}
         </ul>
       ) : (
-        <p className="text-text-2">Təsdiq yoxdur.</p>
+        <p className="text-text-2">{t.none}</p>
       )}
     </Panel>
   );

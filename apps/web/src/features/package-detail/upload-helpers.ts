@@ -23,7 +23,8 @@ export function samplesFor(invoiceNumber: string, type: DocType, existing: strin
     }));
 }
 
-export const UPLOAD_STAGES = ["Qəbul edildi", "Emal olunur", "Çıxarıldı", "Yoxlandı"] as const;
+/** Stage keys of `uploadText.stages`, in order. */
+export const UPLOAD_STAGES = ["accepted", "processing", "extracted", "checked"] as const;
 
 /** Index of the last reached stage in `UPLOAD_STAGES` (-1: nothing sent yet). */
 export function stageOf(s: { accepted: boolean; job?: string; checked?: boolean }): number {

@@ -1,10 +1,10 @@
 import type { Schemas } from "@payproof/api-client";
 import { formatMoney, formatQuantity } from "@payproof/api-client/format";
+import { detailText as t } from "@payproof/api-client/i18n";
 import { CircleHelp, CircleX, Eye, Info, Pencil, Sparkles } from "lucide-react";
 import { Fragment } from "react";
 import { Panel } from "@/components/ui/layout";
 import { cn } from "@/lib/utils";
-import { detailText as t } from "../texts";
 
 type Pkg = Schemas["PackageDetail"];
 type Row = Schemas["ComparisonRow"];
@@ -14,15 +14,11 @@ type Column = "invoice" | "order" | "delivery";
 /** "lines[KY-10].unit_price" → "KY-10" (the row key, not the display text). */
 const lineCode = (key: string) => /^lines\[(.+?)\]/.exec(key)?.[1] ?? "";
 
-const COLUMNS: { key: Column; label: string }[] = [
-  { key: "invoice", label: t.comparisonColumns.invoice },
-  { key: "order", label: t.comparisonColumns.order },
-  { key: "delivery", label: t.comparisonColumns.delivery },
-];
+const COLUMNS: Column[] = ["invoice", "order", "delivery"];
 
 /** Decimal strings stay strings: money and quantities go through the shared formatters. */
 function display(row: Row, cell: Cell) {
-  if (cell.value === null) return cell.state === "unknown" ? "oxunmadı" : "—";
+  if (cell.value === null) return cell.state === "unknown" ? t.notRead : "—";
   if (row.key.endsWith(".qty")) return formatQuantity(cell.value);
   if (cell.currency) return formatMoney(cell.value, cell.currency);
   return cell.value;
@@ -30,8 +26,8 @@ function display(row: Row, cell: Cell) {
 
 // colour is never the only signal: icon + words (sr-only) go with it
 const STATE = {
-  mismatch: { cls: "bg-danger-bg text-danger font-semibold", Icon: CircleX, sr: "uyğunsuz" },
-  unknown: { cls: "bg-warning-bg text-warning font-semibold", Icon: CircleHelp, sr: "naməlum" },
+  mismatch: { cls: "bg-danger-bg text-danger font-semibold", Icon: CircleX, sr: "mismatchSr" },
+  unknown: { cls: "bg-warning-bg text-warning font-semibold", Icon: CircleHelp, sr: "unknownSr" },
 } as const;
 
 interface Props {
@@ -69,9 +65,11 @@ export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
               <th scope="col" className="px-4 py-2">
                 {t.comparisonColumns.field}
               </th>
-              {COLUMNS.map((c) => (
-                <th key={c.key} scope="col" className="px-4 py-2">
-                  {c.key === "order" && !pkg.link.confirmed ? t.unconfirmed(c.label) : c.label}
+              {COLUMNS.map((key) => (
+                <th key={key} scope="col" className="px-4 py-2">
+                  {key === "order" && !pkg.link.confirmed
+                    ? t.unconfirmed(t.comparisonColumns[key])
+                    : t.comparisonColumns[key]}
                 </th>
               ))}
             </tr>
@@ -94,7 +92,8 @@ export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
                   <th scope="row" className="px-4 py-2.5 text-left font-normal">
                     {row.label}
                   </th>
-                  {COLUMNS.map(({ key, label }) => {
+                  {COLUMNS.map((key) => {
+                    const label = t.comparisonColumns[key];
                     const cell = row[key];
                     // the line group makes the name unique (every line has a "Vahid qiymət")
                     const name = row.group ? `${lineCode(row.key)} ${row.label}` : row.label;
@@ -107,12 +106,12 @@ export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
                         <span className="inline-flex items-center gap-1.5">
                           {state && <state.Icon aria-hidden className="size-4 shrink-0" />}
                           {display(row, cell)}
-                          {state && <span className="sr-only">{` — ${state.sr}`}</span>}
+                          {state && <span className="sr-only">{` — ${t[state.sr]}`}</span>}
                           {cell.evidence && (
                             <button
                               type="button"
-                              aria-label={`Mənbəyə bax: ${name} (${label})`}
-                              title="Mənbəyə bax"
+                              aria-label={t.viewSourceOf(name, label)}
+                              title={t.viewSource}
                               onClick={() => onEvidence(cell.evidence!, name)}
                               className={iconBtn}
                             >
@@ -122,8 +121,8 @@ export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
                           {onCorrect && cell.field_id && extracted.has(cell.field_id) && (
                             <button
                               type="button"
-                              aria-label={`Çıxarışı düzəlt: ${name} (${label})`}
-                              title="Çıxarışı düzəlt"
+                              aria-label={t.correctOf(name, label)}
+                              title={t.correct}
                               onClick={() => onCorrect(cell.field_id!)}
                               className={iconBtn}
                             >
@@ -143,9 +142,10 @@ export function ComparisonPanel({ pkg, onEvidence, onCorrect }: Props) {
       <p className="bg-surface-2 text-text-2 m-4 flex gap-2 rounded-md p-3 text-sm">
         <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
         <span>
-          <b>İki fərqli düzəliş yolu:</b> çıxarış səhvdirsə sahəni mənbəyə baxaraq düzəldin (sənəd
-          dəyişmir, səbəb auditə yazılır). Fakturanın özündə səhv varsa, onu mənbə sistemində
-          düzəldib <b>yeni versiya</b> yükləyin.
+          <b>{t.fixPathsTitle}</b>
+          {t.fixPathsBody}
+          <b>{t.fixPathsNew}</b>
+          {t.fixPathsEnd}
         </span>
       </p>
     </Panel>

@@ -1,4 +1,5 @@
 import type { Schemas } from "@payproof/api-client";
+import { uploadText as t } from "@payproof/api-client/i18n";
 import { Check, Clock } from "lucide-react";
 import { Banner } from "@/components/ui/layout";
 import { UPLOAD_STAGES } from "../upload-helpers";
@@ -20,9 +21,9 @@ export function UploadStages({
     <div role="status" className="flex flex-col gap-2">
       <p className="text-sm font-bold break-all">{fileName}</p>
       <ol className="flex flex-col gap-1.5">
-        {UPLOAD_STAGES.map((label, k) => (
+        {UPLOAD_STAGES.map((key, k) => (
           <li
-            key={label}
+            key={key}
             className={`flex items-center gap-2 text-sm ${k <= stage ? "" : "text-text-3"}`}
           >
             {k <= stage ? (
@@ -30,18 +31,18 @@ export function UploadStages({
             ) : (
               <Clock aria-hidden className="size-4" />
             )}
-            {label}
-            <span className="sr-only">{k <= stage ? " — tamamlandı" : " — gözləyir"}</span>
+            {t.stages[key]}
+            <span className="sr-only">{k <= stage ? t.stageDone : t.stageWaiting}</span>
           </li>
         ))}
       </ol>
       {lost && job?.status !== "FAILED" && (
-        <Banner tone="warning" role="alert" title="Emalın vəziyyətini almaq olmadı.">
-          Dialoqu bağlayın — nəticə paket səhifəsində yenilənəcək.
+        <Banner tone="warning" role="alert" title={t.lostTitle}>
+          {t.lostBody}
         </Banner>
       )}
       {job?.status === "FAILED" && (
-        <Banner tone="danger" role="alert" title="Emal alınmadı — yeni versiya yaradılmadı.">
+        <Banner tone="danger" role="alert" title={t.failedTitle}>
           {job.error?.message}
         </Banner>
       )}

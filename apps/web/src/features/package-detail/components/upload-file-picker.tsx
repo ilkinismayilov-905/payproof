@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadText as t } from "@payproof/api-client/i18n";
 import { TriangleAlert, Upload } from "lucide-react";
 import { useState } from "react";
 import type { samplesFor } from "../upload-helpers";
@@ -22,12 +23,10 @@ export function FilePicker({
   return (
     <div className="flex flex-col gap-2">
       {mock && (
-        <div role="radiogroup" aria-label="Demo faylı seçin" className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">Demo faylı seçin</span>
+        <div role="radiogroup" aria-label={t.demoPick} className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{t.demoPick}</span>
           {samples.length === 0 && (
-            <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">
-              Bu paket və sənəd növü üçün sintetik demo faylı yoxdur.
-            </p>
+            <p className="bg-surface-2 text-text-2 rounded-md p-3 text-sm">{t.noDemo}</p>
           )}
           {samples.map((s) => (
             <label
@@ -54,7 +53,7 @@ export function FilePicker({
               {s.duplicate && (
                 <span className="text-warning mt-1 flex items-center gap-1 text-xs font-bold">
                   <TriangleAlert aria-hidden className="size-3.5" />
-                  Təkrar fayl: paketdə eyni fayl var
+                  {t.duplicate}
                 </span>
               )}
             </label>
@@ -77,11 +76,9 @@ export function FilePicker({
         }`}
       >
         <Upload aria-hidden className="text-brand size-5" />
-        <span className="font-semibold">Kompüterdən fayl seçin və ya bura atın</span>
+        <span className="font-semibold">{t.dropzone}</span>
         <span className="text-text-3 text-xs">
-          {file && !samples.some((s) => s.file_name === file.name)
-            ? file.name
-            : "PDF və ya skan şəkli"}
+          {file && !samples.some((s) => s.file_name === file.name) ? file.name : t.formats}
         </span>
         <input
           type="file"

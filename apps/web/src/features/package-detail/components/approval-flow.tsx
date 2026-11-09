@@ -1,6 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
+import { actionLabel, approvalText as t, ui } from "@payproof/api-client/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -26,15 +27,13 @@ export function useApprovalFlow(pkg: Pkg | undefined) {
       if (!pkg) return;
       const name = `Prefly_${pkg.invoice_number}_v${pkg.version}`;
       if (kind === "report") {
-        await saveFile(`${name}_daxili_hesabat.json`, await internalReport(pkg.id));
-        return toast.success("Daxili yoxlama hesabatı yükləndi.");
+        await saveFile(`${name}_${t.reportFile}.json`, await internalReport(pkg.id));
+        return toast.success(t.reportSaved);
       }
       const record = pkg.exports.find((e) => e.package_version === pkg.version);
-      if (!record) return toast.warning(`v${pkg.version} üçün ixrac tapılmadı.`);
+      if (!record) return toast.warning(t.noExportFor(pkg.version));
       await saveFile(`${name}.zip`, (await exportDownload(record.id)).url);
-      toast.info(
-        `Manifest yenidən yükləndi. v${pkg.version} artıq ixrac edilib — yeni audit hadisəsi yaradılmadı.`,
-      );
+      toast.info(t.manifestAgain(pkg.version));
     },
   });
 
@@ -60,9 +59,9 @@ export function useApprovalFlow(pkg: Pkg | undefined) {
         open={open === "conflict"}
         onOpenChange={close}
         destructive={false}
-        title="Paket yenilənib"
-        description="Siz baxarkən paket dəyişdi. Təsdiq və ixrac yalnız cari versiyaya bağlıdır — yeni versiyaya baxın və yenidən cəhd edin."
-        confirmLabel="Yenilə"
+        title={ui.versionConflictTitle}
+        description={t.conflictBody}
+        confirmLabel={actionLabel.refresh}
         onConfirm={() => client.invalidateQueries({ queryKey: packageKeys.detail(pkg.id) })}
       />
     </>

@@ -1,7 +1,12 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { actionLabel, documentTypeLabel } from "@payproof/api-client/i18n";
+import {
+  actionLabel,
+  detailText,
+  documentTypeLabel,
+  evidenceText as t,
+} from "@payproof/api-client/i18n";
 import { Check, PenLine, X } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { Button } from "@/components/ui/button";
@@ -52,7 +57,7 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
                   <Dialog.Title className="text-xl font-semibold">
                     {`${documentTypeLabel[source.doc.type]} · ${source.version.file_name} · v${source.version.version_no}`}
                   </Dialog.Title>
-                  <Dialog.Description className="text-text-2 text-sm">{`Səhifə ${evidence.page} · ${label}`}</Dialog.Description>
+                  <Dialog.Description className="text-text-2 text-sm">{`${detailText.page(evidence.page)} · ${label}`}</Dialog.Description>
                 </div>
                 <Dialog.Close
                   aria-label={actionLabel.close}
@@ -65,31 +70,20 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
                 {!source.current && (
                   <Banner
                     tone="warning"
-                    title={`Köhnə versiya: bu sübut v${source.version.version_no}-dəndir, cari versiya v${source.doc.current.version_no}-dir.`}
+                    title={t.oldVersion(source.version.version_no, source.doc.current.version_no)}
                   />
                 )}
-                {source.version.source_kind === "scan" && (
-                  <Banner
-                    tone="warning"
-                    title="Skan sənəd: mətn OCR ilə oxunub — dəyəri mənbə ilə müqayisə edin."
-                  />
-                )}
+                {source.version.source_kind === "scan" && <Banner tone="warning" title={t.scan} />}
                 {signature && (
-                  <Banner tone="warning" icon={PenLine} title="İmza tələbi (R-008)">
-                    Qəbul edənin imza sahəsinə baxın. Təsdiqiniz yalnız imzanın vizual mövcudluğunu
-                    qeyd edir — hüquqi autentifikasiya deyil.
+                  <Banner tone="warning" icon={PenLine} title={t.signatureTitle}>
+                    {t.signatureBody}
                   </Banner>
                 )}
-                {!evidence.bbox && (
-                  <Banner
-                    tone="neutral"
-                    title="Vurğulama koordinatı yoxdur — səhifə və sitat göstərilir."
-                  />
-                )}
+                {!evidence.bbox && <Banner tone="neutral" title={t.noBbox} />}
                 {evidence.quote && (
                   <figure>
                     <figcaption className="text-text-3 text-xs font-bold uppercase">
-                      Sitat
+                      {t.quote}
                     </figcaption>
                     <blockquote className="border-brand mt-1 border-l-4 pl-3">
                       {evidence.quote}
@@ -125,7 +119,7 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
                     onClick={() => signature.pending || signature.onConfirm()}
                   >
                     <Check aria-hidden />
-                    {signature.pending ? "Qeyd edilir…" : "İmzanın mövcudluğunu təsdiqləyirəm"}
+                    {signature.pending ? t.recording : t.confirmSignature}
                   </Button>
                 </div>
               )}
@@ -134,7 +128,7 @@ export function EvidenceViewer({ pkg, evidence, label, onClose, signature }: Pro
           {evidence && !source && (
             // a stale link (e.g. the version list changed meanwhile): still say what is known
             <div className="flex flex-col gap-3 px-6 py-5">
-              <Dialog.Title className="text-xl font-semibold">Mənbə sənəd tapılmadı</Dialog.Title>
+              <Dialog.Title className="text-xl font-semibold">{t.notFound}</Dialog.Title>
               <Dialog.Description asChild>
                 <blockquote className="border-brand border-l-4 pl-3">{evidence.quote}</blockquote>
               </Dialog.Description>

@@ -1,3 +1,4 @@
+import { packagesText } from "@payproof/api-client/i18n";
 import { ChevronRight, ChevronsLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,20 +18,19 @@ interface Props {
 export function Pagination({ shown, total, cursor, nextCursor, onPage }: Props) {
   return (
     <nav
-      aria-label="Səhifələr"
+      aria-label={packagesText.pagesLabel}
       className="border-border text-text-3 flex flex-wrap items-center gap-2 border-t px-4 py-3 text-xs"
     >
-      {/* no case suffix on the number: Azerbaijani suffixes depend on it (14-ü, 2-si) */}
-      <span className="mr-auto">{`Göstərilir: ${shown} / ${total} paket`}</span>
+      <span className="mr-auto">{packagesText.shown(shown, total)}</span>
       {cursor && (
         <Button variant="ghost" size="sm" onClick={() => onPage(undefined)}>
           <ChevronsLeft aria-hidden />
-          İlk səhifə
+          {packagesText.firstPage}
         </Button>
       )}
       {nextCursor && (
         <Button variant="outline" size="sm" onClick={() => onPage(nextCursor)}>
-          Növbəti səhifə
+          {packagesText.nextPage}
           <ChevronRight aria-hidden />
         </Button>
       )}

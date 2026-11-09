@@ -1,7 +1,8 @@
 "use client";
 
-import { ui } from "@payproof/api-client/i18n";
+import { packagesText, ui } from "@payproof/api-client/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Banner, EmptyState, PageHeader } from "@/components/ui/layout";
@@ -19,6 +20,7 @@ export function PackageListScreen() {
   const router = useRouter();
   const params = listParams(new URLSearchParams(useSearchParams().toString()));
   const list = usePackageList(params);
+  const columns = useMemo(() => packageColumns(), []); // the tree remounts on a language change
   const filtered = Object.keys(params).some((k) => k !== "sort" && k !== "cursor");
   // filters push (Back restores them); typing in search replaces, so history isn't one entry per key
   const go = (next: ListParams, mode: "push" | "replace" = "push") =>
@@ -27,8 +29,8 @@ export function PackageListScreen() {
   return (
     <>
       <PageHeader
-        title="Faktura paketləri"
-        description="Hər paket bir fakturanı, onun sifarişini və təhvil sənədini birləşdirir. Kütləvi təsdiq P0-a daxil deyil."
+        title={packagesText.title}
+        description={packagesText.description}
         actions={<NewPackageButton />}
       />
       <section className="bg-surface border-border shadow-1 min-w-0 rounded-lg border">
@@ -45,7 +47,7 @@ export function PackageListScreen() {
               <>
                 {params.cursor && (
                   <Button variant="outline" onClick={() => go({ ...params, cursor: undefined })}>
-                    İlk səhifə
+                    {packagesText.firstPage}
                   </Button>
                 )}
                 <Button variant="outline" onClick={() => list.refetch()}>
@@ -63,8 +65,8 @@ export function PackageListScreen() {
             className={cn(list.isPlaceholderData && "opacity-60")}
           >
             <DataTable
-              caption="Faktura paketləri"
-              columns={packageColumns}
+              caption={packagesText.title}
+              columns={columns}
               data={list.data.items}
               getRowId={(p) => p.id}
               sort={sortFromParam(params.sort)}
@@ -73,8 +75,8 @@ export function PackageListScreen() {
               onRowClick={(p) => router.push(`/packages/${p.id}`)}
               empty={
                 <EmptyState
-                  title="Heç bir paket tapılmadı"
-                  description="Axtarış sözünü dəyişin və ya filtrləri təmizləyin."
+                  title={packagesText.emptyTitle}
+                  description={packagesText.emptyDescription}
                   action={
                     filtered && (
                       <Button variant="outline" onClick={() => go({ sort: params.sort })}>

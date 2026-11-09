@@ -1,3 +1,5 @@
+import { liveText } from "@payproof/api-client/i18n";
+
 /**
  * Hands a file to the browser as a download: a signed link is fetched first (a plain link would
  * bypass the mock service worker, and a cross-origin link ignores the file name), JSON is encoded.
@@ -8,7 +10,7 @@ export async function saveFile(name: string, source: string | object | Blob) {
       ? source
       : typeof source === "string"
         ? await fetch(source).then((r) => {
-            if (!r.ok) throw new Error(`Fayl yüklənmədi (${r.status}).`);
+            if (!r.ok) throw new Error(liveText.downloadFailed(r.status));
             return r.blob();
           })
         : new Blob([JSON.stringify(source, null, 2)], { type: "application/json" });

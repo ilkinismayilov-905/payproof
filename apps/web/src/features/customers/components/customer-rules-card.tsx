@@ -2,6 +2,7 @@
 
 import type { Schemas } from "@payproof/api-client";
 import { formatDate } from "@payproof/api-client/format";
+import { customersText as t } from "@payproof/api-client/i18n";
 import { Check, Lock, Scale } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -12,17 +13,13 @@ import { useCreateRequirementSet } from "../queries";
 import { parseTolerance, sameRules } from "../rules";
 import { RuleHistory } from "./rule-history";
 
-const SWITCHES = [
-  { key: "require_po", label: "Fakturada sifariş nömrəsi (PO) məcburidir", hint: "R-001, R-002" },
-  { key: "require_delivery", label: "Təhvil sənədi məcburidir", hint: "R-007" },
-  {
-    key: "require_signature",
-    label: "Təhvil aktında imza tələb olunur",
-    hint: "R-008 — insan yoxlaması, hüquqi autentifikasiya deyil",
-  },
-] as const;
-type Flag = (typeof SWITCHES)[number]["key"];
-const APPROVER_ONLY = "Müştəri qaydasını yalnız təsdiqçi rolu təsdiqləyə bilər.";
+type Flag = "require_po" | "require_delivery" | "require_signature";
+// a function: labels follow the current language
+const switches = (): { key: Flag; label: string; hint: string }[] => [
+  { key: "require_po", label: t.requirePo, hint: "R-001, R-002" },
+  { key: "require_delivery", label: t.requireDelivery, hint: "R-007" },
+  { key: "require_signature", label: t.requireSignature, hint: t.signatureHint },
+];
 
 /**
  * One customer's rule set (prototype `pgRules`). Every save is a new immutable version: the
@@ -47,18 +44,17 @@ export function CustomerRulesCard({
   const [shown, setShown] = useState(false);
   const parsed = parseTolerance(tolerance);
   const errors = {
-    tolerance: parsed ? null : "Düzgün məbləğ yazın (0,00 – 1,00).",
-    reason: reason.trim().length >= 10 ? null : "Ən azı 10 simvolla səbəb yazın.",
+    tolerance: parsed ? null : t.errTolerance,
+    reason: reason.trim().length >= 10 ? null : t.errReason,
   };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!canSave) return void toast.warning(APPROVER_ONLY);
+    if (!canSave) return void toast.warning(t.approverOnly);
     setShown(true);
     if (errors.tolerance || errors.reason || save.isPending) return;
     const next = { ...flags, tolerance: parsed! };
-    if (sameRules(cur, next))
-      return void toast.warning("Dəyişiklik yoxdur — yeni versiya yaradılmadı.");
+    if (sameRules(cur, next)) return void toast.warning(t.noChange);
     // mutateAsync, not a mutate callback: the saved version re-mounts this card before the
     // refresh ends, and React Query drops callbacks of an unmounted observer
     save
@@ -69,10 +65,7 @@ export function CustomerRulesCard({
         expected_version: cur.version,
       })
       .then(
-        (rs) =>
-          toast.success(
-            `${customer.name}: qayda dəsti v${rs.version} təsdiqləndi. Əlaqəli paketlər yenidən yoxlandı.`,
-          ),
+        (rs) => toast.success(t.saved(customer.name, rs.version)),
         () => {}, // the global handler already explains the error
       );
   };
@@ -87,16 +80,18 @@ export function CustomerRulesCard({
           <h2 id={`rules-${customer.id}`} className="text-lg font-bold">
             {customer.name}
           </h2>
-          <p className="text-text-3 text-xs">{`Xarici ID ${customer.external_id} · VÖEN ${customer.voen}`}</p>
+          <p className="text-text-3 text-xs">{t.ids(customer.external_id, customer.voen)}</p>
         </div>
         <span className="bg-brand-50 text-brand inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-xs font-bold">
           <Scale aria-hidden className="size-3.5" />
-          {`Qayda dəsti v${cur.version}`}
+          {t.version(cur.version)}
         </span>
       </div>
-      <p className="text-text-2 text-sm">{`Qüvvədədir: ${formatDate(cur.effective_from)} · Təsdiqləyən: ${cur.approved_by.full_name}`}</p>
+      <p className="text-text-2 text-sm">
+        {t.effective(formatDate(cur.effective_from), cur.approved_by.full_name)}
+      </p>
       <form onSubmit={submit} noValidate className="flex flex-col gap-3">
-        {SWITCHES.map((s) => (
+        {switches().map((s) => (
           <label
             key={s.key}
             className="has-focus-visible:ring-ring flex cursor-pointer items-start gap-3 rounded-md has-focus-visible:ring-2"
@@ -114,11 +109,7 @@ export function CustomerRulesCard({
             </span>
           </label>
         ))}
-        <Field
-          label="Yuvarlaqlaşdırma toleransı (AZN / USD)"
-          error={shown ? errors.tolerance : null}
-          hint="Böyük fərqi gizlədən geniş tolerans qəbul edilmir (maks. 1,00)."
-        >
+        <Field label={t.tolerance} error={shown ? errors.tolerance : null} hint={t.toleranceHint}>
           {(id, d) => (
             <input
               id={id}
@@ -131,7 +122,7 @@ export function CustomerRulesCard({
             />
           )}
         </Field>
-        <Field label="Dəyişikliyin əsaslandırılması" error={shown ? errors.reason : null}>
+        <Field label={t.reason} error={shown ? errors.reason : null}>
           {(id, d) => (
             <textarea
               id={id}
@@ -139,7 +130,7 @@ export function CustomerRulesCard({
               onChange={(e) => setReason(e.target.value)}
               rows={2}
               maxLength={500}
-              placeholder="Məs.: müştərinin 01.12.2026 tarixli təchizatçı təlimatı"
+              placeholder={t.reasonPlaceholder}
               aria-invalid={(shown && Boolean(errors.reason)) || undefined}
               aria-describedby={d}
               className={fieldInput}
@@ -149,22 +140,22 @@ export function CustomerRulesCard({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-text-3 flex items-center gap-1 text-xs">
             {canSave ? (
-              "Yeni versiya dərhal qüvvəyə minəcək."
+              t.immediate
             ) : (
               <>
                 <Lock aria-hidden className="size-3.5" />
-                Təsdiq üçün təsdiqçi rolu tələb olunur.
+                {t.needsApprover}
               </>
             )}
           </span>
           <Button
             type="submit"
             aria-disabled={!canSave || save.isPending}
-            title={canSave ? undefined : APPROVER_ONLY}
+            title={canSave ? undefined : t.approverOnly}
             className="aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
           >
             <Check aria-hidden />
-            {save.isPending ? "Saxlanılır…" : "Yeni versiya kimi təsdiqlə"}
+            {save.isPending ? t.saving : t.save}
           </Button>
         </div>
       </form>

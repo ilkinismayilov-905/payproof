@@ -9,6 +9,7 @@ import {
 import * as i18n from "../src/i18n";
 import * as az from "../src/i18n/az";
 import * as en from "../src/i18n/en";
+import { definedTexts } from "../src/i18n/dict";
 import { setLocale } from "../src/locale";
 
 afterEach(() => setLocale("az"));
@@ -27,6 +28,13 @@ describe("every i18n key has an az and an en value", () => {
   it("en.ts has exactly the keys of az.ts, no empty strings", () => {
     expect(leaves(en)).toEqual(leaves(az));
     expect(Object.values(leaves(az))).not.toContain("EMPTY");
+  });
+
+  it("every defineTexts module (feature texts) has the same keys in az and en", () => {
+    for (const pair of definedTexts) {
+      expect(leaves(pair.en)).toEqual(leaves(pair.az));
+      expect(Object.values(leaves(pair.en))).not.toContain("EMPTY");
+    }
   });
 
   it.each(["Payment secured", "Invoice paid", "Fraud detected", "AI checked everything"])(

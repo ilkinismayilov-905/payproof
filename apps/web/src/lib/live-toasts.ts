@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schemas } from "@payproof/api-client";
-import { ui } from "@payproof/api-client/i18n";
+import { liveText, ui } from "@payproof/api-client/i18n";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -12,29 +12,19 @@ import { onLiveEvent } from "./live";
 
 type LiveEvent = Schemas["LiveEvent"];
 
-// shortcut: texts live here until the shared i18n package gets live-update keys
-const VERB: Partial<Record<LiveEvent["type"], string>> = {
-  "package.created": "yaratdı",
-  "package.updated": "yenilədi",
-  "package.approved": "təsdiqlədi",
-  "package.exported": "ixrac etdi",
-  "package.deleted": "sildi",
-};
-
 /** "Aygün Məmmədova INV-1042 paketini yenilədi (v5)"; null when the event gets no toast. */
 export function liveToastText(
   event: LiveEvent,
   { actor, invoice }: { actor: string | null; invoice?: string },
 ) {
   const who = actor ?? ui.system;
-  const verb = VERB[event.type];
+  const verb = (liveText.verb as Partial<Record<LiveEvent["type"], string>>)[event.type];
   if (verb) {
     const version = event.package_version ? ` (v${event.package_version})` : "";
-    return `${who} ${invoice ? `${invoice} paketini` : "paketi"} ${verb}${version}`;
+    return `${liveText.packageEvent(who, verb, invoice)}${version}`;
   }
-  if (event.type === "task.changed")
-    return `${who} ${invoice ? `${invoice} paketinin tapşırığını` : "tapşırığı"} yenilədi`;
-  if (event.type === "requirements.changed") return `${who} müştəri qaydasını yenilədi`;
+  if (event.type === "task.changed") return liveText.taskEvent(who, invoice);
+  if (event.type === "requirements.changed") return liveText.rulesEvent(who);
   return null; // notifications have their own UI (W-16); unknown types only refetch
 }
 
@@ -64,7 +54,7 @@ export function useLiveToasts() {
       onLiveEvent((event) => {
         if (!me || event.actor_id === me.id) return; // own changes: refetch only, no toast
         const actor = event.actor_id
-          ? (users?.find((u) => u.id === event.actor_id)?.full_name ?? "Başqa istifadəçi")
+          ? (users?.find((u) => u.id === event.actor_id)?.full_name ?? liveText.otherUser)
           : null;
         const invoice = event.package_id ? cachedInvoice(client, event.package_id) : undefined;
         const text = liveToastText(event, { actor, invoice });
