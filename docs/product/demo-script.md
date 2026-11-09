@@ -10,6 +10,8 @@ Prototipin 13 addımlı bələdçisi (`docs/product/prototype/payproof-prototype
 4. Sağ yuxarı istifadəçi menyusu → **Demo məlumatlarını sıfırla** → **Bəli, sıfırla** (< 3 s). Sonra **mobildə səhifəni yeniləyin** — sıfırlama canlı hadisə göndərmir.
 5. Yoxlama: İcmalda açıq problemli məbləğ **29.706,00 AZN** və **1.800,00 USD**; INV-1042 statusu **Yoxlama tələb edir**.
 
+**Lokal və ya hosted?** Ssenari lokal `make demo` üçündür (`AI_PROVIDER=mock`, demo fayl seçimi açıq, internetsiz). Render-dəki hosted demo (`render.yaml`) real Claude çıxarışı ilə işləyir (`AI_PROVIDER=llm`) və demo fayl seçimi orada **söndürülüb** (`NEXT_PUBLIC_DEMO_FILES=0` — demo faylları AI-nin oxuya bilmədiyi yer tutuculardır). Hosted-də 7-ci addım üçün **real PDF-lər** hazırlayın: PO-381 yazılmış INV-1042 fakturası və TS-5531 imzalı təhvil aktı. Əks halda sahələr `UNKNOWN` qalacaq və paket bloklanacaq. Bu, səhv deyil, dürüst nəticədir, amma ssenarini pozur. Münsiflər qarşısında ən etibarlı yol lokal demodur.
+
 Ehtiyat: mobil işləməsə, 9-cu addımı ikinci brauzer pəncərəsində (gizli rejim) vebdə Rəşad kimi edin — axın eynidir.
 
 ## Addımlar
@@ -42,9 +44,10 @@ Sonda: menyu → **Demo məlumatlarını sıfırla** (növbəti çıxış üçü
 
 | Real (işləyən kod) | Simulyasiya / demo üçün sadələşdirmə |
 |---|---|
+| Claude ilə sənəd çıxarışı (hosted demo): hər dəyər səhifə + sitatla, oxunmayan → `UNKNOWN` | |
 | Qayda mühərriki R-001…R-009 (deterministik, `UNKNOWN ≠ PASS`), status və versiya məntiqi | Bütün məlumatlar **sintetikdir** (şirkətlər, VÖEN-lər, məbləğlər) |
 | Sənəd yükləmə, saxlama (S3/MinIO), dublikat aşkarlanması (sha256), versiyalar | Çıxarış `AI_PROVIDER=mock`: demo faylları adından tanınır, nəticələr əvvəlcədən hazırlanıb (çıxarış mənbəyi `mock` kimi saxlanılır) |
-| Sifariş uyğunlaşdırması və namizəd təklifi (qaydalara əsaslanır) | Real AI çıxarışı (`AI_PROVIDER=llm`, Claude) kodu var və yoxlanıb, amma demo onsuz işləyir (açar və internet tələb edir) |
+| Sifariş uyğunlaşdırması və namizəd təklifi (qaydalara əsaslanır) | Lokal demoda AI çıxarışı mock-dur; real Claude çıxarışı (`AI_PROVIDER=llm`) hosted demoda işləyir (açar və internet tələb edir; 5 sənəddə 49/49 sahə — `docs/product/ai-extraction-eval.md`) |
 | Təsdiq və ixrac (versiyaya bağlı, idempotent), zip + manifest | Giriş: demo istifadəçi seçimi (dev login, yalnız `ENV=dev`); real SSO yoxdur |
 | Server tərəfli səlahiyyət, tenant izolyasiyası, append-only audit, CSV | İmza yoxlaması vizualdır — hüquqi/rəqəmsal imza autentifikasiyası yoxdur |
 | Canlı yeniləmələr (SSE, ≤ 2 s), bildirişlər | Bank, e-poçt, ERP inteqrasiyası yoxdur; "göndərmə" PayProof-dan kənardadır |

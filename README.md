@@ -33,7 +33,7 @@ PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi 
 3. Ssenari: [`docs/product/demo-script.md`](docs/product/demo-script.md) — 13 addım (INV-1042: sifariş əlaqəsi → düzəliş → təsdiq → ixrac → audit), hazır cavablar və **Nə real, nə simulyasiyadır** cədvəli.
 4. Sıfırlama: istifadəçi menyusu → **Demo məlumatlarını sıfırla** (yalnız `ENV=dev`, < 3 s) və ya `make seed RESET=1`.
 
-Qısa: qayda mühərriki, versiya/təsdiq/ixrac məntiqi, audit, canlı yeniləmələr realdır; məlumatlar sintetikdir, çıxarış mock-dur (real Claude çıxarışı `AI_PROVIDER=llm` ilə mövcuddur), giriş demo istifadəçi seçimidir, bank/e-poçt/ERP inteqrasiyası yoxdur.
+Qısa: qayda mühərriki, versiya/təsdiq/ixrac məntiqi, audit, canlı yeniləmələr realdır; məlumatlar sintetikdir, lokal demoda çıxarış mock-dur (hosted demo — `render.yaml` — real Claude çıxarışı ilə, `AI_PROVIDER=llm`), giriş demo istifadəçi seçimidir, bank/e-poçt/ERP inteqrasiyası yoxdur.
 
 ## Sənədlər
 - Məhsul: `docs/product/` (brif, prototip, komanda bələdçisi PDF)
