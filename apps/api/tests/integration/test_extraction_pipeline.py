@@ -1,15 +1,18 @@
 import uuid
 from dataclasses import replace
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from payproof.core.settings import get_settings
 from payproof.domain.enums import Role
 from payproof.domain.rules.engine import evaluate
 from payproof.extraction.base import ExtractionAdapter, ExtractionInput, ExtractionResult
+from payproof.extraction.llm import LlmAdapter
 from payproof.extraction.mock import MockExtractionAdapter
 from payproof.extraction.pipeline import adapter_extractor
 from payproof.repositories.base import bind_tenant
-from payproof.repositories.models import DocumentVersion, InvoicePackage
+from payproof.repositories.models import AuditEvent, DocumentVersion, InvoicePackage
 from payproof.seed.cli import seed
 from payproof.seed.fixtures import uid
 from payproof.seed.identity import COMPANY_ID
@@ -88,3 +91,19 @@ async def test_detail_shows_where_each_value_was_read(db: AsyncSession) -> None:
     assert (po.evidence.page, po.evidence.quote) == (1, "Sifariş №: PO-381")
     cells = [c for row in detail.comparison.rows for c in (row.invoice, row.delivery) if c]
     assert any(c.evidence and c.evidence.document_version_id == version.id for c in cells)
+
+
+async def test_llm_without_a_key_leaves_fields_unknown_and_says_so(db: AsyncSession) -> None:
+    version, checks = await _process(db, "pkg_1042", "INV-1042_v2_PO-381.pdf", PDF, LlmAdapter())
+    assert version.status == "REVIEW_REQUIRED" and checks["R-001"] == "UNKNOWN"
+    event = (await db.scalars(select(AuditEvent).where(AuditEvent.action == "document.ai"))).one()
+    assert event.detail == {
+        "source": "mock",
+        "fallback": "no_api_key",
+        "model": get_settings().ai_model,  # AI_MODEL
+        "prompt_version": "b25-v1",
+    }
+    assert "əl ilə daxil edin" in event.message
+    detail = await package_detail(db, uid("pkg_1042"), viewer_role=Role.OPERATOR)
+    unread = {f.field_path for f in detail.fields if f.review_status == "REVIEW_REQUIRED"}
+    assert "invoice.po_ref" in unread and any(".qty" in p for p in unread)
