@@ -1,6 +1,7 @@
 // Job status (finishes package processing when due) and short-lived document file links.
 import { http, HttpResponse } from "msw";
 import { finishProcessing } from "../domain/packages";
+import { tr } from "../i18n";
 import { id } from "../ids";
 import { currentUser, json, notFound, route, signedLink, type Ctx } from "./http";
 
@@ -56,7 +57,7 @@ export const jobHandlers = (ctx: Ctx) => [
                   : {}),
               }
             : null,
-        error: failed ? job.error : null,
+        error: failed ? { code: job.error!.code, message: tr(job.error!.message) } : null,
       });
     }),
   ),

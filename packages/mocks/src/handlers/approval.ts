@@ -1,6 +1,6 @@
 // Approve / export — version-bound and idempotent, in the state-machines.md check order.
 import { http } from "msw";
-import { approvePackage, exportPackage } from "../domain/approval";
+import { approvePackage, exportPackage, NOT_APPROVED } from "../domain/approval";
 import { MockError } from "../domain/audit";
 import { rulesFor } from "../engine";
 import { currentApproval, info } from "../engine/status";
@@ -9,6 +9,7 @@ import type { MockDb } from "../store";
 import type { Pkg } from "../types";
 import { approval, exportRecord } from "../views/records";
 import {
+  badRequest,
   body,
   currentUser,
   expectVersion,
@@ -26,7 +27,10 @@ function expectRuleSet(db: MockDb, p: Pkg, expected: unknown) {
   if (expected !== current)
     throw new MockError(
       "VERSION_CONFLICT",
-      `Müştəri qaydası v${current}-ə yenilənib; yenidən baxın.`,
+      {
+        az: `Müştəri qaydası v${current}-ə yenilənib; yenidən baxın.`,
+        en: `The package has been updated to v${p.version}; refresh the page.`, // API: stale_package
+      },
       409,
       {
         current_requirement_set_version: current,
@@ -50,9 +54,14 @@ export const approvalHandlers = (ctx: Ctx) => [
         const existing = currentApproval(db, p);
         if (existing) return json(approval(db, p, existing));
         if (b.documents_reviewed !== true)
-          throw new MockError("VALIDATION_ERROR", "Təsdiqdən əvvəl bütün sənədlərə baxın.", 422, {
-            fields: { documents_reviewed: "true olmalıdır." },
-          });
+          throw new MockError(
+            "VALIDATION_ERROR",
+            badRequest("Təsdiqdən əvvəl bütün sənədlərə baxın."),
+            422,
+            {
+              fields: { documents_reviewed: "true olmalıdır." },
+            },
+          );
         return json(approval(db, p, approvePackage(db, p, user.id).approval));
       });
     }),
@@ -75,19 +84,17 @@ export const approvalHandlers = (ctx: Ctx) => [
         };
         if (done) return respond(done);
         if (info(db, p).status !== "APPROVED_READY")
-          throw new MockError(
-            "PACKAGE_NOT_READY",
-            "İxrac üçün cari versiyanın təsdiqi tələb olunur.",
-            409,
-            {
-              status: info(db, p).status,
-            },
-          );
+          throw new MockError("PACKAGE_NOT_READY", NOT_APPROVED, 409, {
+            status: info(db, p).status,
+          });
         const ids = Array.isArray(b.document_version_ids) ? b.document_version_ids : [];
         if (!ids.length || new Set(ids).size !== ids.length)
-          throw new MockError("VALIDATION_ERROR", "Hər sənədi bir dəfə seçin.", 422, {
-            fields: { document_version_ids: "Boş və ya təkrarlanan ola bilməz." },
-          });
+          throw new MockError(
+            "VALIDATION_ERROR",
+            { az: "Hər sənədi bir dəfə seçin.", en: "Select at least one document." },
+            422,
+            { fields: { document_version_ids: "Boş və ya təkrarlanan ola bilməz." } },
+          );
         const files = ids.map((vid) => {
           const d = p.documents.find(
             (x) => id.version(p.id, x.type, x.versions.at(-1)!.version_no) === vid,
@@ -95,7 +102,10 @@ export const approvalHandlers = (ctx: Ctx) => [
           if (!d)
             throw new MockError(
               "VALIDATION_ERROR",
-              "Yalnız sənədlərin cari versiyası ixrac edilə bilər.",
+              {
+                az: "Yalnız sənədlərin cari versiyası ixrac edilə bilər.",
+                en: "Only the package's current document versions can be selected.",
+              },
               422,
               { document_version_id: vid },
             );

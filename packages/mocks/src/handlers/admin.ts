@@ -4,6 +4,7 @@ import { MockError } from "../domain/audit";
 import { createPackage, deletePackage } from "../domain/packages";
 import { id, slugOf } from "../ids";
 import {
+  badRequest,
   currentUser,
   expectVersion,
   idempotent,
@@ -28,7 +29,11 @@ export const adminHandlers = (ctx: Ctx) => [
       const customer = slugOf.customer(String(f.get("customer_id") ?? ""));
       const owner = slugOf.user(String(f.get("owner_id") ?? ""));
       if (!customer || !db.customers.some((c) => c.id === customer) || !owner || !db.user(owner))
-        throw new MockError("VALIDATION_ERROR", "Müştəri və məsul şəxs məcburidir.", 422);
+        throw new MockError(
+          "VALIDATION_ERROR",
+          badRequest("Müştəri və məsul şəxs məcburidir."),
+          422,
+        );
       const files = {
         invoice: fileField(f, "invoice")!.name,
         order: fileField(f, "order", true)?.name,
@@ -50,9 +55,10 @@ export const adminHandlers = (ctx: Ctx) => [
           } catch (e) {
             // contract: a duplicate invoice is only known after extraction → reported by the job
             if (!(e instanceof MockError) || e.code !== "DUPLICATE_INVOICE") throw e;
+            // the API's job error text is generic (api/jobs.py _FAILED)
             const job = startJob(db, "create_package", null, undefined, {
               code: e.code,
-              message: e.message,
+              message: { az: e.message, en: "Processing failed." },
             });
             return json({ job_id: job.id }, 202);
           }

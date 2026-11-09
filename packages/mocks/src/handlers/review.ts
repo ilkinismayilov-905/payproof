@@ -33,9 +33,15 @@ export const reviewHandlers = (ctx: Ctx) => [
       const po = slugOf.order(required(b.order_id, "order_id"));
       const order = po ? db.orders[po] : undefined;
       if (!order || order.customer_id !== p.customer_id)
-        throw new MockError("VALIDATION_ERROR", "Bu müştəriyə aid sifariş tapılmadı.", 422, {
-          fields: { order_id: "Naməlum sifariş." },
-        });
+        throw new MockError(
+          "VALIDATION_ERROR",
+          {
+            az: "Bu müştəriyə aid sifariş tapılmadı.",
+            en: "This order does not belong to the package's customer.",
+          },
+          422,
+          { fields: { order_id: "Naməlum sifariş." } },
+        );
       confirmLink(db, p, order.po_number, user.id);
       return json(packageDetail(db, p, user.id));
     }),
@@ -52,9 +58,17 @@ export const reviewHandlers = (ctx: Ctx) => [
       expectVersion(field.pkg, b.expected_version);
       const reason = required(b.reason, "reason");
       if (reason.trim().length < 3)
-        throw new MockError("VALIDATION_ERROR", "Səbəb məcburidir.", 422, {
-          fields: { reason: "Ən azı 3 simvol." },
-        });
+        // shortcut: the mock asks for 3 characters, the API for 5 — en is the API's text
+        throw new MockError(
+          "VALIDATION_ERROR",
+          { az: "Səbəb məcburidir.", en: "The reason must be at least 5 characters." },
+          422,
+          {
+            fields: {
+              reason: { az: "Ən azı 3 simvol.", en: "The reason must be at least 5 characters." },
+            },
+          },
+        );
       correctField(db, field.pkg, field.path, required(b.value, "value"), reason, user.id);
       return json(packageDetail(db, field.pkg, user.id));
     }),
@@ -68,7 +82,11 @@ export const reviewHandlers = (ctx: Ctx) => [
       requireEditable(p);
       expectVersion(p, (await body(request)).expected_version);
       if (!p.delivery)
-        throw new MockError("VALIDATION_ERROR", "Paketdə təhvil sənədi yoxdur.", 422);
+        throw new MockError(
+          "VALIDATION_ERROR",
+          { az: "Paketdə təhvil sənədi yoxdur.", en: "The package has no delivery note." },
+          422,
+        );
       reviewSignature(db, p, user.id);
       return json(packageDetail(db, p, user.id));
     }),

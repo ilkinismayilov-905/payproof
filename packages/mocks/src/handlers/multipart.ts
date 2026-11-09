@@ -51,7 +51,7 @@ export function startJob(
   kind: "extract_document" | "create_package",
   p: Pkg | null,
   document_version_id?: string,
-  error?: { code: string; message: string },
+  error?: Job["error"],
 ) {
   const job: Job = {
     id: id.job(++db.seq.job),

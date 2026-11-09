@@ -6,6 +6,7 @@ import { id, type DocType } from "../ids";
 import type { MockDb } from "../store";
 import type { Pkg } from "../types";
 import {
+  badRequest,
   currentUser,
   expectVersion,
   idempotent,
@@ -58,7 +59,7 @@ export const documentHandlers = (ctx: Ctx) => [
           .catch(() => null)
       )?.get("type");
       if (type !== "invoice" && type !== "order" && type !== "delivery")
-        throw new MockError("VALIDATION_ERROR", "Sənəd növü yanlışdır.", 422, {
+        throw new MockError("VALIDATION_ERROR", badRequest("Sənəd növü yanlışdır."), 422, {
           fields: { type: "invoice | order | delivery" },
         });
       return upload(db, request, p, type, user.id);
