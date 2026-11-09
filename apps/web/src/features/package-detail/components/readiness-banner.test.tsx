@@ -59,7 +59,7 @@ test("APPROVED_READY: amount, approver and the 'not a payment' note", async () =
 
 test("EXPORTED: who exported and when", async () => {
   expect(await banner("EXPORTED")).toHaveTextContent(
-    /v\d+ paketi ixrac edilib.*PayProof-dan kənarda izlənir \(P1\)/,
+    /v\d+ paketi ixrac edilib.*Prefly-dan kənarda izlənir \(P1\)/,
   );
 });
 

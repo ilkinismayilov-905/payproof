@@ -37,7 +37,7 @@ test("approver: approve → ready to send; export → manifest; re-download crea
   const exp = page.getByRole("dialog", { name: "INV-1038: ixrac paketi" });
   const zip = page.waitForEvent("download");
   await exp.getByRole("button", { name: "İxrac et və manifesti yüklə" }).click();
-  expect((await zip).suggestedFilename()).toMatch(/^PayProof_INV-1038_v\d+\.zip$/);
+  expect((await zip).suggestedFilename()).toMatch(/^Prefly_INV-1038_v\d+\.zip$/);
   await expect(page.getByText(/INV-1038 v\d+ ixrac edildi\. Manifest yükləndi\./)).toBeVisible();
 
   const again = page.waitForEvent("download");

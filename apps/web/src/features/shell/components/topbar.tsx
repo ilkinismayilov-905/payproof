@@ -1,10 +1,11 @@
 "use client";
 
-import { shellText } from "@payproof/api-client/i18n";
-import { Menu, Search, ShieldCheck } from "lucide-react";
+import { loginText, shellText } from "@payproof/api-client/i18n";
+import { Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent, Ref } from "react";
+import { PreflyLogo } from "@/components/prefly-logo";
 import { NotificationBell } from "@/features/notifications";
 import { UserMenu } from "./user-menu";
 
@@ -46,10 +47,8 @@ export function Topbar({
         href="/overview"
         className="focus-visible:ring-ring flex shrink-0 items-center gap-2.5 rounded-md pointer-coarse:min-h-11 text-lg font-bold tracking-tight outline-none focus-visible:ring-2"
       >
-        <span className="bg-brand text-brand-foreground grid size-[30px] place-items-center rounded-[9px]">
-          <ShieldCheck aria-hidden className="size-[18px]" strokeWidth={2.4} />
-        </span>
-        <span className="max-md:sr-only">PayProof</span>
+        <PreflyLogo className="size-8" />
+        <span className="max-md:sr-only">{loginText.brand}</span>
       </Link>
       <span
         title={shellText.demoTagTitle}

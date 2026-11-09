@@ -40,7 +40,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging(settings.log_level)
-    app = FastAPI(title="PayProof API", version="0.1.0", lifespan=_lifespan)
+    app = FastAPI(title="Prefly API", version="0.1.0", lifespan=_lifespan)
     app.state.hub = Hub(settings.database_url)
     app.middleware("http")(body_limit_middleware)  # inner: still gets a correlation id
     app.middleware("http")(correlation_id_middleware)

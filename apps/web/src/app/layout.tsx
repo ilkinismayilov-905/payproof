@@ -3,7 +3,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "PayProof",
+  title: "Prefly",
+  applicationName: "Prefly",
   description: "Fakturanı sifariş və təhvil sənədləri ilə tutuşdurun",
 };
 

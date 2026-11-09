@@ -71,7 +71,7 @@ test("INV-1042 end to end: operator fixes every problem, approver approves and e
     .getByRole("dialog", { name: "INV-1042: ixrac paketi" })
     .getByRole("button", { name: "İxrac et və manifesti yüklə" })
     .click();
-  expect((await zip).suggestedFilename()).toMatch(/^PayProof_INV-1042_v\d+\.zip$/);
+  expect((await zip).suggestedFilename()).toMatch(/^Prefly_INV-1042_v\d+\.zip$/);
   await expect(status(page)).toContainText("İxrac edilib");
 
   // 6. (I-01) the audit log holds every step above (client-side navigation: mock data stays)

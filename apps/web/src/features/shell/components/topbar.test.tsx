@@ -25,7 +25,7 @@ test("an empty search opens the unfiltered list", async () => {
 test("brand, demo tag, menu button and the notifications slot", async () => {
   const onOpenNav = vi.fn();
   renderWithQuery(<Topbar onOpenNav={onOpenNav} />);
-  expect(screen.getByRole("link", { name: /PayProof/ })).toHaveAttribute("href", "/overview");
+  expect(screen.getByRole("link", { name: /Prefly/ })).toHaveAttribute("href", "/overview");
   expect(screen.getByText("Sintetik demo")).toHaveAttribute(
     "title",
     "Bütün məlumatlar sintetikdir",

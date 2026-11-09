@@ -24,7 +24,7 @@ export function useApprovalFlow(pkg: Pkg | undefined) {
   const download = useMutation({
     mutationFn: async (kind: "manifest" | "report") => {
       if (!pkg) return;
-      const name = `PayProof_${pkg.invoice_number}_v${pkg.version}`;
+      const name = `Prefly_${pkg.invoice_number}_v${pkg.version}`;
       if (kind === "report") {
         await saveFile(`${name}_daxili_hesabat.json`, await internalReport(pkg.id));
         return toast.success("Daxili yoxlama hesabatı yükləndi.");

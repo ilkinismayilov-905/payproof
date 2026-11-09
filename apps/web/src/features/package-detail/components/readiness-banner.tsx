@@ -66,7 +66,7 @@ function readiness(p: Pkg): { tone: Tone; icon: LucideIcon; title: string; body:
         tone: "neutral",
         icon: Download,
         title: `v${v} paketi ixrac edilib`,
-        body: `${e ? `${e.created_by.full_name} · ${formatDateTime(e.created_at)}. ` : ""}Göndərilmə və müştərinin qəbulu PayProof-dan kənarda izlənir (P1).`,
+        body: `${e ? `${e.created_by.full_name} · ${formatDateTime(e.created_at)}. ` : ""}Göndərilmə və müştərinin qəbulu Prefly-dan kənarda izlənir (P1).`,
       };
     }
   }
