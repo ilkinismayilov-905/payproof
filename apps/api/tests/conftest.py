@@ -21,6 +21,9 @@ from sqlalchemy.pool import NullPool
 
 from payproof.core.settings import get_settings
 
+# tests never reach the real Claude API, even with a key in the local .env (LLM tests: fake client)
+get_settings().ai_api_key = None
+
 ALEMBIC_INI = Path(__file__).parents[1] / "alembic.ini"
 
 

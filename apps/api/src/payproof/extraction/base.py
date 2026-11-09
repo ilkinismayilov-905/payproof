@@ -3,6 +3,7 @@ source checks — before anything is stored; the rules only ever see the stored 
 
 import datetime as dt
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Literal, Protocol
@@ -70,10 +71,12 @@ class ExtractionResult:
     delivery: DeliveryData | None = None
     evidence: tuple[Evidence, ...] = ()
     warnings: tuple[str, ...] = field(default=())
+    # audit metadata (llm: model, prompt version; "fallback": why the AI was not used)
+    meta: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def needs_review(self) -> bool:
-        return bool(self.invoice and self.invoice.unreadable)
+        return bool(self.invoice and self.invoice.unreadable) or "fallback" in self.meta
 
 
 @dataclass(frozen=True)
