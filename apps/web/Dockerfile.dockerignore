@@ -1,0 +1,17 @@
+# BuildKit uses this file instead of the root .dockerignore (that one is for the API image).
+# The build context is the repo root: send the workspace manifests, packages, fixtures and the web.
+**/node_modules
+**/.next
+**/.turbo
+**/test-results
+**/playwright-report
+**/public/mockServiceWorker.js
+.data
+.git
+.env
+.env.*
+**/.env.local
+apps/api
+apps/mobile
+docs
+graft

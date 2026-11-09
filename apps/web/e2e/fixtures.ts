@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { expect, test as base, type APIRequestContext, type Page } from "@playwright/test";
-import { API_ENV, API_URL, REAL } from "./stack";
+import { API_ENV, API_URL, REAL, STACK } from "./stack";
 
 // Expected API refusals (409 duplicate, 403 role, …) are part of the flows under test; Chrome logs
 // each such response. Anything else in the console — or an uncaught error — fails the test.
@@ -8,9 +8,16 @@ const EXPECTED = /Failed to load resource: the server responded with a status of
 
 export const test = base.extend<{ consoleGuard: void; freshData: void }>({
   // mock data starts fresh on every full load; the real database is reseeded before each test
+  // (the compose stack's through its dev-only reset endpoint: its database is not reachable here)
   freshData: [
-    async ({}, use) => {
-      if (REAL)
+    async ({ request }, use) => {
+      if (STACK) {
+        const token = await tokenFor(request, USERS.aygun);
+        const res = await request.post(`${API_URL}/v1/demo/reset`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok()) throw new Error(`e2e setup: demo reset → ${res.status()}`);
+      } else if (REAL)
         execFileSync("uv", ["run", "payproof-seed", "--reset"], {
           cwd: "../api",
           env: { ...process.env, ...API_ENV },

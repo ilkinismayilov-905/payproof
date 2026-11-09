@@ -279,6 +279,36 @@ jobs:
           path: apps/web/test-results
           retention-days: 7
 
+  # I-01: the compose stack exactly as `make demo` runs it (postgres, minio, api, worker, web images)
+  # and the same suite against it; Playwright starts nothing and resets through /v1/demo/reset
+  web-e2e-stack:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: make demo
+        run: make demo
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web e2e:stack
+      - if: failure()
+        run: docker compose logs --no-color > compose.log
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-stack
+          path: |
+            apps/web/test-results
+            compose.log
+          retention-days: 7
+
   mobile:
     needs: changes
     if: needs.changes.outputs.mobile == 'true'

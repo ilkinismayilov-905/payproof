@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { API_ENV, API_URL, REAL, WEB_PORT } from "./e2e/stack";
+import { API_ENV, API_URL, REAL, STACK, WEB_PORT } from "./e2e/stack";
 
 // CI and the real stack: a production build on its own port; locally the dev server (reused)
 const ci = !!process.env.CI;
@@ -48,5 +48,6 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
   ],
-  webServer: REAL ? [...api, web] : web,
+  // the compose stack is already running (`make demo`)
+  webServer: STACK ? undefined : REAL ? [...api, web] : web,
 });

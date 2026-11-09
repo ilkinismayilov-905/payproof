@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help setup up down logs psql migrate seed test lint typecheck dev-api dev-web dev-mobile
+.PHONY: help setup up demo down logs psql migrate seed test lint typecheck dev-api dev-web dev-mobile
 
 API := apps/api
 has_api := $(wildcard $(API)/pyproject.toml)
@@ -18,6 +18,14 @@ setup: ## Git hooks, toolchain check, install deps
 up: ## Start postgres + minio and create the bucket
 	docker compose up -d --wait postgres minio
 	docker compose run --rm minio-init
+
+demo: ## Whole stack in containers (api, worker, web :3000), migrated and seeded
+	@# MinIO runs as a non-root user: on Linux a bind-mount dir docker creates (root-owned) is read-only to it
+	mkdir -p .data/minio && chmod a+rwx .data/minio
+	docker compose up -d --build --wait postgres minio api worker web
+	docker compose exec api alembic upgrade head
+	docker compose exec api payproof-seed
+	@echo "✓ PayProof demo: http://localhost:$${WEB_PORT:-3000} · API http://localhost:$${API_PORT:-8000}/docs"
 
 down: ## Stop local infrastructure (data stays in .data/)
 	docker compose down

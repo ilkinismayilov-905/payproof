@@ -46,9 +46,9 @@ services:
     command: ["mb", "--ignore-existing", "local/${S3_BUCKET:-payproof-docs}"]
     restart: "no"
 
-  # API + worker (one image, two targets). `make up` still starts only postgres and minio;
-  # `docker compose up -d api worker` adds these. Web joins after W-18. The mobile app lives in
-  # its own repo and runs on :3001 against this API (ADR-0002 note).
+  # API + worker (one image, two targets) and the web. `make up` still starts only postgres and
+  # minio; `make demo` starts everything and seeds it. The mobile app lives in its own repo and
+  # runs on :3001 against this API (ADR-0002 note).
   api:
     build: { context: ., dockerfile: apps/api/Dockerfile, target: api }
     depends_on:
@@ -74,3 +74,16 @@ services:
     depends_on:
       api: { condition: service_healthy } # the api container runs the migrations
     environment: *api_env
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: web
+      args:
+        # baked into the bundle: the address the browser (not this container) calls
+        NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-8000}
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"

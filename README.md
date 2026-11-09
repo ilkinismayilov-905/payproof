@@ -25,6 +25,8 @@ PayProof B2B satış fakturasını müştərinin sifarişi və təhvil sənədi 
 - Postgres: `localhost:5432`, MinIO API: `localhost:9000`, konsol: http://localhost:9001 (giriş: `S3_ACCESS_KEY` / `S3_SECRET_KEY`).
 - Port məşğuldursa `.env`-də `POSTGRES_PORT`, `MINIO_PORT`, `MINIO_CONSOLE_PORT`-u dəyişin və `DATABASE_URL` / `S3_ENDPOINT_URL`-u uyğunlaşdırın.
 
+`make demo` bütün stack-i konteynerlərdə qaldırır (postgres, minio, api, worker, web), miqrasiya və seed edir: veb http://localhost:3000, API http://localhost:8000/docs. Mobil tətbiq ayrı repo-dadır və öz README-si ilə `:3001`-də bu API-yə qoşulur. Real stack-də e2e: `make demo`, sonra `pnpm --filter web e2e:stack`.
+
 ## Sənədlər
 - Məhsul: `docs/product/` (brif, prototip, komanda bələdçisi PDF)
 - Arxitektura: `docs/architecture/`
