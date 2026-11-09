@@ -1,6 +1,6 @@
 // Derive the initial audit trail and per-package state from fixtures — port of the prototype's reset().
-import { documentTypeLabel } from "@payproof/api-client/i18n";
 import { rulesFor } from "../engine";
+import { label } from "../i18n";
 import { info } from "../engine/status";
 import { MockDb, utc, type MockDbOptions } from "../store";
 import { log } from "./audit";
@@ -24,7 +24,7 @@ export function seed(db: MockDb): MockDb {
         log(db, {
           actor: v.uploaded_by,
           action: "document.uploaded",
-          message: `${documentTypeLabel[d.type]}: ${v.file_name} (sənəd v${v.version_no})`,
+          message: `${label.doc(d.type).az}: ${v.file_name} (sənəd v${v.version_no})`,
           pkg,
           objectType: "document_version",
           at: v.uploaded_at,

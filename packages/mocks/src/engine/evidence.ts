@@ -1,6 +1,7 @@
 // Source quotes for check evidence — port of the prototype's ev(). The serializer adds document version id + page.
-import { formatMoney, formatQuantity } from "@payproof/api-client/format";
+import { formatMoney as uiMoney, formatQuantity } from "@payproof/api-client/format";
 import products from "../../../../fixtures/products.json";
+import { inLocale } from "../i18n";
 import { cents, decimal, sumLines } from "../money";
 import type { MockDb } from "../store";
 import type { EnginePkg, Order } from "../types";
@@ -12,12 +13,14 @@ export interface Ev {
 }
 
 const PRODUCT = Object.fromEntries(products.map((p) => [p.code, p]));
+// server texts are az (`12.000,00 AZN`) or en-GB (`12,000.00 AZN`), whatever the UI's locale is
+const formatMoney = (amount: string, currency?: string) =>
+  inLocale("az", () => uiMoney(amount, currency));
 export const money = (c: number, currency?: string) => formatMoney(decimal(c), currency);
-export const qty = (n: number) => formatQuantity(String(n));
-// en-GB grouping (`12,000.00 AZN`, `12.5`) = the az text with `.` and `,` swapped (API format.py en=True)
-const swap = (s: string) => s.replace(/[.,]/g, (c) => (c === "." ? "," : "."));
-export const moneyEn = (c: number, currency?: string) => swap(money(c, currency));
-export const qtyEn = (n: number) => swap(qty(n));
+export const qty = (n: number) => inLocale("az", () => formatQuantity(String(n)));
+export const moneyEn = (c: number, currency?: string) =>
+  inLocale("en", () => uiMoney(decimal(c), currency));
+export const qtyEn = (n: number) => inLocale("en", () => formatQuantity(String(n)));
 const UNREAD = "oxunmur";
 /** Unit as read; a line without its own unit uses the product's. */
 export const unitOf = (l: { product_code: string; unit?: string | null }) =>
