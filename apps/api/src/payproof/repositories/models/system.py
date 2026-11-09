@@ -44,6 +44,7 @@ class Notification(TenantEntity, Base):
     user_id: Mapped[uuid.UUID] = mapped_column()
     package_id: Mapped[uuid.UUID | None] = mapped_column()
     text: Mapped[str] = mapped_column(Text)
+    text_en: Mapped[str | None] = mapped_column(Text)  # None: written before English existed
     read_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 

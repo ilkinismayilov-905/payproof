@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from payproof.core.i18n import Msg, tr
 from payproof.domain.enums import CheckOutcome, PackageStatus, TaskStatus
 from payproof.domain.money import Money as DomainMoney
 from payproof.domain.rules.catalog import CATEGORIES
@@ -49,7 +50,7 @@ async def build_dashboard(session: AsyncSession, *, now: dt.datetime) -> s.Dashb
         counts[st.status.value] += 1
     open_ = [st for st in states if st.status in _OPEN]
     rules: dict[str, list[int]] = {}
-    categories: dict[str, tuple[set[str], list[str]]] = {}
+    categories: dict[Msg, tuple[set[str], list[str]]] = {}
     for st in states:
         if st.status is PackageStatus.EXPORTED:
             continue
@@ -76,7 +77,7 @@ async def build_dashboard(session: AsyncSession, *, now: dt.datetime) -> s.Dashb
             st for st in states if st.status is PackageStatus.READY_FOR_APPROVAL
         ),
         top_issue=s.TopIssue(
-            category=top[0],
+            category=tr(top[0]),
             rule_ids=sorted(top[1][0]),
             package_count=len(top[1][1]),
             invoice_numbers=top[1][1],

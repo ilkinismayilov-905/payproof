@@ -56,6 +56,7 @@ def _current_run(p: Fixture) -> tuple[ValidationRun, list[CheckResult]]:
             outcome=c.outcome.value,
             cascade=c.cascade,
             message=c.message,
+            message_en=c.message_en,
             fix_hint=c.fix_hint.value if c.fix_hint else None,
             data=dict(c.data),
             evidence_ids=[],  # fixtures have no evidence refs
