@@ -6,7 +6,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, InvalidInput, NotFound, PackageNotReady
+from payproof.core.errors import Conflict, InvalidInput, NotFound, PackageNotReady, stale_package
+from payproof.core.i18n import Msg
 from payproof.repositories import package_reads as reads
 from payproof.repositories.models import InvoicePackage, Order
 from payproof.services import matching
@@ -14,7 +15,7 @@ from payproof.services.audit import record
 from payproof.services.validation import revalidate
 from payproof.services.versioning import bump
 
-REASON = "sifariş əlaqəsi dəyişdi"
+REASON = Msg("sifariş əlaqəsi dəyişdi", "the order link changed")
 
 
 async def locked_package(session: AsyncSession, package_id: uuid.UUID) -> InvoicePackage:
@@ -65,13 +66,17 @@ async def confirm_link(
         raise PackageNotReady(details={"status": "PROCESSING"})
     if expected_version != pkg.version:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {"current_version": pkg.version, "expected_version": expected_version},
         )
     order = await session.scalar(select(Order).where(Order.id == order_id))
     if order is None or order.customer_id != pkg.customer_id:
         raise InvalidInput(
-            "Bu sifariş paketin müştərisinə aid deyil.", {"fields": {"order_id": "naməlum"}}
+            Msg(
+                "Bu sifariş paketin müştərisinə aid deyil.",
+                "This order does not belong to the package's customer.",
+            ),
+            {"fields": {"order_id": "naməlum"}},
         )
     pkg.order_id, pkg.link_method, pkg.link_confirmed_by = order.id, "human", actor_id
     await bump(session, pkg, REASON)

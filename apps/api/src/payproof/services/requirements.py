@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payproof.core.errors import Conflict, InvalidInput, NotFound
+from payproof.core.i18n import Msg
 from payproof.repositories.models import Customer, ExportRecord, InvoicePackage, RequirementSet
 from payproof.services.audit import record
 from payproof.services.validation import revalidate
@@ -58,11 +59,17 @@ async def create_rule_set(
     version = current.version if current else 0
     if new.expected_version != version:
         raise Conflict(
-            f"Qayda dəsti v{version}-ə yenilənib; səhifəni yeniləyin.",
+            Msg(
+                f"Qayda dəsti v{version}-ə yenilənib; səhifəni yeniləyin.",
+                f"The rule set has been updated to v{version}; refresh the page.",
+            ),
             {"current_version": version, "expected_version": new.expected_version},
         )
     if current and _same(current, new):
-        raise InvalidInput("Qaydalarda dəyişiklik yoxdur.", {"fields": {"rules": "dəyişməyib"}})
+        raise InvalidInput(
+            Msg("Qaydalarda dəyişiklik yoxdur.", "The rules have not changed."),
+            {"fields": {"rules": "dəyişməyib"}},
+        )
     rs = RequirementSet(
         company_id=customer.company_id, customer_id=customer.id, version=version + 1,
         require_po=new.require_po, require_delivery=new.require_delivery,
@@ -91,7 +98,10 @@ async def create_rule_set(
         .with_for_update()
     )
     for pkg in packages.all():
-        await bump(session, pkg, f"qayda dəsti v{rs.version} qüvvəyə mindi")
+        why = Msg(
+            f"qayda dəsti v{rs.version} qüvvəyə mindi", f"rule set v{rs.version} came into force"
+        )
+        await bump(session, pkg, why)
         await revalidate(session, pkg)
     await session.commit()
     return rs

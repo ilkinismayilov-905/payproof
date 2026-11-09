@@ -10,7 +10,8 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payproof.core.errors import Conflict, ErrorCode, NotFound, PackageNotReady
+from payproof.core.errors import Conflict, ErrorCode, NotFound, PackageNotReady, stale_package
+from payproof.core.i18n import Msg, tr
 from payproof.core.ids import uuid7
 from payproof.repositories.models import Document, DocumentVersion, InvoicePackage
 from payproof.services import files, idempotency
@@ -20,10 +21,13 @@ from payproof.storage.s3 import Storage
 from payproof.worker.queue import PostgresQueue
 
 LABEL = {"invoice": "Faktura", "order": "Sifariş", "delivery": "Təhvil sənədi"}
+LABEL_EN = {"invoice": "Invoice", "order": "Order", "delivery": "Delivery note"}
 REASON = {  # why the package version went up (approval invalidation text)
-    "invoice": "fakturanın yeni versiyası yükləndi",
-    "order": "sifarişin yeni versiyası yükləndi",
-    "delivery": "təhvil sənədinin yeni versiyası yükləndi",
+    "invoice": Msg("fakturanın yeni versiyası yükləndi", "a new invoice version was uploaded"),
+    "order": Msg("sifarişin yeni versiyası yükləndi", "a new order version was uploaded"),
+    "delivery": Msg(
+        "təhvil sənədinin yeni versiyası yükləndi", "a new delivery note version was uploaded"
+    ),
 }
 
 
@@ -93,7 +97,13 @@ async def _reject_duplicate(
     )
     error = {
         "code": ErrorCode.DUPLICATE_FILE.value,
-        "message": f"{name}: {of} ilə eyni fayldır — yeni versiya yaradılmadı.",
+        "message": tr(
+            Msg(
+                f"{name}: {of} ilə eyni fayldır — yeni versiya yaradılmadı.",
+                f"{name}: the same file as {LABEL_EN[same_type]} v{same.version_no} — "
+                "no new version was created.",
+            )
+        ),
         "details": {"document_version_id": str(same.id), "version_no": same.version_no},
     }
     return Outcome(409, {"error": error})
@@ -126,7 +136,7 @@ async def upload(
         raise PackageNotReady(details={"status": "PROCESSING"})
     if up.expected_version != pkg.version:
         raise Conflict(
-            f"Paket v{pkg.version}-ə yenilənib; səhifəni yeniləyin.",
+            stale_package(pkg.version),
             {"current_version": pkg.version, "expected_version": up.expected_version},
         )
     if dup := await _duplicate(session, pkg, info.sha256):

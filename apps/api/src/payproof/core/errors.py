@@ -11,6 +11,7 @@ from payproof.core.i18n import Msg, tr
 
 BAD_REQUEST = Msg("Sorğu yanlışdır.", "The request is invalid.")
 
+
 class ErrorCode(StrEnum):
     """Mirror of `ErrorCode` in packages/contracts/openapi.yaml (checked by a test)."""
 
